@@ -1,0 +1,24 @@
+{
+  "name": "@settlekit/gateway",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "node --env-file-if-exists=../../.env node_modules/next/dist/bin/next dev --hostname 127.0.0.1 --port 3000",
+    "build": "next build",
+    "start": "node --env-file-if-exists=../../.env node_modules/next/dist/bin/next start --hostname 127.0.0.1 --port 3000"
+  },
+  "dependencies": {
+    "@settlekit/core": "workspace:*",
+    "@settlekit/db": "workspace:*",
+    "@tanstack/react-query": "5.106.1",
+    "lucide-react": "1.69.0",
+    "next": "16.4.5",
+    "react": "19.3.1",
+    "react-dom": "19.3.1",
+    "server-only": "0.0.1",
+    "viem": "2.57.16",
+    "wagmi": "3.7.11",
+    "zod": "4.6.7"
+  },
+  "devDependencies": { "@tailwindcss/postcss": "4.3.4", "tailwindcss": "4.3.4" }
+}

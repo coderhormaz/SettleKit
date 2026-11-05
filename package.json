@@ -1,0 +1,35 @@
+{
+  "name": "settlekit",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "packageManager": "pnpm@11.25.0",
+  "engines": { "node": "^22.13.0 || ^24.0.0 || ^26.0.0" },
+  "scripts": {
+    "dev": "pnpm --filter @settlekit/gateway dev",
+    "build": "pnpm --filter @settlekit/gateway build",
+    "start": "pnpm --filter @settlekit/gateway start",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:unit": "vitest run --exclude '**/*.integration.test.ts'",
+    "test:db": "vitest run packages/db/test",
+    "test:browser": "playwright test",
+    "db:generate": "drizzle-kit generate --config packages/db/drizzle.config.ts",
+    "db:migrate": "tsx --env-file=.env packages/db/src/migrate.ts",
+    "screening:import": "tsx --env-file=.env packages/worker/src/import-screening.ts",
+    "worker": "tsx --env-file=.env packages/worker/src/run.ts",
+    "check:imports": "tsx scripts/check-imports.ts"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.65.0",
+    "@types/node": "26.6.6",
+    "@types/pg": "8.23.1",
+    "@types/react": "19.3.0",
+    "@types/react-dom": "19.3.0",
+    "drizzle-kit": "0.31.11",
+    "dotenv": "17.2.3",
+    "tsx": "4.23.15",
+    "typescript": "7.0.2",
+    "vitest": "5.1.0"
+  }
+}

@@ -1,0 +1,7 @@
+staging-settings:
+  user-workflow:
+    workflow-name: "settlekit-phase1-http-route-proof"
+  workflow-artifacts:
+    workflow-path: "./main.ts"
+    config-path: "./config.staging.json"
+    secrets-path: ""

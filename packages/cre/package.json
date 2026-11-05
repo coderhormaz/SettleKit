@@ -1,0 +1,14 @@
+{
+  "name": "@settlekit/cre",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "diagnostic-api": "tsx scripts/diagnostic-api.ts"
+  },
+  "dependencies": {
+    "@chainlink/cre-sdk": "1.23.0",
+    "viem": "2.57.16",
+    "zod": "4.6.7"
+  }
+}

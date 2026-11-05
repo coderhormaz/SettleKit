@@ -1,0 +1,6 @@
+{
+  "name": "@settlekit/worker",
+  "private": true,
+  "type": "module",
+  "dependencies": { "@settlekit/core": "workspace:*", "@settlekit/db": "workspace:*", "@settlekit/screening": "workspace:*" }
+}

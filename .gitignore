@@ -1,0 +1,39 @@
+# Dependencies and generated application output
+node_modules/
+.next/
+dist/
+out/
+coverage/
+.turbo/
+playwright-report/
+test-results/
+
+# Local credentials; examples stay reviewable
+.env
+.env.*
+!.env.example
+!**/.env.example
+*.pem
+*.key
+
+# Local operational state
+data/
+*.db
+*.db-shm
+*.db-wal
+*.sqlite
+*.sqlite3
+*.sqlite-shm
+*.sqlite-wal
+
+# Generated contract outputs
+packages/contracts/artifacts/
+packages/contracts/cache/
+
+# Raw logs are private by default; sanitized submission evidence is explicit
+*.log
+!docs/evidence/**/*.log
+
+# OS/editor noise
+.DS_Store
+Thumbs.db

@@ -2,11 +2,12 @@
 
 Screened USDT checkout on Whitechain, same-chain refunds, a premium merchant dashboard, independently verifiable accounting records, and recovery of missed payment notifications.
 
-**Status:** specification and handoff prepared; implementation has not started. No live gateway, deployed contract or payment-processing claim is made by this README.
+**Status:** specification and six-phase build plan prepared; all implementation phases are pending. Implementation starts only when the user instructs a phase. No live gateway, deployed contract or payment-processing claim is made by this README.
 
 ## Start here
 
-- [Project handoff and implementation plan](PROJECT_HANDOFF.md): product decisions, sponsor requirements/resources, current technology candidates, architecture, security, dashboard inventory, tests and demo.
+- [Six-phase implementation plan](IMPLEMENTATION_PLAN.md): recommended stack, ordered work, prerequisites, exit checks and checkpoints. Wallet-signature login; local-first development; hosting deferred.
+- [Detailed project handoff](PROJECT_HANDOFF.md): product decisions, sponsor requirements/resources, current technology candidates, architecture, security, dashboard inventory, tests and demo.
 - [Persistent project memory](MEMORY.md): accepted decisions and user preferences for new chats.
 - [Current progress](PROGRESS.md): completed work, unverified gates and next actions.
 - [Agent instructions](AGENTS.md): scope and build/checkpoint rules.
@@ -36,4 +37,4 @@ Screening enforces configured checks; it cannot guarantee all funds are lawful o
 
 Preserve existing history and push each coherent, appropriately tested milestone to this repository throughout the build. Do not accumulate the entire project into a single final commit. Keep project memory, validation results and real evidence current. Never commit secrets or fabricate progress.
 
-The full handoff includes a ready-to-paste prompt for the next implementation chat.
+Read the plan, then say **“Start Phase 1”** to begin. Each later phase starts on its own instruction. The full handoff includes a prompt for an implementation chat.

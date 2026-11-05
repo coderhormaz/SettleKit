@@ -2,9 +2,9 @@
 
 Updated: 6 November 2026, Asia/Kolkata (IST). Working name: **SettleKit**; name availability has not been checked.
 
-This is the project specification for a new implementation chat. Read this file with `AGENTS.md`, `MEMORY.md` and `PROGRESS.md` before coding. The user approved the direction below and requested a written handoff, persistent project memory and a push to [coderhormaz/SettleKit](https://github.com/coderhormaz/SettleKit/). **No application, contract, CRE workflow, deployment, or testnet payment has been built yet.**
+This is the detailed project specification. Read this file with `AGENTS.md`, `MEMORY.md`, `PROGRESS.md` and `IMPLEMENTATION_PLAN.md` before coding. The user approved the direction below and requested persistent memory, GitHub checkpoints and a complete six-phase plan before implementation. **No application, contract, CRE workflow, deployment, or testnet payment has been built yet.** Start only a phase the user instructs; do not automatically begin coding from this handoff.
 
-Quick reading order: [fixed decisions](#1-fixed-decisions-preserve-these), [sponsor gates](#3-sponsor-tracks-and-eligibility), [verified facts](#6-verified-network-facts-and-current-unknowns), [CRE design](#12-cre-recovery-workflow), [implementation phases](#14-repository-configuration-and-implementation-order), and [current status/start prompt](#17-current-status-and-next-chat-startup). Other sections supply the implementation detail and official resource catalog.
+Quick reading order: [six-phase execution plan](IMPLEMENTATION_PLAN.md), [fixed decisions](#1-fixed-decisions-preserve-these), [sponsor gates](#3-sponsor-tracks-and-eligibility), [verified facts](#6-verified-network-facts-and-current-unknowns), [CRE design](#12-cre-recovery-workflow), [implementation order](#14-repository-configuration-and-implementation-order), and [current status/start prompt](#17-current-status-and-next-chat-startup). Other sections supply the implementation detail and official resource catalog.
 
 ## 1. Fixed decisions: preserve these
 
@@ -21,6 +21,7 @@ Quick reading order: [fixed decisions](#1-fixed-decisions-preserve-these), [spon
 - **Arc and ENS were considered and rejected for this MVP.** Do not reintroduce Arc settlement, crosschain refunds, bridging, ENS names, ENS permissions, or another chain for payments without a new user request.
 - Do not add swaps, a project token, NFTs, yield, lending, payroll, escrow, subscriptions, or fiat conversion to the core build.
 - Preserve the authorized GitHub repository's existing history and commit/push coherent tested milestones throughout development; do not save the project for a single final upload.
+- Latest confirmed preferences: wallet-signature merchant login; run locally first and decide hosting later; complete all six phases even if work continues beyond the published event deadline. Wait for a phase-start instruction, complete that phase and report before starting another.
 
 Changing libraries or internal file layout is an implementation choice. Changing the sponsors, payment network, token, refund destination policy, or simple merchant journey changes the agreed product.
 
@@ -234,6 +235,8 @@ Version provenance: `https://registry.npmjs.org/<package>/latest` (URL-encode sc
 
 Environment observed in this workspace: Windows/PowerShell, Node `22.14.0`, npm, pnpm, Git and ripgrep available; Bun, CRE and Foundry were not found on PATH. Do not upgrade the user's global runtime unnecessarily. Existing Node may suffice after checking actual engine requirements. If a fresh major breaks a sponsor SDK, choose the newest compatible stable release and record why.
 
+The six-phase planning pass rechecked Node `22.14.0`, pnpm `11.25.0`, the package candidates and both RPC IDs/USDT decimals. Bun, CRE, Docker and psql were not found on PATH. The confirmed local-first stack and wallet-signature authentication are in `IMPLEMENTATION_PLAN.md`; exact installed compatibility remains unproven. Hosting is deferred rather than a prerequisite for local completion.
+
 Prefer one pnpm workspace. Keep the CRE package's Bun-specific build instructions separate from the application's Node runtime. Start from the sponsor's current Next/Hardhat templates where they save work; do not import their sample application as our product. Use a persistent Node service and SQLite for a local/reproducible MVP. Do not deploy local SQLite onto ephemeral serverless storage. A hosted database is a later, explicit deployment decision; Arkiv is not a replacement for private transactional state.
 
 ## 8. System design and user flows
@@ -262,7 +265,7 @@ The CRE-to-chain arrow means a proposed read through HTTP JSON-RPC, subject to t
 
 ### Customer and merchant journey
 
-1. Merchant establishes a secure session, configures its settlement wallet and approved website/webhook endpoints, and receives an API key. A wallet proof can be reused during onboarding; no ENS registration or additional payment network.
+1. Merchant establishes a secure wallet-signature session, proves ownership of its settlement wallet, configures approved website/webhook endpoints, and receives an API key. No ENS registration or additional payment network.
 2. The merchant backend creates a checkout using a server-authoritative price, a private store order reference, and an idempotency key.
 3. Customer opens the hosted session, connects an EVM wallet, and switches to Whitechain if necessary. Present the USDT amount, payee and any required approval clearly.
 4. After the payer is known, the backend screens payer and merchant under the mandatory policy. Only an allowed result produces a short-lived, payer-bound authorization; blocked/review/unavailable results cannot initiate payment. The customer approves only the necessary token amount and calls the router, which enforces the authorization, current policy epoch and hard-denial controls.
@@ -349,6 +352,8 @@ The logical refund operation must require the original merchant's transaction au
 
 Direct-settlement refunds are new, merchant-funded transfers; there is no clawback. The merchant needs sufficient USDT balance and allowance. Do not let the API, a support agent, CRE, or an AI model move merchant funds by itself. Do not redirect a refund to a newly entered wallet.
 
+Before issuing an executable refund payload, atomically persist its nonterminal intent, advance eligibility state/version and hold new fulfillment/recovery. Do not wait for onchain refund confirmation to establish this hold. Release a failed/expired/cancelled intent's hold only after current chain state and outstanding authorization validity are revalidated. Test pending-refund races with delivery/recovery, and record already-in-progress cross-system conflicts for review instead of claiming distributed atomicity.
+
 If the original payer becomes hard-blocked or required evidence is unavailable, pause the refund intent for review and do not produce an executable refund authorization. Never automatically send allegedly blocked property back as a supposed compliance remedy. Original destination and onchain monetary history remain unchanged; handling an actual legal restriction requires the applicable process described in section 13.
 
 Record deployed addresses, constructor parameters, compiler version, optimizer/EVM settings, deployment transaction and explorer verification links in `deployments/whitechain-sepolia.json`. Reuse the ABI across the observer, browser, CRE decoder and verifier. Test gateway quote-signer rotation only if implemented; explain any administrator power. A signer cannot be treated as decentralized merely because its decisions are recorded onchain.
@@ -398,7 +403,7 @@ The order-read response contains only an opaque reference, expected USDT base-un
 - Scope idempotency keys to the authenticated merchant and operation; store the request digest and result durably. Reusing a key with different parameters returns a conflict.
 - Namespace orders by merchant. Bind all API lookups to the authenticated tenant; a body-supplied merchant ID does not authorize access.
 - Hash high-entropy API keys for lookup and display their secret once. Keep merchant dashboard sessions in secure, HttpOnly cookies with appropriate origin/CSRF protection.
-- For wallet-based sign-in, use a maintained challenge/signature verification implementation with domain, nonce and expiry checks. No ENS dependency is needed.
+- Wallet-signature sign-in is the confirmed choice. Use a maintained challenge/signature verification implementation with domain, nonce and expiry checks. No ENS dependency is needed.
 
 ### Webhook protocol
 
@@ -478,6 +483,7 @@ Proposed sequence:
 | --- | --- |
 | Accepted, current screening allowed, zero refunds, order pending, transient/exhausted delivery | Revalidate and recover the current event within retry/recovery budgets |
 | Order already fulfilled | No new fulfillment; reconcile acknowledgment/audit only |
+| Nonterminal refund intent | Hold new fulfillment/recovery before a refund executes; release only after current state and authorization validity are revalidated |
 | Full refund, cancelled/void order, orphaned or insufficiently confirmed payment | Never issue a fulfillment action; synchronize current informational status or open review |
 | Partial refund | Pause automatic new fulfillment by default; reconcile current refund/order state and require the explicit supported business policy before any remaining fulfillment |
 | Blocked/review/unavailable required screening | No fulfillment or executable refund; create/update review status with evidence |
@@ -558,6 +564,7 @@ AGENTS.md
 PROJECT_HANDOFF.md
 MEMORY.md
 PROGRESS.md
+IMPLEMENTATION_PLAN.md
 README.md
 AI_USAGE.md
 LICENSE
@@ -622,51 +629,22 @@ Commit a coherent tested feature or documentation milestone as it is completed, 
 
 Update `PROGRESS.md` with validation, real evidence, blockers and the next step; update `MEMORY.md` when decisions change. Review explicit staged files and secret exclusions. If push fails, preserve the local commit, record the exact pending hash/error, continue independent work, and retry when access is restored. The current work's commit cannot contain its own final hash; use an independently verifiable later checkpoint or `git log` for its identity rather than inventing one.
 
-### Phase 0: feasibility, mandatory screening and evidence
+### Current execution schedule: six phases
 
-- Inspect existing code and Git state; preserve user changes. Initialize appropriate version control for new work and retain starter attribution.
-- Re-read current rules and official SDK examples. Check actual date/time against the deadline; reserve time for recording and submission.
-- Verify dependency engine/peer support and perform a tiny import/build spike; save selected exact versions in `docs/versions.md` and the lockfile.
-- Verify Whitechain ID/token metadata; obtain test WBT and specified USDT for separate payer, merchant and deployer wallets.
-- Inspect actual USDT behavior. Do not assume permit/EIP-3009; plain approval plus transfer is the baseline.
-- Prove current source ingestion/direct-list screening, freshness/outage behavior and the private decision model. Verify provider coverage before enabling any extra analytics. No payable checkout may bypass required screening.
-- Set up a test-funded Arkiv writer; create one real entity, query it back and save the key and query.
-- Install/verify current CRE and Bun tooling through official instructions, use the user's account login if required, and prove the HTTP/RPC + merchant API simulation.
-- Record unresolved access/eligibility questions immediately. Ask only for missing external account actions or secrets that cannot be obtained safely; continue independent implementation.
+The user requested exactly six phases and explicit phase-by-phase starts. [IMPLEMENTATION_PLAN.md](IMPLEMENTATION_PLAN.md) is now the authoritative execution schedule and replaces the former Phase 0–4 numbering. Detailed requirements in this handoff remain applicable.
 
-### Phase 1: verified payment lifecycle
+| Phase | Complete outcome |
+| --- | --- |
+| 1 — Foundation and feasibility | Compatible pinned workspace, durable local private state, wallet login/onboarding, screening-source/freshness proof, actual Arkiv write/read, real CRE HTTP/RPC route proof and design system |
+| 2 — Screened payment and fulfillment | Tested non-upgradeable router including refund primitives, verified deployment, hosted checkout, canonical observer/outbox, verified webhook/store adapter and real specified-USDT payment fulfilling one eligible order |
+| 3 — Merchant operations dashboard | Complete persisted payments/overview, links, invoices, contacts, keys, webhooks, reports, risk, settings and audit flows; accurate UI states and tenant isolation |
+| 4 — Refunds and independent accounting | Merchant-authorized screened refunds through the existing router, actual Arkiv payment/refund records, independently served accountant, coverage reconciliation and correct 25/5/20 totals/CSV |
+| 5 — CRE recovery | Actual CRE chain/order/current-state reconciliation, authenticated bounded recovery, injected delivery failure and duplicate-run safety evidence |
+| 6 — Verified local release and evidence | Integrated security/money/recovery/browser checks, clean setup, examples, honest sponsor materials, reproducible demo and release configuration |
 
-- Implement/test the router, deploy it with the specified token, verify its source and record the deployment.
-- Implement private state, merchant setup/session, checkout creation/authorization and actual wallet payment.
-- Implement the mandatory screening gate, execution-time policy controls and dashboard's blocked/review/unavailable states before enabling payment.
-- Persist chain observations, payment state and outbox atomically. Implement the separate store's verified webhook and idempotent fulfillment.
-- Acceptance: a real specified-USDT payment on Whitechain changes one external order to paid under the documented confirmation policy.
+Each phase includes its own meaningful tests, working UI and evidence. The non-upgradeable router's payment and refund primitives must both be tested before Phase 2 deployment; Phase 4 adds the refund application flow rather than modifying a deployed contract. Do not defer security or all design work to Phase 6.
 
-### Phase 2: refunds and accounting
-
-- Implement merchant-signed partial/full refunds with refund idempotency, caps and the original payer destination.
-- Add fresh refund screening and reviewed/blocked states; handle flagged-after-settlement cases without auto-returning funds.
-- Synchronize verified payment/refund evidence to Arkiv with retry/deduplication.
-- Implement the independent accountant reader and CSV export.
-- Acceptance: 25 USDT paid, 5 refunded, 20 net; chain evidence and independent totals agree.
-
-### Phase 3: CRE recovery
-
-- Expand the proven workflow into stale-order reconciliation and authenticated recovery.
-- Add the explicit demo failure injector and show recovery triggered by CRE.
-- Re-run recovery and duplicate notifications to prove a single business effect.
-- Acceptance: authentic workflow execution reads Whitechain and merchant data and restores the order without another payment.
-
-### Phase 4: polish and submission
-
-- Complete browser/accessibility/error-path checks and the separate JS/Python integration examples.
-- Complete payment-link, invoice, customer, developer/key, webhook, report, settings, audit and risk-review pages from section 8 with real persistence/actions. Apply the premium visual specification and verify every visible control.
-- Fill required sponsor docs with actual evidence and feedback, not templates left empty.
-- Record the narrated 2–4 minute demo, prepare screenshots/diagram and verify public repo/setup instructions.
-- Use remaining time for real merchant testing. AI explanations, deeper provider analytics and Swarm remain extensions after the mandatory direct-list/freshness/enforcement baseline and all required flows work.
-- Submit to the intended partner tracks and finalist category if eligible. Record actual submission links.
-
-This order is a relative plan, not a promise of a full weekend remaining. Cut optional features before weakening payment correctness or misrepresenting a sponsor integration.
+Current instruction is **planning only**. Wait for “Start Phase 1,” complete/report that phase and wait for the next instruction. Continue independent in-phase work when external access is pending, but leave affected gates explicitly incomplete. Hosting is deferred and all six phases are to be completed even beyond the published deadline. Late completion must not be represented as a timely submission. Publication/submission and production deployment require their applicable user instructions.
 
 ## 15. Verification and completion gates
 
@@ -739,6 +717,7 @@ Create an evidence index linking each sponsor requirement to implementation file
 - [x] Persistent `MEMORY.md` / `PROGRESS.md`, README navigation and incremental GitHub instructions added.
 - [x] Existing GitHub history fetched and preserved; `main` tracks the authorized remote. See `PROGRESS.md` for push evidence.
 - [x] Reviewed documentation baseline committed, pushed and independently verified on GitHub; current build status and checkpoint are in `PROGRESS.md`.
+- [x] Subsequent planning chat produced `IMPLEMENTATION_PLAN.md`, exactly six phases with recommended stack, dependencies, tests, exit gates and checkpoints. Confirmed wallet login, local-first hosting deferral and full-scope completion beyond the deadline; all implementation phases are still pending.
 
 ### Implementation not started
 
@@ -755,10 +734,10 @@ No real keys, balances, payment transaction hashes, deployed addresses, entity k
 
 ### First actions for the implementing agent
 
-Read this file and `AGENTS.md`, inspect the current tree/Git state, check current date/deadline and official docs, then execute Phase 0. Give the user a short implementation update and start concrete work rather than proposing alternative products. Preserve these decisions unless the user changes them. Record validated choices, blockers, files changed, commands run, evidence locations and the next unfinished task in this status section as implementation progresses.
+Wait for the user's phase-start instruction. When instructed, read this file, `AGENTS.md`, `MEMORY.md`, `PROGRESS.md` and `IMPLEMENTATION_PLAN.md`, inspect the current tree/Git state and relevant current official docs, then execute the requested phase and verify its prerequisite gates. Preserve the accepted product, record evidence/blockers and commit/push coherent milestones. Report completion or precise remaining gates and wait before the next phase. Do not treat this handoff as permission to start application implementation automatically.
 
 ### Prompt the user can paste into a new chat
 
 ```text
-Read AGENTS.md, MEMORY.md, PROGRESS.md and PROJECT_HANDOFF.md before coding. Build the agreed SettleKit gateway: mandatory wallet screening, Whitechain Sepolia USDT checkout and same-chain refunds to the original payer, a premium fully working merchant dashboard, Arkiv receipts/accountant view, and actual Chainlink CRE failed-notification recovery. Keep website integration minimal; count the order-read/webhook adapter honestly. Arc/ENS are excluded and AI remains optional. Start with Phase 0: current SDK compatibility, source/freshness/enforcement checks and the CRE HTTP/Whitechain-RPC proof. Use compatible current stable technology and preserve real testnet/simulation evidence. Inspect existing work first, implement complete flows, update project memory/progress, and commit/push each coherent tested milestone to https://github.com/coderhormaz/SettleKit.git. Do not leave all work for one final commit. Ask only for external account actions or decisions you cannot resolve independently.
+Start Phase 1 from IMPLEMENTATION_PLAN.md. First read AGENTS.md, MEMORY.md, PROGRESS.md and PROJECT_HANDOFF.md. Preserve the agreed SettleKit gateway: mandatory wallet screening, Whitechain Sepolia sponsor-USDT checkout and same-chain refunds to the original payer, premium working merchant dashboard, real Arkiv receipts/accountant and actual CRE failed-notification recovery. Merchant login uses wallet signatures; run locally first and defer hosting. Complete the six-phase scope even beyond the event deadline, without claiming late work was submitted on time. Execute only Phase 1's foundation and feasibility work now, including actual toolchain checks, private-state/screening tests, real Arkiv write/read and CRE HTTP/Whitechain-RPC route proof. Arc/ENS are excluded; AI is optional. Preserve real evidence, update memory/progress and commit/push coherent verified milestones to https://github.com/coderhormaz/SettleKit.git. Report Phase 1's result and wait for my instruction before Phase 2. Record exact external-access blockers and continue independent in-phase work.
 ```

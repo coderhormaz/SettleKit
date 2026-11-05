@@ -2,11 +2,20 @@
 
 Updated: 6 November 2026 (IST). Repository: [coderhormaz/SettleKit](https://github.com/coderhormaz/SettleKit/).
 
-Read this file, `PROGRESS.md`, `AGENTS.md` and `PROJECT_HANDOFF.md` at the start of each implementation chat. This is repository-owned memory, not a claim that a separate app-wide memory service was updated. Latest user instructions take precedence; keep these documents consistent.
+Read this file, `PROGRESS.md`, `AGENTS.md`, `PROJECT_HANDOFF.md` and `IMPLEMENTATION_PLAN.md` at the start of each implementation chat. This is repository-owned memory, not a claim that a separate app-wide memory service was updated. Latest user instructions take precedence; keep these documents consistent.
 
 ## Accepted user intent
 
-Build an easy-to-integrate stablecoin payment gateway with a premium, fully functional merchant dashboard. The user approved **Whitechain + Arkiv + Chainlink** and then explicitly required security screening, same-chain refunds, polished UI/UX and frequent GitHub checkpoints. The current chat's deliverable is the finalized documentation/memory and a push to the specified repository; implementation begins in the new chat unless the user changes that instruction.
+Build an easy-to-integrate stablecoin payment gateway with a premium, fully functional merchant dashboard. The user approved **Whitechain + Arkiv + Chainlink** and then explicitly required security screening, same-chain refunds, polished UI/UX and frequent GitHub checkpoints. The latest deliverable is a complete six-phase implementation plan and technology recommendation. **Do not start application implementation until the user says to start a phase.** Complete and report that phase, then wait for the next phase instruction.
+
+## Latest planning decisions
+
+- The execution plan is `IMPLEMENTATION_PLAN.md`, Phases **1–6**: foundation/feasibility; screened payment/store fulfillment; complete merchant operations dashboard; refunds/Arkiv/accounting; CRE recovery; final verification/release/evidence. This replaces the old Phase 0–4 numbering.
+- Merchant authentication: wallet-signature login with ownership proof and durable secure sessions.
+- Run locally first. Use private SQLite/Drizzle with persistent Node gateway/worker processes; hosting and any cloud migration are later decisions. No cloud provisioning or paid service is required for local completion.
+- Complete all six phases even beyond the published event deadline; do not imply late work constitutes a timely entry.
+- Exact dependency pins remain untested until Phase 1. The non-upgradeable router must include tested payment and refund primitives before its initial deployment; Phase 4 adds the refund service/UI and live refund evidence.
+- Current stage remains planning only. The next action is to wait for **“Start Phase 1”**, then execute its prerequisite checks and foundation work.
 
 ## Non-negotiable product decisions
 
@@ -35,6 +44,7 @@ Infrastructure credentials, CRE, Arkiv writes, denylist synchronization and prov
 - Settled money is held by the merchant, not the gateway. A later flag holds further business actions; do not claim the gateway freezes the wallet or automatically returns blocked property.
 - The old Chainalysis Sanctions Oracle is deprecated according to its current official documentation. Use maintained sources/providers and verify coverage; do not copy stale oracle examples.
 - Reconcile current screening, confirmation, refund and order states. Never fulfill a fully refunded/cancelled/blocked order from an old acceptance event. Partial refunds default to review before any new fulfillment.
+- A nonterminal refund intent immediately advances eligibility state and holds new fulfillment/recovery before an executable refund payload is issued. Releasing the hold requires current chain/authorization revalidation; record already-in-progress cross-system conflicts for review.
 - Webhooks are at-least-once; business fulfillment is idempotent by payment/order association. Apply state versions, retry budgets and corrective events for reorgs.
 
 ## Dashboard and design requirements
@@ -45,7 +55,7 @@ Premium direction: refined graphite/mint crypto-fintech dashboard, strong readab
 
 ## Engineering and evidence
 
-Use current compatible stable releases, pinned after compatibility checks. Handoff section 7 records researched candidates; these are not installed/tested versions. Current machine had Node 22.14.0 and Git/npm/pnpm/ripgrep; Bun/CRE/Foundry were not on PATH.
+Use current compatible stable releases, pinned after compatibility checks. Handoff section 7 and the implementation plan record researched candidates; these are not installed/tested versions. Planning rechecked Node `22.14.0` and pnpm `11.25.0`; Bun, CRE, Docker and psql were not found on PATH. No tool was installed in this planning chat.
 
 Prefer a small Next/React/TypeScript app, viem/wagmi, Hardhat/OpenZeppelin, the official Arkiv SDK and real CRE SDK. Use private durable transactional state alongside public Arkiv projection; keep workers persistent. Do not put local SQLite on ephemeral serverless disk. Preserve source attribution, meaningful tests and real deployment/entity/workflow evidence.
 

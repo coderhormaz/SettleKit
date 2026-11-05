@@ -1,6 +1,13 @@
 # SettleKit agent instructions
 
-Read `MEMORY.md`, `PROGRESS.md` and `PROJECT_HANDOFF.md` before planning or changing the project. These are persistent project memory for new chats. They contain the accepted scope, current status, sponsor tracks/docs, verified facts, implementation plan and evidence requirements. Current user instructions supersede older notes; keep all four files consistent.
+Read `MEMORY.md`, `PROGRESS.md`, `PROJECT_HANDOFF.md` and `IMPLEMENTATION_PLAN.md` before planning or changing the project. These are persistent project memory for new chats. They contain the accepted scope, current status, sponsor tracks/docs, verified facts, implementation plan and evidence requirements. Current user instructions supersede older notes; keep these files consistent.
+
+## Phase execution control
+
+- The current implementation schedule is exactly Phases 1–6 in `IMPLEMENTATION_PLAN.md`; it replaces the handoff's former Phase 0–4 numbering.
+- The user requested planning first. Do not start application implementation until instructed to start a phase. Complete the requested phase, verify and report it, then wait for the next phase instruction.
+- Confirmed preferences: wallet-signature merchant login; local-first development with hosting deferred; complete the full scope even if work continues beyond the event deadline.
+- Check prerequisite gates before executing a phase. Continue independent work within the authorized phase if access is pending; never claim an unproven gate or phase complete.
 
 ## Preserve the accepted scope
 

@@ -6,8 +6,10 @@ Read `MEMORY.md`, `PROGRESS.md`, `PROJECT_HANDOFF.md` and `IMPLEMENTATION_PLAN.m
 
 - The current implementation schedule is exactly Phases 1–6 in `IMPLEMENTATION_PLAN.md`; it replaces the handoff's former Phase 0–4 numbering.
 - The user requested planning first. Do not start application implementation until instructed to start a phase. Complete the requested phase, verify and report it, then wait for the next phase instruction.
-- Confirmed preferences: wallet-signature merchant login; local-first development with hosting deferred; complete the full scope even if work continues beyond the event deadline.
+- Confirmed preferences: Next.js with Neon PostgreSQL; wallet-signature merchant login; local app/worker development with public app hosting deferred; complete the full scope even if work continues beyond the event deadline. Neon replaces the earlier SQLite/libSQL recommendation.
 - Check prerequisite gates before executing a phase. Continue independent work within the authorized phase if access is pending; never claim an unproven gate or phase complete.
+- Before implementing each requested phase, write/review its detailed scope, dependencies, UX/states, security/data changes, sponsor requirements, test plan and exit checks in `docs/phases/phase-N.md`. Fix planning gaps, implement complete features, verify them and report evidence afterward; routine internal review does not require another approval round.
+- Use relevant available design and browser-testing skills, starting with Impeccable for design context/quality. Preserve the premium handoff direction; establish durable product/design guidance and inspect actual desktop/tablet/mobile rendering. Fix visual, accessibility and interaction findings before declaring the affected UI complete.
 
 ## Preserve the accepted scope
 
@@ -24,6 +26,8 @@ Read `MEMORY.md`, `PROGRESS.md`, `PROJECT_HANDOFF.md` and `IMPLEMENTATION_PLAN.m
 ## Implementation behavior
 
 - Recheck the linked live sponsor requirements, SDK APIs, package compatibility, chain IDs and token metadata before building. Pin working versions and commit the lockfile.
+- Follow the current ETHGlobal pages for the three selected tracks and linked official implementation docs. Maintain an evidence mapping from requirements to real implementation/checks/references; a backend provider choice does not add a prize sponsor.
+- Use Neon PostgreSQL/Drizzle with server-only connection URLs, pooled runtime traffic and direct migrations/admin connections. Develop/test migrations on isolated branches; use exact monetary values and transactional outbox/job claims. Keep wallet-signature login and the other accepted components; do not introduce SQLite or unrelated Neon services as a substitute.
 - Current planning is not proof of implementation. Clearly separate live testnet evidence, local tests, CRE simulation, deployed workflow execution, and mocks.
 - Start with the handoff's feasibility checks, then build complete vertical flows. Continue independent work when a credential or sponsor clarification is pending.
 - Keep real keys, cookies, API tokens and webhook secrets out of files committed to Git, browser bundles, screenshots and logs. Use test-only funded wallets and environment configuration.

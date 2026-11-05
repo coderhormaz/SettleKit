@@ -12,10 +12,11 @@ Build an easy-to-integrate stablecoin payment gateway with a premium, fully func
 
 - The execution plan is `IMPLEMENTATION_PLAN.md`, Phases **1–6**: foundation/feasibility; screened payment/store fulfillment; complete merchant operations dashboard; refunds/Arkiv/accounting; CRE recovery; final verification/release/evidence. This replaces the old Phase 0–4 numbering.
 - Merchant authentication: wallet-signature login with ownership proof and durable secure sessions.
-- Run locally first. Use private SQLite/Drizzle with persistent Node gateway/worker processes; hosting and any cloud migration are later decisions. No cloud provisioning or paid service is required for local completion.
+- The user's latest stack choice is **Next.js + Neon PostgreSQL**, retaining the other components. Drizzle/Drizzle Kit with `pg` replaces SQLite/libSQL before implementation. Run the gateway/worker locally against Neon; public app hosting stays deferred. Neon access is now a Phase 1 prerequisite, and no project/database has yet been provisioned or tested.
 - Complete all six phases even beyond the published event deadline; do not imply late work constitutes a timely entry.
 - Exact dependency pins remain untested until Phase 1. The non-upgradeable router must include tested payment and refund primitives before its initial deployment; Phase 4 adds the refund service/UI and live refund evidence.
 - Current stage remains planning only. The next action is to wait for **“Start Phase 1”**, then execute its prerequisite checks and foundation work.
+- Before coding every requested phase, prepare/review its detailed plan, UX/data/security changes, sponsor requirements, meaningful checks and exit criteria. Then implement, verify all in-scope behavior, update evidence, commit/push coherent milestones and report. Use the available design skills for a polished product and actual browser inspection, not build success alone.
 
 ## Non-negotiable product decisions
 
@@ -53,11 +54,13 @@ Build working onboarding, overview, payments/details, payment links, invoices, p
 
 Premium direction: refined graphite/mint crypto-fintech dashboard, strong readable typography and tabular amounts, compact useful tables, restrained motion, cohesive spacing and responsive detail views. Hosted checkout can use a coordinated light surface. Keep finance information truthful and clear; no fake balances or unrelated token-market decoration. Verify mobile/tablet/desktop and keyboard behavior. Exact inventory and visual tokens are in handoff section 8.
 
+Apply Impeccable's relevant context/shaping/critique guidance and the appropriate frontend/browser-testing skills during UI work. Phase 1 establishes `PRODUCT.md`, `DESIGN.md`, surface briefs and reusable tokens before UI code. Every phase reviews task flows and states, renders affected screens at 390×844 / 768×1024 / 1440×900, inspects and fixes the result, and preserves screenshots/check outcomes before claiming completion.
+
 ## Engineering and evidence
 
-Use current compatible stable releases, pinned after compatibility checks. Handoff section 7 and the implementation plan record researched candidates; these are not installed/tested versions. Planning rechecked Node `22.14.0` and pnpm `11.25.0`; Bun, CRE, Docker and psql were not found on PATH. No tool was installed in this planning chat.
+Use current compatible stable releases, pinned after compatibility checks. Handoff section 7 and the implementation plan record researched candidates; these are not installed/tested versions. Planning rechecked Node `22.14.0` and pnpm `11.25.0`; Bun, CRE, Docker and psql were not found on PATH. No application dependencies, Bun or CRE were installed during planning.
 
-Prefer a small Next/React/TypeScript app, viem/wagmi, Hardhat/OpenZeppelin, the official Arkiv SDK and real CRE SDK. Use private durable transactional state alongside public Arkiv projection; keep workers persistent. Do not put local SQLite on ephemeral serverless disk. Preserve source attribution, meaningful tests and real deployment/entity/workflow evidence.
+Use Next/React/TypeScript, Neon PostgreSQL/Drizzle/pg, viem/wagmi, Hardhat/OpenZeppelin, the official Arkiv SDK and real CRE SDK. Keep pooled runtime and direct migration credentials private, use isolated development/test targets, and test transaction/job/monetary precision and reconnection behavior on actual PostgreSQL. Public Arkiv projection is distinct from the private database; workers remain persistent. Preserve source attribution, meaningful tests and real deployment/entity/workflow evidence.
 
 Read the authoritative sponsor rules and links in `PROJECT_HANDOFF.md`. Required documentation includes `WHITECHAIN_FEEDBACK.md`, the `/arkiv/` criterion files, open-source licensing, AI-use disclosure and a narrated 2–4 minute video. Published deadline was **7 November 2026 at 09:00 IST**; recheck current context rather than assuming a future deadline.
 

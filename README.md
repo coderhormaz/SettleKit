@@ -6,7 +6,7 @@ Screened USDT checkout on Whitechain, same-chain refunds, a premium merchant das
 
 ## Start here
 
-- [Six-phase implementation plan](IMPLEMENTATION_PLAN.md): recommended stack, ordered work, prerequisites, exit checks and checkpoints. Wallet-signature login; local-first development; hosting deferred.
+- [Six-phase implementation plan](IMPLEMENTATION_PLAN.md): selected Next.js + Neon PostgreSQL stack, ordered work, prerequisites, exit checks and checkpoints. Wallet-signature login; local app/worker development; public app hosting deferred.
 - [Detailed project handoff](PROJECT_HANDOFF.md): product decisions, sponsor requirements/resources, current technology candidates, architecture, security, dashboard inventory, tests and demo.
 - [Persistent project memory](MEMORY.md): accepted decisions and user preferences for new chats.
 - [Current progress](PROGRESS.md): completed work, unverified gates and next actions.
@@ -36,5 +36,7 @@ Screening enforces configured checks; it cannot guarantee all funds are lawful o
 ## Development checkpoints
 
 Preserve existing history and push each coherent, appropriately tested milestone to this repository throughout the build. Do not accumulate the entire project into a single final commit. Keep project memory, validation results and real evidence current. Never commit secrets or fabricate progress.
+
+For every requested phase: prepare/review the detailed plan and relevant sponsor docs, use the available design skills, implement complete features, test real persistence/integrations, inspect responsive UI, fix findings, then report verified results. The database choice is Neon PostgreSQL; the app and worker initially run locally. No database or application implementation is claimed yet.
 
 Read the plan, then say **“Start Phase 1”** to begin. Each later phase starts on its own instruction. The full handoff includes a prompt for an implementation chat.

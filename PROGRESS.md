@@ -6,7 +6,9 @@ Updated: 6 November 2026 (IST). Read `MEMORY.md`, `AGENTS.md`, `PROJECT_HANDOFF.
 
 **Six-phase implementation plan prepared; waiting for the user's phase-start instruction.** No application code, contract, funded wallet setup or real payment/workflow has been implemented. The user requested a complete plan and technology recommendation before starting each phase explicitly. The current execution schedule is `IMPLEMENTATION_PLAN.md`, Phases 1–6, replacing the former Phase 0–4 schedule.
 
-Confirmed in this planning chat: wallet-signature merchant login; local-first development with hosting deferred; complete the full scope even beyond the event deadline. Recommended local stack is Next/React/TypeScript, Tailwind/Radix, viem/wagmi, Drizzle/SQLite, persistent Node worker, Hardhat/OpenZeppelin, official Arkiv SDK and real CRE CLI/SDK with Bun. Exact dependency compatibility is still a Phase 1 gate.
+Latest confirmed choices: **Next.js + Neon PostgreSQL**, wallet-signature merchant login; local app/worker development with public app hosting deferred; complete the full scope even beyond the event deadline. Retain React/TypeScript, Tailwind/Radix, viem/wagmi, Drizzle, persistent Node worker, Hardhat/OpenZeppelin, official Arkiv SDK and real CRE CLI/SDK with Bun. Use Drizzle Kit/PostgreSQL migrations and `pg` instead of SQLite/libSQL. Exact installed compatibility and real Neon access are still Phase 1 gates.
+
+The user also required detailed phase planning/review before coding, design-skill-led premium UI, complete in-phase verification/reporting, current sponsor-documentation compliance and continued GitHub pushes. These requirements are now in the plan and agent memory. No phase was started by this stack/process update.
 
 ## Repository
 
@@ -16,7 +18,8 @@ Confirmed in this planning chat: wallet-signature merchant login; local-first de
 - Published documentation baseline: [`1bec3f7`](https://github.com/coderhormaz/SettleKit/commit/1bec3f7c1a664b27653084896b0cc5f8192fd449), `docs: finalize SettleKit gateway specification and agent memory`.
 - Actual `git push origin main` succeeded. `git ls-remote origin refs/heads/main` independently matched the full baseline hash `1bec3f7c1a664b27653084896b0cc5f8192fd449`.
 - Subsequent published checkpoint before this planning chat: `8049058`, `docs: record verified GitHub handoff checkpoint`.
-- This update accompanies the six-phase planning checkpoint. Use `git log` and the remote branch for the latest commit; a commit cannot record its own final hash in its contents. Do not treat a prepared checkpoint as a verified push until the remote is checked.
+- Published six-phase planning checkpoint: `7c33d7c629342ac9d58f37f350d2938d4f6d9cf4`, independently matched to `origin/main` after its push.
+- This update accompanies the Neon/database and phase-quality planning revision. Use `git log` and the remote branch for its final commit; a commit cannot record its own final hash in its contents. Do not treat a prepared checkpoint as a verified push until the remote is checked.
 
 ## Completed
 
@@ -34,10 +37,14 @@ Confirmed in this planning chat: wallet-signature merchant login; local-first de
 - [x] Reviewed handoff, memory, agent instructions, README and secret-exclusion rules committed and pushed; remote baseline verified.
 - [x] Latest user preferences captured and a complete six-phase plan created in `IMPLEMENTATION_PLAN.md`; application implementation remains unauthorized until a phase-start instruction.
 - [x] Live sponsor pages and current package metadata rechecked during planning. Whitechain RPC returned `0x752`, Rabdi returned `0x76edaf`, and the exact sponsor USDT `decimals()` returned 6 again. No transfer, SDK write or CRE execution is implied.
+- [x] Subsequent user change to Next.js + Neon PostgreSQL captured consistently; official Neon Drizzle/pooling guidance, ETHGlobal sponsor pages and relevant implementation docs rechecked. `pg` registry candidate `8.23.1` inspected; no driver installed, database provisioned or query/migration executed.
+- [x] Neon/Postgres and Impeccable skills consulted; Impeccable context loader confirmed there is no implemented UI or product/design artifact yet. Their creation and rendered QA remain Phase 1 implementation work.
 
 ## Documentation validation
 
 - Latest planning checks: all six root Markdown documents have balanced fences and resolving local links; the new plan has exactly Phase 1 through Phase 6; `git diff --check` passed. Existing ignore rules exclude `.env`, nested CRE environment files and local database state. Only intended Markdown files changed in this planning checkpoint.
+- Neon revision checks: all six documents name the selected database, no active SQLite/file-URL instruction remains, local links/fences/phase numbering and whitespace checks pass, and the document credential-pattern scan found no populated secrets/database URLs. These checks do not prove a Neon connection, migration or application behavior.
+- A fresh-reader review of the Neon revision found no material gaps: pooled/direct connections, remote database versus local app hosting, design/phase gates and preserved payment/refund/sponsor boundaries are consistent.
 - A fresh-reader review of the six-phase plan identified pending-refund versus fulfillment/recovery races and the human-narration prerequisite. The plan now requires an atomic pending-refund eligibility hold, revalidated release, race tests and actual user/team human narration. Relevant memory/handoff rules were synchronized.
 - The earlier handoff baseline also checked for unfinished sections/populated key assignments and included the secret-exclusion `.gitignore`.
 - An initial external-link pass reached 69 of 70 targets; the one obsolete viem URL was corrected. A later expanded 75-link pass encountered transient timeouts on some already-read official pages; do not interpret this as a guarantee of continuous external-site availability.
@@ -46,6 +53,7 @@ Confirmed in this planning chat: wallet-signature merchant login; local-first de
 ## Still unverified / not implemented
 
 - [ ] Selected dependency/toolchain compatibility and lockfile.
+- [ ] Selected Neon project/development branch, protected pooled/direct connections, actual PostgreSQL migrations/transactions and isolated integration tests.
 - [ ] Current sanctions feed import, valid screening sources, freshness/enforcement and any additional analytics provider access/coverage.
 - [ ] Test WBT and the exact sponsor USDT funding for payer, merchant and deployer.
 - [ ] Actual token transfer/approval behavior, permit support and issuer controls.
@@ -70,7 +78,7 @@ Confirmed in this planning chat: wallet-signature merchant login; local-first de
 
 ## Next action
 
-Wait for **“Start Phase 1.”** Then read the memory files and `IMPLEMENTATION_PLAN.md`, inspect Git/current official docs and execute Phase 1's toolchain, local foundation, screening, Arkiv and CRE feasibility work. Stop and report after the requested phase; do not automatically start Phase 2. Record any external access gate precisely and continue independent in-phase work.
+Wait for **“Start Phase 1.”** Then read the memory files and `IMPLEMENTATION_PLAN.md`, inspect Git/current official docs, prepare/review `docs/phases/phase-1.md` and execute Phase 1's toolchain, Neon-backed foundation, design context, screening, Arkiv and CRE feasibility work. Verify and report the requested phase; do not automatically start Phase 2. Record any external access gate precisely and continue independent in-phase work.
 
 ## Session record format for future agents
 

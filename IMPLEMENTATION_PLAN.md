@@ -11,7 +11,8 @@ Build a stablecoin payment gateway that an existing business website can integra
 The user confirmed these implementation preferences in this planning chat:
 
 - Merchant login: wallet signature, with settlement-wallet ownership verification.
-- Runtime: local first. Choose hosting later; no cloud account provisioning or paid services are required by this plan.
+- Runtime: run the Next.js app and persistent worker locally first, backed by **Neon PostgreSQL**. The user's latest database choice replaces SQLite/libSQL. Public app hosting remains deferred; database access is a Phase 1 prerequisite.
+- Quality: use the available design skills for a polished, distinctive product. Plan and review every requested phase before implementation, verify the complete phase afterward, then report and keep pushing coherent tested milestones.
 - Schedule: complete the entire six-phase scope even if work continues beyond the event deadline.
 - Execution: wait for an instruction such as **“Start Phase 1.”** Complete the requested phase accurately, report its evidence and stop before the next phase. This planning request does not start application implementation.
 
@@ -28,7 +29,7 @@ The official event page still publishes **7 November 2026 at 09:00 IST** as the 
 
 ## Recommended technology stack
 
-These are the recommended components for the confirmed local-first build. Exact package pins become final only after Phase 1's actual compatibility checks; registry metadata alone is insufficient.
+The user selected **Next.js + Neon PostgreSQL** and retained the other recommended components. Local-first now describes where the app/worker run, not an offline/local database. Exact package pins become final only after Phase 1's actual compatibility checks; registry metadata alone is insufficient.
 
 | Layer | Choice | Reason and boundary |
 | --- | --- | --- |
@@ -37,8 +38,8 @@ These are the recommended components for the confirmed local-first build. Exact 
 | Interface | Tailwind CSS, selected Radix primitives, Lucide icons | Accessible components customized to the graphite/mint design; real tables, forms, dialogs and responsive detail views. Use Manrope and IBM Plex Mono with appropriate attribution. |
 | Browser wallet/data | viem + wagmi + TanStack Query | Shared chain/ABI types and wallet state; injected EVM wallet first. WalletConnect is an optional later connector, not a prerequisite. |
 | Merchant authentication | EIP-4361 wallet challenges through viem; durable server sessions | Single-use nonce, expected domain/URI/chain, expiry, verified signature and HttpOnly cookie. Settlement-wallet changes require fresh proof and screening. Use the maintained [viem verifier](https://viem.sh/docs/siwe/actions/verifySiweMessage). |
-| Private storage | Drizzle ORM + local SQLite through `@libsql/client` | Durable local transactions without a database server/account. One documented local database file shared by gateway and worker; merchant demo store uses a separate database. [Drizzle SQLite support](https://orm.drizzle.team/docs/sqlite/get-started-sqlite). |
-| Background processing | Persistent Node worker + transactional SQL outbox/jobs | Chain observer, webhook delivery, screening imports/policy synchronization and Arkiv sync. Persist cursors, leases and retry budgets; no request-lifetime timers. Start with a single worker and test cross-process database locking. |
+| Private storage | Neon PostgreSQL + Drizzle ORM/Kit + `pg` (node-postgres) | Shared durable private transactions for the local Node gateway/worker. Pooled runtime connections; direct connections for migrations and backup/restore. Isolate the merchant demo store in its own database/role. [Neon Drizzle guidance](https://neon.com/docs/guides/drizzle). |
+| Background processing | Persistent Node worker + PostgreSQL transactional outbox/jobs | Chain observer, webhook delivery, screening imports/policy synchronization and Arkiv sync. Persist cursors, atomic job claims/leases and retry budgets; test row locking, concurrent workers and restarts. Avoid session-dependent coordination over the pooler. |
 | Contracts | Solidity + Hardhat 3/viem tooling + OpenZeppelin 5 | Minimal non-upgradeable router; EIP-712 authorization, SafeERC20 and reentrancy controls. Pin compiler/optimizer and explicitly target `prague` per [Whitechain deployment docs](https://docs.whitechain.io/build/deploy/deploy-with-hardhat). |
 | Public accounting | Official `@arkiv-network/sdk`, Rabdi | Real receipt writes/queries, trusted writer filtering and source-chain verification. Independently served React accountant frontend; no gateway secret in its bundle. [Current network](https://docs.arkiv.network/). |
 | Reconciliation | Official `@chainlink/cre-sdk` + CRE CLI; Bun for its build | Keep the workflow's Bun/WASM toolchain separate from the Node application. Use SDK HTTP capabilities, not ordinary Node networking. [HTTP capability](https://docs.chain.link/cre/capabilities/http), [Windows setup](https://docs.chain.link/cre/getting-started/cli-installation/windows). |
@@ -46,9 +47,11 @@ These are the recommended components for the confirmed local-first build. Exact 
 | Validation/testing | Zod, Vitest, Hardhat's supported test runner, Playwright | Share input/money/event definitions. Test money, authorization, real SDK boundaries, durable recovery and browser flows. |
 | Integration/delivery | REST, small JS adapter/helper, runnable Python example, GitHub Actions | Server-side authoritative prices, signed webhooks and authenticated order reads. Local reproducible startup and incremental verified Git checkpoints. |
 
-Local SQLite is the chosen starting store, not an assumption about future cloud storage. Keep financial amounts as validated decimal base-unit strings/BigInt in code and lossless persisted values; never convert them to JavaScript floating point. Schema design must cover sums, limits and overflow explicitly.
+Neon PostgreSQL is the private operating database from the start. Keep financial amounts as validated decimal base-unit strings/BigInt in code and exact integer-valued `NUMERIC` columns with appropriate bounds/constraints; never convert them to JavaScript floating point. Test database-driver round trips, aggregate totals and uint256/amount limits. PostgreSQL `BIGINT` alone cannot represent the entire onchain uint256 range.
 
-Hosting remains deferred. A future choice must address worker lifetimes, shared durable storage, backups, secrets, HTTPS and costs. A move to PostgreSQL is a separate migration decision, not a drop-in URL change. Never deploy the local SQLite file to ephemeral serverless storage.
+Use a bounded reusable `pg` pool per process and validate TLS with the chosen driver. Runtime `DATABASE_URL` uses the pooled endpoint; `DATABASE_URL_UNPOOLED` is server-only and reserved for migrations/admin/dumps. Neon pooling is transaction-based, so use transaction-scoped row locks/atomic leases rather than session advisory locks or `LISTEN` assumptions. Keep migrations versioned through Drizzle, exercise them on isolated Neon development/test branches, and test database outages, reconnection, ambiguous commit outcomes and retry idempotency. See [connection pooling](https://neon.com/docs/connect/connection-pooling).
+
+Reuse an existing explicitly selected project/connection when available; otherwise resolve project/branch access during Phase 1. Never expose database URLs in client bundles/logs or run destructive tests on a shared/default database. Neon supplies the backend database; wallet-signature login stays as chosen, and no extra Neon services are required. Public app hosting remains deferred. Any later deployment must address worker lifetime, HTTPS, secrets, database access and actual costs. No SQLite/libSQL fallback is part of the selected stack.
 
 ### Metadata checked during planning
 
@@ -58,12 +61,12 @@ Official registry metadata on 6 November 2026 returned these **candidates**. Not
 | --- | --- |
 | Application | Next `16.4.5`; React `19.3.1`; TypeScript `7.0.2`; Tailwind `4.3.4`; Zod `4.6.7` |
 | Wallet/data | viem `2.57.16`; wagmi `3.7.11`; TanStack Query `5.106.1` |
-| Private storage | Drizzle `0.45.4`; `@libsql/client` `0.18.0` |
+| Private storage | Drizzle `0.45.4`; `pg` `8.23.1` (rechecked after the database change); Drizzle Kit pin still needs Phase 1 validation |
 | Contract tooling | Hardhat `3.21.2`; viem toolbox `5.0.7`; OpenZeppelin `5.6.1`; solc `0.8.38` |
 | Sponsor SDKs | Arkiv `1.0.1`; CRE SDK `1.23.0` (declares Bun `>=1.2.21`) |
 | Checks | Vitest `5.1.0`; Playwright `1.64.1` |
 
-Sources: npm's official per-package `/latest` metadata, including [Next](https://registry.npmjs.org/next/latest), [wagmi](https://registry.npmjs.org/wagmi/latest), [Arkiv](https://registry.npmjs.org/@arkiv-network%2fsdk/latest), [CRE](https://registry.npmjs.org/@chainlink%2fcre-sdk/latest), [Hardhat](https://registry.npmjs.org/hardhat/latest) and [libSQL](https://registry.npmjs.org/@libsql%2fclient/latest). Phase 1 must check full transitive/peer support, especially TypeScript's major version, the Hardhat plugins and the CRE build. Choose a compatible stable version if a candidate fails; record the reason and commit the lockfile.
+Sources: npm's official per-package `/latest` metadata, including [Next](https://registry.npmjs.org/next/latest), [wagmi](https://registry.npmjs.org/wagmi/latest), [Arkiv](https://registry.npmjs.org/@arkiv-network%2fsdk/latest), [CRE](https://registry.npmjs.org/@chainlink%2fcre-sdk/latest), [Hardhat](https://registry.npmjs.org/hardhat/latest) and [pg](https://registry.npmjs.org/pg/latest). Phase 1 must check full transitive/peer support, especially TypeScript's major version, Drizzle/Kit/pg, the Hardhat plugins and the CRE build. Choose a compatible stable version if a candidate fails; record the reason and commit the lockfile.
 
 Read-only RPC checks in this chat returned Whitechain `0x752`, Rabdi `0x76edaf`, and USDT decimals `0x...06`. These establish network identifiers/metadata only. Test wallets, approvals/transfers, entity writes and workflow execution remain unproven.
 
@@ -76,7 +79,7 @@ flowchart LR
   Checkout --> Risk[Screening and signed authorization]
   Risk --> Router[Whitechain router: USDT]
   Router --> Worker[Durable observer and worker]
-  Worker <--> DB[(Private SQLite and outbox)]
+  Worker <--> DB[(Private Neon PostgreSQL and outbox)]
   API <--> DB
   Worker --> Hook[Signed webhook]
   Hook --> Store
@@ -98,6 +101,28 @@ Private entities include merchants/wallets, login challenges/sessions, API-key h
 
 Suggested source layout follows handoff section 14: `apps/gateway`, `apps/accountant`, `examples/store`, `examples/python`, and shared `packages/contracts`, `packages/shared`, `packages/arkiv`, `packages/cre`, `packages/worker`. Add a shared private database/domain package only where it reduces duplication. Layout is an implementation choice, not another sponsor requirement.
 
+## Required workflow for every phase
+
+A phase-start instruction authorizes its detailed planning, review, implementation, necessary fixes and verification. Routine implementation decisions do not require another approval round. Keep all work inside the requested phase and stop before the next one.
+
+1. **Plan before coding:** inspect current code/Git/memory and prerequisite evidence; write/update `docs/phases/phase-N.md` with bounded scope, tasks/dependencies, affected APIs/data/UI, risk/race cases, meaningful checks, sponsor evidence and explicit exit criteria. Recheck relevant current SDK documentation and compatibility. Review the plan against the accepted scope and correct gaps before editing implementation.
+2. **Review the UX:** map each surface's user task, hierarchy, interaction sequence, real data ranges and loading/empty/error/denied/pending/success states. Use Impeccable for product/design context, shaping and critique; use relevant frontend implementation and browser-testing skills when coding. Preserve the accepted graphite/mint identity and simple merchant integration. Phase 1 establishes `PRODUCT.md`, `DESIGN.md` and the necessary surface briefs/tokens before UI code, following the skill's applicable context/new-work guidance. These artifacts describe actual decisions, not extra unapproved scope.
+3. **Build complete features:** implement validation, authorization, persistence, APIs, UI and operational behavior together. Use Neon/Postgres guidance for database work. Avoid dead buttons, fake statistics, decorative admin features and unfinished navigation. Keep sponsor/infra administration away from merchants.
+4. **Review and verify:** inspect the diff for correctness/secrets and run the phase's meaningful checks. Render affected surfaces at 390×844, 768×1024 and 1440×900; inspect screenshots, keyboard use, contrast, focus, long data, empty/error states and reduced motion, then fix the findings. Use Impeccable's applicable critique/audit/polish and mechanical detector after a finished UI change. A passing build alone does not establish visual or functional completion.
+5. **Checkpoint and report:** update phase notes, memory and evidence; commit/push coherent tested milestones throughout the phase, verify remote hashes, and report completed behavior, actual checks/screenshots/live evidence and precise open gates. Never mark incomplete external integration or a mock as complete.
+
+### Sponsor documentation and evidence checks
+
+The ETHGlobal pages define the selected track requirements; linked current sponsor docs, actual SDK types and CLI help define implementation APIs. Re-read the relevant material before that phase's integration and again before preparing submission evidence. Follow requirements for our selected tracks, without expanding into rejected products or adding another sponsor.
+
+| Selected track | Mandatory implementation/evidence to preserve |
+| --- | --- |
+| [Whitechain — Operate](https://ethglobal.com/events/mumbai/prizes/whitechain) | Exact sponsor USDT and chain; source-verified deployed contracts; actual payment explorer link in README; separate store plus merchant/buyer flows; measured integration; business rationale; steady Git history; honest limitations, feedback and 2–4 minute video. |
+| [Arkiv — from scratch](https://ethglobal.com/events/mumbai/prizes/arkiv) | Actual current-testnet writes and a visible reading feature; writer wallets and runnable query; schema/ownership/expiry; criterion files `/arkiv/friction.md`, `/arkiv/reach.md`, `/arkiv/why-arkiv.md`, `/arkiv/how-you-use-arkiv.md`; open-source license and AI disclosure. |
+| [Chainlink — CRE](https://ethglobal.com/events/mumbai/prizes/chainlink) | Meaningful real workflow joining blockchain evidence with the separate merchant API; successful CLI simulation or actually verified deployment; source/configuration/sanitized run logs and the resulting recovery evidence. Whitechain HTTP/RPC feasibility and any eligibility interpretation remain explicit gates. |
+
+Maintain `docs/evidence/index.md` mapping each requirement to its phase, implementation paths, commands/checks, genuine transaction/entity/run references and status. Record real sponsor feedback locally; sending sponsor messages or submitting/publishing still requires the applicable user instruction. Neon is an infrastructure choice, not an additional selected prize track.
+
 ## The six phases
 
 | Phase | Deliverable | Depends on | Current status |
@@ -116,15 +141,15 @@ Suggested source layout follows handoff section 14: `apps/gateway`, `apps/accoun
 Build in this order:
 
 1. Re-read memory/Git state and current official sponsor/tooling docs. Inspect any starter/license before reuse. Create the pnpm workspace and placeholder-only `.env.example`; select compatible stable versions through real install/import/build checks and record them in `docs/versions.md` and the lockfile. Inspect official Windows installers and verify downloads before running them.
-2. Establish local SQLite migrations, shared configuration/validation/money types, structured redacted logs, private-secret storage and a test database. Prove atomic domain-transition/outbox writes, worker job leases, restart behavior and gateway/worker locking with the selected driver. Avoid introducing two inconsistent money representations.
+2. Establish the selected Neon project/development branch and an isolated test target using existing access where available. Configure server-only pooled/direct URLs, Drizzle PostgreSQL migrations, bounded `pg` pools, exact money types, private-secret storage and redacted logs. Prove atomic domain-transition/outbox writes, row-lock/lease concurrency, worker restart, rollback and reconnection on actual PostgreSQL. Reserve isolated store credentials/database. Avoid introducing SQLite for tests or two inconsistent money representations.
 3. Implement wallet login, single-use challenges, durable sessions/logout, origin/CSRF protection, tenant-bound API access and settlement-wallet ownership proof. Create onboarding/profile persistence and a second merchant fixture for isolation tests. Buyers need only a connected wallet for ordinary checkout.
 4. Implement current official-source import and private screening decisions. Record namespace coverage, source URL/version/hash, fetch time, successful parse, health/freshness and reason codes. Test allow/no-match, synthetic hard match, stale, malformed and unavailable cases. Define policy/quote expiry, synchronization failures and protected operator roles; merchant controls cannot disable the gate.
 5. Recheck Whitechain chain/token behavior and funding paths. Prepare separate test payer, merchant, deployer and protected platform signer/policy roles. Establish test WBT and the specified USDT, and inspect approval/transfer behavior without assuming permit support. No private keys in chat, Git, browser bundles or evidence.
 6. Use an actual funded Arkiv writer to create/query one innocuous real Rabdi entity. Save its writer, entity key and query. Confirm independent-browser read/CORS behavior without a private browser credential.
 7. Set up official CRE CLI/Bun/account access. Run a minimal **real CRE CLI simulation** that calls Whitechain JSON-RPC for real chain data and a separate local diagnostic merchant API. Save sanitized command/output. This proves the route only; payment verification and recovery are Phase 5. Check localhost reachability in actual simulation and current capability limits. Record any unresolved sponsor interpretation without claiming acceptance.
-8. Build the graphite/mint tokens, typography, accessible app shell and reusable table/form/dialog/status components. Show only working onboarding navigation. Establish desktop/mobile patterns before dashboard features expand. Add basic CI for the runnable foundation.
+8. Apply the design skill workflow to establish durable product/design context, user flows, graphite/mint tokens, typography and surface briefs before UI code. Build the accessible app shell and reusable table/form/dialog/status components; inspect their actual desktop/mobile rendering and refine them. Show only working onboarding navigation. Add basic CI for the runnable foundation.
 
-**Exit checks:** clean install/build/typecheck; source/freshness failure tests pass; nonce replay/domain/expiry and cross-tenant tests pass; database/worker restart checks pass; real Arkiv round-trip and CRE HTTP/RPC simulation have separate evidence. Missing credentials leave the affected gate explicitly open; independent work can continue.
+**Exit checks:** reviewed phase plan and documented design direction; clean install/build/typecheck; actual Neon connection/migration, monetary precision, transactional rollback/outbox and worker concurrency/restart checks; source/freshness failure tests; nonce replay/domain/expiry and cross-tenant tests; rendered onboarding/shell inspection; real Arkiv round-trip and CRE HTTP/RPC simulation with separate evidence. Missing credentials leave the affected gate explicitly open; independent work can continue.
 
 **Checkpoint(s):** compatible workspace/private foundation; wallet onboarding/screening baseline; separate sponsor feasibility proof. Commit/push coherent verified milestones rather than waiting for every external account gate.
 
@@ -201,12 +226,12 @@ Apply the premium graphite/mint design throughout, with readable tabular USDT am
 **Outcome:** the complete local product can be installed, demonstrated and independently reviewed from its repository and evidence.
 
 1. Run a clean-install/build/typecheck/CI pass and the relevant money/auth/isolation/idempotency suites. Exercise the complete path: wallet onboarding → store checkout → screening → specified-USDT payment → normal or CRE delivery → merchant refund → Arkiv accounting/export. Repeat the failure paths changed by later phases.
-2. Verify amount limits, partial/full refund races, nonce/quote/idempotency conflicts, observer rollback/restart, interrupted jobs, source outages/staleness, policy-sync failure, signing-key/credential rotation, SSRF/redirect defenses and bounded endpoint/RPC behavior. Verify local database backup/restore and log redaction. Use synthetic risk fixtures; do not transact with a real flagged counterparty.
+2. Verify amount limits, partial/full refund races, nonce/quote/idempotency conflicts, observer rollback/restart, interrupted jobs, source outages/staleness, policy-sync failure, signing-key/credential rotation, SSRF/redirect defenses and bounded endpoint/RPC behavior. Verify PostgreSQL migration replay, isolated Neon backup/restore, database disconnect/reconnect, ambiguous commits and log redaction. Use synthetic risk fixtures; do not transact with a real flagged counterparty.
 3. Inspect all four surfaces—dashboard, checkout/status, separate store and accountant—at mobile/tablet/desktop sizes, keyboard-only and reduced-motion settings. Resolve overflow, wallet/modal errors, confusing labels, inaccurate totals and inaccessible actions. Keep every visible control backed by real behavior.
 4. Finish the runnable JS/REST/Python integrations, local startup scripts, environment/role explanations, API and architecture docs, complete line/setup-time measurements and real developer feedback when available. Do not invent merchant validation.
 5. Complete `LICENSE`, third-party attribution, `AI_USAGE.md`, `WHITECHAIN_FEEDBACK.md`, `CHAINLINK_FEEDBACK.md` and the Arkiv criterion/schema files using actual results. Build an evidence index separating local tests, live testnet calls, real SDK writes, CRE simulation, deployed execution and mocks. Include actual contract/transaction/entity/query/run references where obtained.
 6. Prepare a 2–4 minute demonstration with user/team human narration and screenshots: screened checkout, 25 USDT payment, failed notification and real CRE recovery, 5 USDT refund, independent 25/5/20 accounting. Prepare the script/recording assets, and obtain the human narration rather than substituting an AI voice. Missing narration keeps video evidence pending. Record limitations and remaining blockers plainly. Actual publication/submission is a user action unless separately instructed; do not claim event eligibility or completion after its deadline.
-7. Prepare portable release/startup configuration. Hosting remains an explicit later decision: local completion does not require cloud spending or publication. When requested later, choose durable storage/processes and approved domains, prepare the concrete deployment, and obtain any required final authorization before publishing.
+7. Prepare portable release/startup configuration for local app/worker processes against Neon. Public app hosting remains an explicit later decision; verify actual Neon access/plan limits without assuming zero cost or authorizing an upgrade. When hosting is requested later, choose durable processes and approved domains, prepare the concrete deployment, and obtain any required final authorization before publishing.
 
 **Exit checks:** all prior phase gates have evidence; clean setup is reproducible; end-to-end flows and inspection pass; sponsor material is complete where its integration actually works; final Git checkpoint is pushed and remotely verified. Remaining external blockers keep their affected feature/phase incomplete. “Complete” here means the agreed testnet/local product, not authorization for production customer funds.
 
@@ -227,15 +252,16 @@ For each requested phase, the completion report must name what works, changed pa
 
 ## Inputs needed during implementation
 
-No further product decision is required to start Phase 1. The user has already answered login, hosting and schedule questions. Local-first means the applications run locally; live sponsor proofs still need internet/testnet access. Account/faucet steps may be needed at the relevant gate:
+No further product decision is required to start Phase 1. The user selected Next.js and Neon PostgreSQL, wallet login, deferred app hosting and full-scope completion. Local-first means local app/worker processes backed by Neon; database and live sponsor proofs need internet/service access. Account/faucet steps may be needed at the relevant gate:
 
 | Input | Needed for | Handling |
 | --- | --- | --- |
+| Selected Neon project/development branch and server-only pooled/direct connections | Actual private persistence, migrations and integration tests | Reuse a supplied project/URL; otherwise resolve access in Phase 1. Isolate destructive tests/restore targets and keep credentials off chat/Git/browser/logs. No database has been provisioned or tested during planning. |
 | Throwaway test wallets, WBT and exact sponsor USDT | Live Whitechain payment/refund | Use local ignored configuration/user wallet; never paste private keys into chat. Do not substitute a self-minted token. |
 | Arkiv Hub faucet/access if required | Actual funded Rabdi writes and reproducible reads | User completes account actions where necessary; private credentials stay server-side. |
 | Chainlink account/CLI login if required | Real CRE simulation | User completes interactive login; inspect actual CLI help. Live DON deployment access is not required for the agreed simulation evidence. |
 | User/team human narration and substantive review/contribution | Final demo and truthful AI-use disclosure | Prepare script/recording assets; human narration must actually be supplied before marking the video complete. |
-| Hosting/domain/budget | Later public deployment only | Deferred by the user's choice. No dependency on a paid account for local completion. |
+| Public app hosting/domain/budget | Later public deployment only | Deferred by the user's choice. Database hosting is already selected as Neon; do not confuse app-hosting deferral with an offline database or an approved paid upgrade. |
 | Commercial analytics credentials and coverage | Optional deeper checks only | Default to the documented official-address-list baseline. If policy is changed to require a provider, no allow result without it. |
 
 If a credential blocks one gate, continue independent work in the authorized phase and preserve the exact blocker. Do not call the phase complete or replace a selected sponsor to conceal the gap.

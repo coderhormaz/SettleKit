@@ -738,6 +738,7 @@ Create an evidence index linking each sponsor requirement to implementation file
 - [x] This handoff and an agent-entry `AGENTS.md` created.
 - [x] Persistent `MEMORY.md` / `PROGRESS.md`, README navigation and incremental GitHub instructions added.
 - [x] Existing GitHub history fetched and preserved; `main` tracks the authorized remote. See `PROGRESS.md` for push evidence.
+- [x] Reviewed documentation baseline committed, pushed and independently verified on GitHub; current build status and checkpoint are in `PROGRESS.md`.
 
 ### Implementation not started
 

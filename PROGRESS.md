@@ -4,15 +4,16 @@ Updated: 6 November 2026 (IST). Read `MEMORY.md`, `AGENTS.md` and `PROJECT_HANDO
 
 ## Current stage
 
-**Documentation and implementation planning. No application code, contract, funded wallet setup or real payment/workflow has been implemented.** The user asked to finalize the handoff for a new chat, save persistent project memory and push it to the repository.
+**Documentation handoff completed and published. Application implementation is next.** No application code, contract, funded wallet setup or real payment/workflow has been implemented. The user requested the finalized specification, persistent project memory and GitHub checkpoints.
 
 ## Repository
 
 - Authorized remote: `https://github.com/coderhormaz/SettleKit.git`.
 - Current branch: `main`, tracking `origin/main`.
 - Existing upstream commit preserved: `0aa6e69` (`Initial commit`, original README).
-- Read/fetch and a dry-run push succeeded; this does not establish that our new documentation has been pushed.
-- Documentation commit/push checkpoint: **pending final review**. Replace this entry with verified status when done; never invent a commit hash.
+- Published documentation baseline: [`1bec3f7`](https://github.com/coderhormaz/SettleKit/commit/1bec3f7c1a664b27653084896b0cc5f8192fd449), `docs: finalize SettleKit gateway specification and agent memory`.
+- Actual `git push origin main` succeeded. `git ls-remote origin refs/heads/main` independently matched the full baseline hash `1bec3f7c1a664b27653084896b0cc5f8192fd449`.
+- This progress note is a subsequent documentation checkpoint. Use `git log` and the remote branch for the latest commit; a commit cannot record its own final hash in its contents.
 
 ## Completed
 
@@ -27,6 +28,7 @@ Updated: 6 November 2026 (IST). Read `MEMORY.md`, `AGENTS.md` and `PROJECT_HANDO
 - [x] A fresh-reader review identified state/recovery/completeness/integration gaps; the specification was updated to address them.
 - [x] Final fresh-reader review found no remaining blocker: the five original gaps and the new screening/dashboard requirements are consistent.
 - [x] User instruction to commit and push coherent milestones throughout implementation recorded.
+- [x] Reviewed handoff, memory, agent instructions, README and secret-exclusion rules committed and pushed; remote baseline verified.
 
 ## Documentation validation
 

@@ -47,6 +47,7 @@ async function portAvailable(port:number){return new Promise<boolean>(resolve=>{
 
 async function childMode(service:Service){
   if(!services.includes(service)||process.env.SETTLEKIT_MANAGED_CHILD!=='true')throw new StackError('INVALID_MANAGED_CHILD');
+  process.on('uncaughtExceptionMonitor',(error:NodeJS.ErrnoException)=>{const code=typeof error.code==='string'&&/^[A-Z_0-9]{1,64}$/.test(error.code)?error.code:'CHILD_RUNTIME_ERROR';process.send?.({type:'fatal-error',service,code});});
   let stopping=false;
   process.on('message',message=>{if(message&&typeof message==='object'&&'action'in message&&message.action==='stop'&&!stopping){stopping=true;if(process.listenerCount('SIGTERM'))process.emit('SIGTERM');else process.exit(0);}});
   process.channel?.unref();
@@ -87,8 +88,8 @@ async function start(){
     for(const service of services){
       const child=spawn(process.execPath,['--import','tsx',script,'__child',service],{cwd:root,env:{...process.env,SETTLEKIT_MANAGED_CHILD:'true'},windowsHide:true,stdio:['ignore','pipe','pipe','ipc']});
       const value:ChildState={child,lastHeartbeat:0,stopping:false,exited:false};owned.set(service,value);child.stdout?.resume();child.stderr?.resume();
-      child.on('message',message=>{if(message&&typeof message==='object'&&'type'in message&&message.type==='heartbeat')value.lastHeartbeat=Date.now();});
-      child.once('exit',()=>{value.exited=true;if(!stopping){process.stderr.write(`Managed ${service} exited; stopping its companion services.\n`);process.exitCode=1;void shutdown();}});
+      child.on('message',message=>{if(message&&typeof message==='object'&&'type'in message){if(message.type==='heartbeat')value.lastHeartbeat=Date.now();else if(message.type==='fatal-error'&&'code'in message&&typeof message.code==='string'&&/^[A-Z_0-9]{1,64}$/.test(message.code))process.stderr.write(`Managed ${service} runtime error: ${message.code}.\n`);}});
+      child.once('exit',(code,signal)=>{value.exited=true;if(!stopping){process.stderr.write(`Managed ${service} exited (code ${code??'none'}, signal ${signal??'none'}); stopping its companion services.\n`);process.exitCode=1;void shutdown();}});
       child.once('error',()=>{process.stderr.write(`Managed ${service} could not start.\n`);process.exitCode=1;void shutdown();});
     }
     for(const signal of ['SIGINT','SIGTERM']as const)process.once(signal,()=>{void shutdown();});

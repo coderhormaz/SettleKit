@@ -1,0 +1,52 @@
+🚀 Compiling workflow
+📁 Input:   C:\Users\Abdul Razzaque\Documents\ethglobal_mumbai\packages\cre\recovery.ts
+🧪 JS out:  C:\Users\Abdul Razzaque\Documents\ethglobal_mumbai\data\cre-recovery.js
+🎯 WASM out:C:\Users\Abdul Razzaque\Documents\ethglobal_mumbai\data\cre-recovery.wasm
+
+📦 Step 1: Compiling JS...
+📁 Using input file: C:\Users\Abdul Razzaque\Documents\ethglobal_mumbai\packages\cre\recovery.ts
+Bundled 1 module in 162ms
+
+  cre-recovery.js  0.78 MB  (entry point)
+
+✅ Built: C:\Users\Abdul Razzaque\Documents\ethglobal_mumbai\data\cre-recovery.js
+
+🔨 Step 2: Compiling to WASM...
+🔨 Compiling to WASM
+📁 Input:  C:\Users\Abdul Razzaque\Documents\ethglobal_mumbai\data\cre-recovery.js
+🎯 Output: C:\Users\Abdul Razzaque\Documents\ethglobal_mumbai\data\cre-recovery.wasm
+[cre-sdk-javy-plugin] Detected platform: win32, arch: x64
+[cre-sdk-javy-plugin] Using cached binary: C:\Users\Abdul Razzaque\.cache\javy\v8.1.0\win32-x64\javy.exe
+✅ Compiled: C:\Users\Abdul Razzaque\Documents\ethglobal_mumbai\data\cre-recovery.wasm
+
+✅ Workflow built: C:\Users\Abdul Razzaque\Documents\ethglobal_mumbai\data\cre-recovery.wasm
+
+Initializing...
+Loading settings...
+Checking RPC connectivity...
+  Reading pre-built WASM binary...
+✓ Loaded WASM binary from C:\Users\Abdul Razzaque\Documents\ethglobal_mumbai\data\cre-recovery.wasm
+✓ Simulation limits enabled
+  HTTP: req=120kb resp=250kb timeout=10s | ConfHTTP: req=125kb resp=500kb timeout=1m30s | Consensus obs=25kb | ChainWrite evm_report=50kb evm_gas=10000000 solana_report=265b solana_cu=300000 | WASM binary=100mb compressed=20mb
+  Binary hash: 9568f3f000e09fec87c631d40f601ceffc498176bcc3f3feb56ba176b7eb4733
+  Config hash: d3e26d573122a2f64fd186b2b39d08cec822be9f7acccffd2cf0473f3c9539c4
+2026-11-07T05:04:57Z [SIMULATION] Simulator Initialized
+
+2026-11-07T05:04:57Z [SIMULATION] Running trigger trigger=cron-trigger@1.0.0
+2026-11-07T05:05:02Z [USER LOG] Recovery result: scheduled. Existing notification only; no money movement.
+
+✓ Workflow Simulation Result:
+{
+  "refused": 0,
+  "scanned": 1,
+  "scheduled": 1
+}
+
+2026-11-07T05:05:02Z [SIMULATION] Execution finished signal received
+2026-11-07T05:05:02Z [SIMULATION] Skipping WorkflowEngineV2
+
+╭──────────────────────────────────────────────────────╮
+│ Simulation complete! Ready to deploy your workflow?  │
+│                                                      │
+│ Run cre account access to request deployment access. │
+╰──────────────────────────────────────────────────────╯

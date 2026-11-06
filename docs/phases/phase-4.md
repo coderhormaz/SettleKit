@@ -1,6 +1,6 @@
 # Phase 4 — refunds and independent accounting
 
-Authorized 6 November 2026 (IST); all six phases were subsequently authorized. Source is integrated, including refund service/UI/observer and public projection/accountant. Eight dedicated real-Neon refund cases with explicit RPC fixtures and earlier Arkiv/accountant checks passed. Latest instruction: main agent only; further tests deferred. New correction/retraction changes need regression. Funded live payment/refund/Arkiv-write gates remain open. See the [implementation audit](../IMPLEMENTATION_AUDIT.md).
+Authorized6November2026; all six phases were subsequently authorized. Refund/public projection/accountant source is integrated and the114-test root/16-test browser runs pass. Complete local5USDT original-payer refund/25–5–20 accounting/CSV, correction repairs and actual independent public query checks pass. Funded live refund/signed Arkiv writes remain open. Checked tasks below describe implemented/local verified behavior, not live proof.
 
 ## Architecture and current docs
 
@@ -14,15 +14,15 @@ FILES TO CREATE: `packages/db/src/refunds.ts` (intent/authorization/revalidation
 
 FILES TO MODIFY: private schema/migrations, observer/worker job dispatch, source-chain ABI verification, webhook receiver corrections, dashboard reports/details/navigation, REST routes/env/version/docs. Never upgrade or replace the tested router to bypass refund rules.
 
-- [ ] 1. Review prerequisites/current sponsor APIs, current-state race model and this detailed plan.
-- [ ] 2. Persist idempotent positive integer refund intents under payment lock; enforce remaining amount and simultaneous reservations. Advance eligibility version and hold fulfillment before returning any executable payload.
-- [ ] 3. Fresh original merchant/payer screening and policy checks; generate operation-specific signed refund authorization bound to original chain/router/token/payer/merchant/invoice/refund ID/evidence/epoch/deadline. Merchant wallet must execute; service/CRE cannot spend on its behalf.
-- [ ] 4. Refund UX: amount/remaining, inline validation, current reasons, original wallet/network/balance/needed allowance, explicit confirmation, separate approval/execute, pending/reverted/expired/review/history. Idempotent retry and canonical state survive reload.
-- [ ] 5. Observe and verify refund receipts/canonical blocks; only chain events change totals. On failed/cancelled/expired intent, release hold only after authoritative chain totals and all outstanding authorizations are expired/invalidated. Version/audit/corrective events preserve already-fulfilled exposure.
-- [ ] 6. Add durable Arkiv sync jobs for canonical payment/refund/correction records with deterministic event key, trusted writer/schema/ownership, indexed search fields, expiry/renewal and retry. Recover successful-write→mapping crash via deterministic-key prediction or exact owner/event query before retry; never blindly duplicate.
-- [ ] 7. Independent accountant reads public Arkiv via actual SDK/RPC, filters merchant/kind/date/block, paginates, deduplicates and verifies source receipt/event/code/token/amount/parties/canonical block. Show rejected records and source-RPC errors explicitly.
-- [ ] 8. Scan bounded Whitechain router range from deployment to stated head, reconcile payment/refund events against available verified entities, show progress/missing/expired coverage. Gateway-stopped mode must still query public history. Empty Arkiv query is not complete history.
-- [ ] 9. Exact 25/5/20 gross/refund/net calculations and formula-safe CSV across dashboard/accountant. Test forged writer/mismatched/replayed/expired/missing/reorg data and pending-refund versus delivery races.
+- [x] 1. Review prerequisites/current sponsor APIs, current-state race model and this detailed plan.
+- [x] 2. Persist idempotent positive integer refund intents under payment lock; enforce remaining amount and simultaneous reservations. Advance eligibility version and hold fulfillment before returning any executable payload.
+- [x] 3. Fresh original merchant/payer screening and policy checks; generate operation-specific signed refund authorization bound to original chain/router/token/payer/merchant/invoice/refund ID/evidence/epoch/deadline. Merchant wallet must execute; service/CRE cannot spend on its behalf.
+- [x] 4. Refund UX: amount/remaining, inline validation, current reasons, original wallet/network/balance/needed allowance, explicit confirmation, separate approval/execute, pending/reverted/expired/review/history. Idempotent retry and canonical state survive reload.
+- [x] 5. Observe and verify refund receipts/canonical blocks; only chain events change totals. On failed/cancelled/expired intent, release hold only after authoritative chain totals and all outstanding authorizations are expired/invalidated. Version/audit/corrective events preserve already-fulfilled exposure.
+- [x] 6. Add durable Arkiv sync jobs for canonical payment/refund/correction records with deterministic event key, trusted writer/schema/ownership, indexed search fields, expiry/renewal and retry. Recover successful-write→mapping crash via deterministic-key prediction or exact owner/event query before retry; never blindly duplicate.
+- [x] 7. Independent accountant reads public Arkiv via actual SDK/RPC, filters merchant/kind/date/block, paginates, deduplicates and verifies source receipt/event/code/token/amount/parties/canonical block. Show rejected records and source-RPC errors explicitly.
+- [x] 8. Scan bounded Whitechain router range from deployment to stated head, reconcile payment/refund events against available verified entities, show progress/missing/expired coverage. Gateway-stopped mode must still query public history. Empty Arkiv query is not complete history.
+- [x] 9. Exact 25/5/20 gross/refund/net calculations and formula-safe CSV across dashboard/accountant. Test forged writer/mismatched/replayed/expired/missing/reorg data and pending-refund versus delivery races.
 - [ ] 10. Verify responsive/keyboard/wallet/error flows, local full refund→accounting harness, actual SDK read/write when funded, genuine explorer/entity references, evidence/docs and coherent GitHub pushes.
 
 Critical path: refund hold schema/atomic eligibility→authorization→UI→canonical observer; public schema/writer dedupe→queries/verification→coverage/accountant. The accountant must not import private database, gateway history API or writer key. Isolated tests precede dev migration; preserve funded live gates.

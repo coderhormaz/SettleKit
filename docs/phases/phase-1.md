@@ -1,6 +1,6 @@
 # Phase 1: foundation and feasibility
 
-Started: 6 November 2026 (IST). User authorized Phase 1 only. Status: independent implementation/checks passed; two user-deferred funded testnet gates remain open. See `PROGRESS.md` and the evidence index.
+Started6November2026 (IST); all six phases were subsequently authorized. Foundation implementation/checks pass; two user-deferred funded testnet gates remain open. The final local verification pass is recorded in `PROGRESS.md` and the evidence index.
 
 ## Scope and architecture review
 

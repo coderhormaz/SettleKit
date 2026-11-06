@@ -4,7 +4,7 @@ Authorized 6 November 2026 (IST). All phases are authorized; finish incomplete P
 
 ## Scope, architecture and review
 
-7 November source status: recovery ledger/API, real SDK workflow/private CLI wrapper, controlled failure fixture, dashboard delivery attribution and [runbook](phase-5-runbook.md) are implemented. Recovery WASM compiles. Main agent only; further tests deferred. Execution/matrix proof in items 6/7 remains pending; Phase 1 simulation is not recovery evidence. Items 1–5 below describe source delivered, not runtime verification.
+7 November verification: actual recovery CLI simulation and persisted one-fulfillment proof now pass against the local EVM/mock token, separate merchant HTTP API and real isolated Neon. Eleven recovery auth/race/cap/attribution checks pass as part of the clean114-test root run. See [recovery evidence](../evidence/phase-5/local-recovery-flow.json) and [CLI hashes/log](../evidence/phase-5/cre-recovery-simulation.json). This is separate from Phase1's route proof and the pending funded Whitechain recovery run. Main agent only; testing resumed.
 
 Use the installed CRE SDK1.23.0/CLI1.39.0/Bun1.4.4/TypeScript 5.9.3. Rechecked [selected CRE track](https://ethglobal.com/events/mumbai/prizes/chainlink) and [HTTP capability](https://docs.chain.link/cre/capabilities/http) on 6 November2026: meaningful orchestration and actual CLI simulation are required; deployed DON execution is separate. Preserve the proven HTTP route and documented Sepolia CLI-bootstrap limitation. No CCIP/extra settlement chain/native Whitechain claim.
 
@@ -19,8 +19,8 @@ FILES TO MODIFY: worker dispatch/audit actor, public-safe shared receipt types/A
 - [x] 3. Implement backend recovery intents with stable payment/event/version identity, cooldown/attempt cap, canonical/source/refund/order revalidation and atomic existing-event scheduling. No fresh charge or refund.
 - [x] 4. Real CRE workflow reads chain ID/router receipt/block/event through HTTP, matches invoice/payer/merchant/token/amount/log/hash/soft confirmation and current merchant order; rejects unsafe states, normalizes data for consensus.
 - [x] 5. CRE submits authenticated recovery action; backend rechecks latest state/version and queues existing stable notification. Actor audit must say CRE only for an actual CRE-originated request.
-- [ ] 6. Explicit local-only failure injection makes initial delivery fail/reach labeled recoverable state; restore receiver then run real CLI simulation and show actual recovery/one fulfillment. Disable unrelated automatic recovery so it cannot be credited to CRE.
-- [ ] 7. Verify replay and unsafe matrix, preserve sanitized config/source/WASM/run/result proof and push milestone.
+- [x] 6. Explicit local-only failure injection makes initial delivery fail/reach labeled recoverable state; restore receiver then run real CLI simulation and show actual recovery/one fulfillment. Disable unrelated automatic recovery so it cannot be credited to CRE.
+- [x] 7. Verify replay and unsafe matrix, preserve sanitized config/source/WASM/run/result proof and push milestone. Eleven real-Neon recovery checks and actual local CLI/one-fulfillment evidence are recorded; funded Whitechain repeat remains a separate exit gate.
 
 Review constraints: ordinary operators/merchant sessions cannot forge service auth; credentials never enter browser/build/log/Git. Compare current canonical monetary state separately from delivery. Nonterminal refund intent holds before executable refund payload; refunded/partial-refund/cancelled/orphaned/blocked/stale/mismatched/absent orders do not gain fulfillment. Fully fulfilled order is a no-op. Current key/endpoint failure needs repair; capped budgets cannot reset infinitely. All consensus-side HTTP results are bounded, validated and stable; side-effect endpoint is idempotent across nodes/repeated runs.
 

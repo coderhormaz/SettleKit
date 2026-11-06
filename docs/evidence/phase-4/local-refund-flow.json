@@ -1,0 +1,66 @@
+{
+  "kind": "local-EDR-mock-token-refund-and-explicit-public-entity-fixtures",
+  "liveWhitechain": false,
+  "actualArkivWrite": false,
+  "mockToken": true,
+  "fixtureScreeningSource": true,
+  "chainId": 1874,
+  "tokenAddress": "0xcedfB56113143d55b2358b8CFbB0dEB5Ad2f55a7",
+  "status": "passed",
+  "checkedAt": "2026-11-06T23:36:34.674Z",
+  "paymentTxHash": "0xaa84c84363d8bd0a608227504c387276d3d3fe0c3795cc32ca6b06316cb9408b",
+  "refundTxHash": "0x0a4f564a9578d9a2ab9f9d70dd2a943e5e3fb998e5297ff31d78e30063e91e12",
+  "refundBlock": "9",
+  "refundBlockHash": "0xacf4cbb639140c1663d76b52ad39fb6575290316efbc1c38f5ecd3ff5ae170c8",
+  "refundAmountBaseUnits": "5000000",
+  "originalPayer": "0x5dCe88e978117C7d8DFCD4C9428eDeb7D796dB75",
+  "originalMerchant": "0x91f813bEe532F1dFfD9B25764544C43641086780",
+  "router": "0xe7f1725e7734ce288f8367e1bb143e90bb3f0512",
+  "refundExecutedBy": "Original merchant Node-held throwaway local account only",
+  "balancesBaseUnits": {
+    "payer": "80000000",
+    "merchant": "20000000",
+    "router": "0"
+  },
+  "gatewayTotalsBaseUnits": {
+    "gross": "25000000",
+    "refunded": "5000000",
+    "net": "20000000"
+  },
+  "dashboardCsvVerified": true,
+  "publicVerifierRows": 2,
+  "publicVerifierEntities": "Explicitly simulated Arkiv entity metadata wrapping actual local EDR/observer receipt payloads; not actual Arkiv writes",
+  "publicVerifierTotalsBaseUnits": {
+    "gross": "25000000",
+    "refunded": "5000000",
+    "net": "20000000"
+  },
+  "publicCsvVerified": true,
+  "storeFulfillmentCount": 1,
+  "storeCorrectionExposureAuditCount": 1,
+  "oldAcceptedEventReplayDidNotFulfill": true,
+  "collections": {
+    "status": "passed",
+    "freshMerchantWithoutExternalIntegration": true,
+    "deactivatedLinkBlockedNewSessionAndExistingProof": true,
+    "pausedMerchantBlockedInvoiceSessionAndExistingProof": true,
+    "invoiceReloadIdempotent": true,
+    "paidInvoiceRejectsNewCheckout": true,
+    "payments": [
+      {
+        "kind": "link",
+        "amountBaseUnits": "1",
+        "txHash": "0x749b81c0b65fea8737776155c951cf224522d29fd36f34dc7aa18c6acec87302",
+        "internalFulfillment": "fulfilled",
+        "repeatDeliveryDidNotRepeatEffect": true
+      },
+      {
+        "kind": "invoice",
+        "amountBaseUnits": "1",
+        "txHash": "0xdd22f82ddd5e20e61b4b2a5f4701b45ebb76bda38143c79cc4f831edb24c9e2b",
+        "internalFulfillment": "fulfilled",
+        "repeatDeliveryDidNotRepeatEffect": true
+      }
+    ]
+  }
+}

@@ -11,9 +11,15 @@ const hash=(v:unknown):v is Hex=>typeof v==='string'&&/^0x[0-9a-f]{64}$/i.test(v
 const address=(v:unknown):v is Hex=>typeof v==='string'&&/^0x[0-9a-f]{40}$/i.test(v);
 const uuid=(v:unknown):v is string=>typeof v==='string'&&/^[0-9a-f-]{36}$/i.test(v);
 const quantity=(v:unknown,expected?:bigint):v is Hex=>typeof v==='string'&&/^0x[0-9a-f]+$/i.test(v)&&(expected===undefined||BigInt(v)===expected);
-function endpoint(value:string,local:boolean,originOnly=false):URL{
-  let url:URL;try{url=new URL(value);}catch{throw new Error('RECOVERY_ENDPOINT_INVALID');}const loopback=['127.0.0.1','localhost','[::1]'].includes(url.hostname);
-  if(url.username||url.password||url.hash||url.search||(url.protocol!=='https:'&&!(local&&loopback&&url.protocol==='http:'))||(originOnly&&url.pathname!=='/'))throw new Error('RECOVERY_ENDPOINT_INVALID');return url;
+function endpoint(value:string,local:boolean,originOnly=false):void{
+  // CRE's WASM runtime does not provide Node/browser's WHATWG URL constructor.
+  // Configured endpoints need only this deliberately narrow, credential-free
+  // HTTPS/explicit-loopback HTTP grammar; request paths are never user supplied.
+  const match=typeof value==='string'&&value.length<=2048?value.match(/^(https?):\/\/(\[[0-9a-f:]+\]|[a-z0-9](?:[a-z0-9.-]*[a-z0-9])?)(?::([0-9]{1,5}))?(\/[^?#\s\\]*)?$/i):null;
+  if(!match)throw new Error('RECOVERY_ENDPOINT_INVALID');
+  const protocol=match[1].toLowerCase(),host=match[2].toLowerCase(),path=match[4]??'/';
+  const loopback=['127.0.0.1','localhost','[::1]'].includes(host);
+  if((match[3]&&(Number(match[3])<1||Number(match[3])>65535))||(protocol!=='https'&&!(local&&loopback&&protocol==='http'))||(originOnly&&path!=='/')||/%(?:0[0-9a-f]|1[0-9a-f]|7f)/i.test(path))throw new Error('RECOVERY_ENDPOINT_INVALID');
 }
 function configCheck(c:Config){
   if(typeof c.schedule!=='string'||typeof c.localSimulation!=='boolean'||!address(c.router)||!address(c.merchantWallet)||!hash(c.routerCodeHash)||!/^\d+$/.test(c.deploymentBlock))throw new Error('RECOVERY_CONFIG_INVALID');

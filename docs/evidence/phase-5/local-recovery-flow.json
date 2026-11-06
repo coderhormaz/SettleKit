@@ -1,0 +1,34 @@
+{
+  "kind": "local-chain-mock-token-and-actual-CRE-CLI-HTTP-Neon-recovery",
+  "status": "passed",
+  "combinedHarnessStatus": "passed",
+  "combinedHarnessFailedStage": null,
+  "recovery": {
+    "kind": "actual-CRE-CLI-with-local-EDR-and-real-Neon-store-HTTP",
+    "liveWhitechain": false,
+    "initialDeliveryFailed": true,
+    "normalRetryExhausted": true,
+    "existingEventRecovered": true,
+    "recoveryIntentCount": 1,
+    "recoveryDeliveredAuditCount": 1,
+    "repeatedRequestNoNewJob": true,
+    "cliEvidence": "../phase-5/cre-recovery-simulation.json",
+    "storeFulfillmentCount": 1
+  },
+  "liveWhitechain": false,
+  "actualArkivWrite": false,
+  "oneFulfillment": true,
+  "javascriptAdapter": {
+    "actualCheckoutHttp": true,
+    "authenticatedOrderRead": true,
+    "rawHmacDuplicateVerified": true,
+    "durableFulfillmentCount": 1
+  },
+  "pythonAdapter": {
+    "actualServer": true,
+    "publicOrigin": "http://127.0.0.1:3502",
+    "privateDurableStore": "http://127.0.0.1:3501",
+    "signedNotificationAndOrderReads": true,
+    "fulfillmentCount": 1
+  }
+}

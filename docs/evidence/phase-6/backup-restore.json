@@ -1,0 +1,44 @@
+{
+  "kind": "actual-PostgreSQL17-private-backup-and-isolated-restore",
+  "checkedAt": "2026-11-06T23:33:18.012Z",
+  "status": "passed",
+  "tls": "verify-full; Windows Node public CA bundle fallback, no hostname/certificate bypass",
+  "tool": {
+    "version": "17.11",
+    "download": "https://get.enterprisedb.com/postgresql/postgresql-17.11-5-windows-x64-binaries.zip",
+    "archiveSha256": "80379b2c04d51c30225532e0ae04509899141e9957ed096fe749d7fd9df8f82f",
+    "windowsSignature": "NotSigned; official HTTPS-linked binary provenance, not signature-verified"
+  },
+  "gateway": {
+    "archiveBytes": 91967,
+    "sha256": "12323a8f95141fe52ad2c92c1f1e2e99eb64d249e8933b6d40b3c7b726761703",
+    "restoreDatabase": "settlekit_restore_verify_20261107",
+    "counts": {
+      "tables": 32,
+      "merchants": 1,
+      "screening_sources": 1,
+      "migrations": 9
+    }
+  },
+  "store": {
+    "sha256": "de8e72ce37a47519a660b9dc4c729f404eb61cc53d477d8cf9b732c4931baf82",
+    "restoreDatabase": "settlekit_restore_store_20261107",
+    "counts": {
+      "tables": 4,
+      "orders": 4,
+      "receipts": 0
+    }
+  },
+  "negativeGuards": {
+    "explicit-isolation-required": "EXPLICIT_TEST_ISOLATION_REQUIRED",
+    "exact-target-name-required": "RESTORE_TARGET_NAME_CONFIRMATION_REQUIRED",
+    "existing-app-target-rejected": "RESTORE_TARGET_NAME_CONFIRMATION_REQUIRED",
+    "default-branch-host-rejected": "RESTORE_REQUIRES_SELECTED_ISOLATED_TEST_HOST",
+    "archive-checksum-required": "RESTORE_MANIFEST_OR_ARCHIVE_MISMATCH",
+    "occupied-target-transaction-rolled-back": "RESTORE_TARGET_NOT_EMPTY"
+  },
+  "defaultAppTargetsChanged": false,
+  "archivesCommitted": false,
+  "credentialsPublic": false,
+  "limitations": "Private custom archives remain ignored. Ownership/grants omitted: reapply limited runtime grants before future cutover. Encryption key must be retained separately. No live customer transaction backup or application cutover."
+}

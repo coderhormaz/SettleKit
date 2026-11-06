@@ -1,6 +1,6 @@
 {
   "kind": "actual-public-Arkiv-SDK-read",
-  "checkedAt": "2026-11-06T09:59:59.606Z",
+  "checkedAt": "2026-11-06T22:33:22.391Z",
   "sdk": "@arkiv-network/sdk@1.0.1",
   "rpc": "https://rpc.rabdi.db-chain.testnet.arkiv.network",
   "chainId": 7794095,
@@ -8,12 +8,12 @@
   "writer": "0xAB5C7220E7d98D57181346d00D6E7957f42Af486",
   "merchant": "0x1A6d39216bcfCA2a93221aB2ed0e43f6561cf192",
   "returnedRecords": 0,
-  "readAtBlock": "286716",
+  "readAtBlock": "309315",
   "nextCursor": null,
   "writerBalanceBaseUnits": "0",
   "timing": {
-    "currentBlock": "286716",
-    "currentBlockTime": 1793959198,
+    "currentBlock": "309316",
+    "currentBlockTime": 1794004402,
     "blockDuration": 2
   },
   "gatewayHistoryApiUsed": false,

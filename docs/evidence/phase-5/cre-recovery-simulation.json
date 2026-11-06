@@ -1,0 +1,14 @@
+{
+  "kind": "actual-cre-cli-recovery-simulation",
+  "startedAt": "2026-11-06T23:34:56.048Z",
+  "completedAt": "2026-11-06T23:35:02.793Z",
+  "cliBinaryHash": "7ecf82df731ff2f397ee45be564524352a720626096b3c66c614918844586333",
+  "sourceSha256": "518dc23d75e6f23cd687365095b7e07dff1dbe880fc83d26d36a83626ffdb630",
+  "wasmSha256": "9568f3f000e09fec87c631d40f601ceffc498176bcc3f3feb56ba176b7eb4733",
+  "whitechainRpcRoute": "explicit local test RPC",
+  "liveWhitechain": false,
+  "localConfiguration": true,
+  "execution": "CLI simulation, not DON deployment",
+  "resultLog": "cre-recovery-simulation.log",
+  "evidenceBoundary": "A successful CLI run can return no candidates/refusals. Inspect persisted recovery and actual merchant order outcome before claiming recovered fulfillment."
+}

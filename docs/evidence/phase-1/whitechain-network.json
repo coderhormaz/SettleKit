@@ -1,15 +1,15 @@
 {
   "kind": "live-read-only-testnet-probe",
-  "observedAt": "2026-11-05T23:18:41.698Z",
+  "observedAt": "2026-11-06T22:33:20.913Z",
   "chainId": 1874,
   "token": "0xcedfB56113143d55b2358b8CFbB0dEB5Ad2f55a7",
   "decimals": 6,
   "name": "Tether USD",
   "symbol": "USDT",
-  "totalSupplyBaseUnits": "1945273000000",
+  "totalSupplyBaseUnits": "1945285000000",
   "bytecodeBytes": 2227,
-  "blockNumber": "12324355",
-  "blockHash": "0x48c6a1cf232de38f0aa701adccfcd3a60e986fc96d7a0b40b399c6dddd02832b",
+  "blockNumber": "12408033",
+  "blockHash": "0x61cd373c3b749ecf854e50fc0224b0ee650744c7a4b3bb991616932e055fee56",
   "balances": [
     {
       "role": "payer",

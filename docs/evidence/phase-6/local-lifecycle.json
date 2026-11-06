@@ -1,0 +1,47 @@
+{
+  "kind": "actual-local-supervisor-and-independent-accountant-lifecycle",
+  "checkedAt": "2026-11-06T23:36:41.404Z",
+  "status": "passed",
+  "duplicateManagedStartRefused": true,
+  "ownedStopSucceeded": true,
+  "unmanagedStatusAfterStop": true,
+  "occupied3000RefusedWithoutKillingProcess": true,
+  "accountantWorkedWithGateway3000Closed": true,
+  "accountantEvidence": "../../../apps/accountant/evidence/public-browser.json",
+  "boundary": "Actual public empty query, not funded positive entity/accounting proof. Final managed restart recorded separately.",
+  "finalManagedRuntime": {
+    "checkedAt": "2026-11-06T23:54:14.724Z",
+    "managed": true,
+    "startedAt": "2026-11-06T23:51:48.401Z",
+    "supervisorAlive": true,
+    "services": {
+      "gateway": {
+        "processAlive": true,
+        "heartbeatFresh": true,
+        "url": "http://127.0.0.1:3000",
+        "httpReady": true,
+        "stopping": false
+      },
+      "store": {
+        "processAlive": true,
+        "heartbeatFresh": true,
+        "url": "http://127.0.0.1:3200",
+        "httpReady": true,
+        "stopping": false
+      },
+      "accountant": {
+        "processAlive": true,
+        "heartbeatFresh": true,
+        "url": "http://127.0.0.1:3400",
+        "httpReady": true,
+        "stopping": false
+      },
+      "worker": {
+        "processAlive": true,
+        "heartbeatFresh": true,
+        "kind": "process-heartbeat-only",
+        "stopping": false
+      }
+    }
+  }
+}

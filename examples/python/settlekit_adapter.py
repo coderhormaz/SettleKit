@@ -160,7 +160,7 @@ def _time(value) -> float:
 def association(value):
     if not isinstance(value, dict) or any(not isinstance(value.get(key), str) or not IDENTIFIER.fullmatch(value[key]) for key in ("payment_id", "checkout_reference", "merchant_order_id")):
         raise AdapterError("ASSOCIATION_INVALID", 400)
-    if value.get("chain_id") != CHAIN_ID or str(value.get("token", "")).lower() != TOKEN or any(not ADDRESS.fullmatch(str(value.get(key, ""))) for key in ("payer", "merchant")):
+    if type(value.get("chain_id")) is not int or value["chain_id"] != CHAIN_ID or str(value.get("token", "")).lower() != TOKEN or any(not ADDRESS.fullmatch(str(value.get(key, ""))) for key in ("payer", "merchant")):
         raise AdapterError("ASSOCIATION_INVALID", 400)
     if type(value.get("state_version")) is not int or value["state_version"] < 1 or type(value.get("eligible")) is not bool or value.get("confirmation_stage") != "included_2_blocks":
         raise AdapterError("ASSOCIATION_INVALID", 400)

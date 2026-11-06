@@ -18,6 +18,9 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - run: pnpm build:all
       - run: pnpm typecheck
+      - run: pnpm check:imports
+      - run: pnpm audit:secrets
       - run: pnpm test:unit
       - run: pnpm test:contracts
+      - run: python3 -m unittest discover -s examples/python -p 'test_*.py'
       # Live DB/browser/sponsor checks run separately with isolated local credentials.

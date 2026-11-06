@@ -1,6 +1,6 @@
 {
   "kind": "static-integration-source-inventory",
-  "measuredAt": "2026-11-06T22:19:21.8133163Z",
+  "measuredAt": "2026-11-06T23:51:45.624Z",
   "files": [
     {
       "path": "examples/javascript/server.ts",
@@ -25,12 +25,12 @@
     {
       "path": "examples/python/settlekit_adapter.py",
       "physicalLines": 202,
-      "bytes": 10071
+      "bytes": 10109
     },
     {
       "path": "examples/python/server.py",
-      "physicalLines": 113,
-      "bytes": 7235
+      "physicalLines": 119,
+      "bytes": 7473
     },
     {
       "path": "examples/store/src/server.ts",
@@ -69,5 +69,12 @@
     }
   ],
   "integrationTime": "not measured",
-  "boundary": "Counts include reusable helpers and the separately listed durable store implementation. Compact long lines understate complexity. Runtime tests of the new JS/Python adapters are deferred."
+  "boundary": "Includes reusable helpers and separate durable store. Compact lines understate effort. JS/Python runtime exercised in actual local EDR/HTTP/Neon harness; Python boundary tests recorded separately. Integration time unmeasured.",
+  "verificationTests": [
+    {
+      "path": "examples/python/test_adapter.py",
+      "bytes": 6685,
+      "partOfMerchantIntegration": false
+    }
+  ]
 }

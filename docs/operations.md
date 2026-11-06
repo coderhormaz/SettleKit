@@ -1,6 +1,6 @@
 # Local operator runbook
 
-Updated 7 November 2026. These are implemented commands, not evidence that every command has been exercised. Further tests/runtime verification are deferred. Public application hosting is deferred.
+Updated 7 November 2026. The user resumed runtime verification. Gateway/store backup and isolated restore have now been exercised; see the release checklist for the remaining evidence boundaries. Public application hosting is deferred.
 
 ## Private configuration
 
@@ -62,7 +62,9 @@ Retry checks funding/configuration, skips active work, queues at most 100 failed
 
 ## Backup and isolated restore
 
-Use already installed trusted PostgreSQL 17 tools, optionally selected with `PG_DUMP_PATH` / `PG_RESTORE_PATH`. The script checks actual major version, never installs tools or creates databases, and passes credentials through `PG*` environment rather than connection URLs in argv.
+Use already installed trusted PostgreSQL 17 tools, optionally selected with `PG_DUMP_PATH` / `PG_RESTORE_PATH`. The script checks actual major version, never installs tools or creates databases, and passes credentials through `PG*` environment rather than connection URLs in argv. This workstation uses portable PostgreSQL17.11 clients downloaded through the official PostgreSQL Windows/EDB binaries links; no PostgreSQL server was installed.
+
+TLS remains `verify-full`. On Windows, when `PGSSLROOTCERT` is absent, the helper exports the installed Node runtime's public trust roots into ignored `data/backups/`; this supplies libpq's missing default CA bundle without disabling certificate or hostname verification. An explicit `PGSSLROOTCERT` selects your own CA bundle. Restore authentication/TLS/permission failures emit bounded codes rather than provider output or credentials.
 
 ```powershell
 pnpm db:backup --database gateway
@@ -77,6 +79,6 @@ Pre-create an **empty** `settlekit_restore_<suffix>` database on the isolated te
 pnpm db:restore --database gateway --file data/backups/<archive>.dump --confirm-target settlekit_restore_<suffix>
 ```
 
-No `--clean`, drop/create or runtime URL replacement is performed. Restore is one transaction, stop-on-error. A dump is not a proven restore; the actual restore exercise remains pending.
+No `--clean`, drop/create or runtime URL replacement is performed. Restore is one transaction, stop-on-error. Actual gateway and store archives were restored into separate isolated `settlekit_restore_*` databases and checked for schema/data counts. Archives omit ownership and grants: before any future deliberate cutover, reapply and verify limited runtime roles/grants and configure credentials privately. This exercise did not cut over either running application. Backups also require the matching encryption key to recover encrypted configuration; retain it privately under separate access control.
 
 Logs emit safe codes. `pnpm audit:secrets` compares local credentials with staged files and both generated client bundles; it complements source review. Fetch before normal pushes and verify remote SHA. Hosting, submission, customer funds and sponsor messages remain separately authorized.

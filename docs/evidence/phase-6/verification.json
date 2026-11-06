@@ -1,0 +1,105 @@
+{
+  "kind": "actual-final-local-verification",
+  "checkedAt": "2026-11-06T23:51:45.624Z",
+  "mainAgentOnly": true,
+  "root": {
+    "command": "pnpm test",
+    "files": 13,
+    "passed": 114,
+    "failed": 0,
+    "durationSeconds": 266.37
+  },
+  "contracts": {
+    "command": "pnpm test:contracts",
+    "passed": 26,
+    "localSimulatedEvm": true
+  },
+  "browser": {
+    "command": "pnpm test:browser",
+    "passed": 16,
+    "failed": 0,
+    "viewports": [
+      1440,
+      768,
+      390
+    ],
+    "boundary": "Actual wallet/Neon CRUD plus explicit UI/wallet/RPC fixtures; positive funded wallet transactions not browser-proven."
+  },
+  "python": {
+    "command": "python -m unittest discover -s examples/python -p 'test_*.py'",
+    "passed": 7,
+    "failed": 0,
+    "boundary": "Real local HTTP guards plus explicit current-state fixtures; positive production HTTP/Neon callback separately exercised in combined local harness."
+  },
+  "typecheck": "passed",
+  "buildAll": "passed gateway/accountant production builds",
+  "sdkImports": "passed actual Arkiv/CRE packages",
+  "integratedCommand": "node --env-file=.env --import tsx packages/contracts/scripts/local-payment-flow.ts --refunds --collections --recovery --python",
+  "integratedStatus": "passed",
+  "design": {
+    "skill": "Impeccable",
+    "desktopTabletMobileInspected": true,
+    "primaryDetectorFindings": 0,
+    "advisories": 201,
+    "advisoryKinds": [
+      "design-system-color",
+      "design-system-font-size",
+      "design-system-radius"
+    ],
+    "boundary": "Palette/type/radius inventory advisories retained; no claim of zero advisory findings. Explicit UI-state fixtures identified separately from real persistence captures."
+  },
+  "fixedFailurePoints": [
+    "recovery evidence validation before duplicate acknowledgment",
+    "checked-out database connection error/discard handling without ambiguous-commit retry",
+    "contact payment/invoice history and orphaned invoice state",
+    "overview unresolved work and source-time disclosure",
+    "CRE runtime endpoint validation and secret aliases",
+    "Windows libpq public CA fallback retaining verify-full",
+    "Python malformed callback shape and strict integer chain metadata",
+    "harness invoice response envelope",
+    "screening test fixture single fetch/publication timestamp"
+  ],
+  "openGates": [
+    "funded Whitechain deployment/source verification/sponsor-USDT payment/refund",
+    "actual signed Arkiv entities/renewal and positive independent public accounting",
+    "repeat recovery with funded actual Whitechain payment",
+    "human-narrated video; integration time/merchant validation unmeasured"
+  ],
+  "hosting": "user deferred",
+  "secretsPublic": false,
+  "finalManagedRuntime": {
+    "checkedAt": "2026-11-06T23:54:14.731Z",
+    "managed": true,
+    "startedAt": "2026-11-06T23:51:48.401Z",
+    "supervisorAlive": true,
+    "services": {
+      "gateway": {
+        "processAlive": true,
+        "heartbeatFresh": true,
+        "url": "http://127.0.0.1:3000",
+        "httpReady": true,
+        "stopping": false
+      },
+      "store": {
+        "processAlive": true,
+        "heartbeatFresh": true,
+        "url": "http://127.0.0.1:3200",
+        "httpReady": true,
+        "stopping": false
+      },
+      "accountant": {
+        "processAlive": true,
+        "heartbeatFresh": true,
+        "url": "http://127.0.0.1:3400",
+        "httpReady": true,
+        "stopping": false
+      },
+      "worker": {
+        "processAlive": true,
+        "heartbeatFresh": true,
+        "kind": "process-heartbeat-only",
+        "stopping": false
+      }
+    }
+  }
+}

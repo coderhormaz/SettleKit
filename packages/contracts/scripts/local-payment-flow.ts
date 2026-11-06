@@ -7,18 +7,18 @@
  * Never a Whitechain deployment/payment or sponsor-eligibility claim.
  */
 import assert from 'node:assert/strict';
-import { randomUUID, createHash } from 'node:crypto';
+import { randomUUID, createHash, createHmac } from 'node:crypto';
 import { createServer, type Server } from 'node:http';
 import { spawn, type ChildProcess } from 'node:child_process';
 import { once } from 'node:events';
-import { mkdir, writeFile } from 'node:fs/promises';
+import { mkdir, writeFile, readFile, unlink } from 'node:fs/promises';
 import { createRequire } from 'node:module';
 import { fileURLToPath } from 'node:url';
 import { resolve } from 'node:path';
 import { createPublicClient, createWalletClient, defineChain, erc20Abi, http, keccak256, type Address, type Hex } from 'viem';
 import { generatePrivateKey, privateKeyToAccount } from 'viem/accounts';
-import { createDatabase, completeJob, policyCommitment, transaction, type ClaimedJob, type Database } from '../../db/src/index.ts';
-import { observePayments, deliverPayment } from '../../worker/src/payments.ts';
+import { createDatabase, completeJob, failJob, policyCommitment, transaction, type ClaimedJob, type Database } from '../../db/src/index.ts';
+import { observePayments, deliverPayment, recordDeliveryFailure } from '../../worker/src/payments.ts';
 import { encryptSecret, hashToken, randomToken } from '../../core/src/server.ts';
 import { USDT_ADDRESS } from '../../core/src/index.ts';
 import { routerAbi, type PaymentAuthorization, type RefundAuthorization } from '../../core/src/router.ts';
@@ -26,12 +26,15 @@ import { OFAC_SDN_URL, OFAC_SOURCE_ID, SCREENING_COVERAGE, type SourceSnapshot }
 import { createStoreDatabase } from '../../../examples/store/src/store.ts';
 import {cleanupTestMerchants} from '../../db/test/cleanup.ts';
 import { accountingCsv,parseReceipt,summarizeVerified,verifyReceipt,type ReceiptEntity } from '../../arkiv/src/index.ts';
+import {SettleKitClient} from '../../../examples/javascript/server.ts';
+import {createMerchantAdapter} from '../../../examples/javascript/adapter.ts';
 
 const root=fileURLToPath(new URL('../../../',import.meta.url));
 const script=fileURLToPath(import.meta.url);
 const require=createRequire(import.meta.url);
 const gatewayOrigin='http://127.0.0.1:3500';
-const storeOrigin='http://127.0.0.1:3501';
+const backendStoreOrigin='http://127.0.0.1:3501';
+const storeOrigin=process.argv.includes('--python')?'http://127.0.0.1:3502':backendStoreOrigin;
 const delay=(ms:number)=>new Promise(resolve=>setTimeout(resolve,ms));
 
 async function claimOwnDelivery(db:Database,merchantId:string,deliveryId:string):Promise<ClaimedJob>{
@@ -49,6 +52,10 @@ async function workerOnce(mode:string){
     if(mode==='--worker-observe')await observePayments(db);
     else{
       const job=await claimOwnDelivery(db,process.env.HARNESS_MERCHANT_ID!,process.env.HARNESS_DELIVERY_ID!);
+      if(mode==='--worker-deliver-expect-failure'){
+        let failed=false;try{await deliverPayment(db,job);}catch{failed=true;await recordDeliveryFailure(db,job);await failJob(db,job,'EXPLICIT_DEVELOPMENT_FAILURE');}
+        assert.equal(failed,true,'The armed local receiver must refuse the first delivery.');return;
+      }
       await deliverPayment(db,job);
       // Simulate a real worker process dying after remote acknowledgment but
       // before marking its outbox lease complete; the next process retries.
@@ -57,20 +64,21 @@ async function workerOnce(mode:string){
   }finally{await db.pool.end();}
 }
 
-function childProcess(args:string[],env:NodeJS.ProcessEnv,cwd=root){
-  const child=spawn(process.execPath,args,{cwd,env,windowsHide:true,stdio:['ignore','pipe','pipe']});
+function childProcess(args:string[],env:NodeJS.ProcessEnv,cwd=root,executable=process.execPath){
+  const child=spawn(executable,args,{cwd,env,windowsHide:true,stdio:['ignore','pipe','pipe']});
+  child.once('error',()=>{/* Readiness/awaited process exit reports a safe failure. */});
   // Child output can contain opaque session/API material if a dependency fails.
   // Keep it private; the harness reports bounded stage/error codes only.
   child.stdout?.resume();child.stderr?.resume();return child;
 }
 async function stopChild(child:ChildProcess){
-  if(child.exitCode!==null)return;
+  if(child.exitCode!==null||!child.pid)return;
   const exited=once(child,'exit');child.kill();await Promise.race([exited,delay(5000)]);
   if(child.exitCode===null)child.kill('SIGKILL');
 }
-async function runChild(args:string[],env:NodeJS.ProcessEnv){
-  const child=childProcess(args,env);const timer=setTimeout(()=>child.kill('SIGKILL'),45_000);
-  try{const [code]=await once(child,'exit');assert.equal(code,0,'The isolated harness worker must exit successfully.');}finally{clearTimeout(timer);}
+async function runChild(args:string[],env:NodeJS.ProcessEnv,timeout=45_000){
+  const child=childProcess(args,env);let timedOut=false;let diagnostic='';child.stderr?.on('data',part=>{if(diagnostic.length<4096)diagnostic+=part.toString();});const timer=setTimeout(()=>{timedOut=true;child.kill('SIGKILL');},timeout);
+  try{const [code]=await once(child,'exit');if(code!==0){const error=new Error('The isolated harness worker must exit successfully.') as Error&{code:string};error.code=timedOut?'LOCAL_WORKER_TIMEOUT':diagnostic.match(/HARNESS_WORKER_([A-Z_]{1,64})/)?.[1]??'LOCAL_WORKER_FAILED';throw error;}}finally{clearTimeout(timer);}
 }
 async function waitReady(url:string,child:ChildProcess){
   for(let n=0;n<50;n++){
@@ -91,7 +99,7 @@ function expectStatus(result:JsonResponse,status:number){
 }
 
 async function main(){
-  const includeRefunds=process.argv.includes('--refunds');const includeCollections=process.argv.includes('--collections');
+  const includeRefunds=process.argv.includes('--refunds');const includeCollections=process.argv.includes('--collections');const includeRecovery=process.argv.includes('--recovery');
   assert.equal(process.env.TEST_DATABASE_ISOLATED,'true','Explicit isolated test configuration is mandatory.');
   const gatewayUrl=process.env.TEST_DATABASE_URL;const storeUrl=process.env.TEST_STORE_DATABASE_URL;
   assert.ok(gatewayUrl&&storeUrl&&gatewayUrl!==process.env.DATABASE_URL&&storeUrl!==process.env.STORE_DATABASE_URL,'Separate isolated runtime databases are mandatory.');
@@ -102,6 +110,8 @@ async function main(){
   const testMerchantIds:string[]=[];
   let oldSource:Record<string,unknown>|undefined;let sourceReplaced=false;const orderIds:string[]=[];
   const environmentBackup={...process.env};let stage='INITIALIZE';
+  const recoveryFiles=new Map<string,Buffer|null>();
+  if(includeRecovery)for(const name of ['cre-recovery.env','cre-recovery.config.json']){try{recoveryFiles.set(name,await readFile(resolve(root,'data',name)));}catch(error){if((error as NodeJS.ErrnoException).code!=='ENOENT')throw error;recoveryFiles.set(name,null);}}
   const evidence:Record<string,unknown>={kind:'local-EDR-mock-USDT-actual-isolated-Neon-and-production-HTTP',liveWhitechain:false,mockToken:true,fixtureScreeningSource:true,status:'running'};
   const refundEvidence:Record<string,unknown>={kind:'local-EDR-mock-token-refund-and-explicit-public-entity-fixtures',liveWhitechain:false,actualArkivWrite:false,mockToken:true,fixtureScreeningSource:true,chainId:1874,tokenAddress:USDT_ADDRESS,status:'not_requested'};
   try{
@@ -154,19 +164,21 @@ async function main(){
 
     const apiKey=`sk_${randomToken()}`;const webhookSecret=randomToken();const orderReadKey=randomToken();
     const encryptionKey=process.env.DATA_ENCRYPTION_KEY||randomToken();
-    const env:NodeJS.ProcessEnv={...process.env,LOCAL_PAYMENT_FLOW:'explicit-edr-mock-token',DATABASE_URL:gatewayUrl,STORE_DATABASE_URL:storeUrl,APP_ORIGIN:gatewayOrigin,STORE_ORIGIN:storeOrigin,STORE_PORT:'3501',ALLOW_LOCAL_HTTP:'true',WHITECHAIN_RPC_URL:rpc,WHITECHAIN_ROUTER_ADDRESS:router.address,WHITECHAIN_ROUTER_CODE_HASH:keccak256(code),WHITECHAIN_ROUTER_DEPLOYMENT_BLOCK:deploymentBlock.toString(),PAYMENT_AUTHORIZER_PRIVATE_KEY:signerKey,DATA_ENCRYPTION_KEY:encryptionKey,STORE_GATEWAY_API_KEY:apiKey,STORE_WEBHOOK_SECRET:webhookSecret,STORE_ORDER_READ_KEY:orderReadKey};
+    const env:NodeJS.ProcessEnv={...process.env,LOCAL_PAYMENT_FLOW:'explicit-edr-mock-token',DATABASE_URL:gatewayUrl,STORE_DATABASE_URL:storeUrl,APP_ORIGIN:gatewayOrigin,STORE_ORIGIN:storeOrigin,STORE_PORT:'3501',ALLOW_LOCAL_HTTP:'true',WHITECHAIN_RPC_URL:rpc,WHITECHAIN_ROUTER_ADDRESS:router.address,WHITECHAIN_ROUTER_CODE_HASH:keccak256(code),WHITECHAIN_ROUTER_DEPLOYMENT_BLOCK:deploymentBlock.toString(),PAYMENT_AUTHORIZER_PRIVATE_KEY:signerKey,DATA_ENCRYPTION_KEY:encryptionKey,STORE_GATEWAY_API_KEY:apiKey,STORE_WEBHOOK_SECRET:webhookSecret,STORE_ORDER_READ_KEY:orderReadKey,RECOVERY_SERVICE_TOKEN:randomToken(),STORE_DEVELOPMENT_FAILURE_TOKEN:randomToken(),ALLOW_DEVELOPMENT_FAILURES:includeRecovery?'true':'false',DEVELOPMENT_DELIVERY_ATTEMPTS:includeRecovery?'1':'5'};
     Object.assign(process.env,env);
     stage='PRODUCTION_HTTP_START';
     const next=require.resolve('next/dist/bin/next',{paths:[resolve(root,'apps/gateway')]});
     const gateway=childProcess([next,'start','--hostname','127.0.0.1','--port','3500'],env,resolve(root,'apps/gateway'));childServices.push(gateway);
     const store=childProcess(['--import','tsx',resolve(root,'examples/store/src/server.ts')],env);childServices.push(store);
-    await Promise.all([waitReady(gatewayOrigin,gateway),waitReady(storeOrigin,store)]);
+    await Promise.all([waitReady(gatewayOrigin,gateway),waitReady(backendStoreOrigin,store)]);
+    if(process.argv.includes('--python')){const python=childProcess([resolve(root,'examples/python/server.py')],{...env,PYTHON_STORE_BACKEND_ORIGIN:backendStoreOrigin},root,process.env.PYTHON_PATH??'python');childServices.push(python);await waitReady(storeOrigin,python);}
 
     stage='MERCHANT_HTTP_SIWE';
     const challenge=await json(`${gatewayOrigin}/api/auth/challenge`,'POST',{address:merchant.address},{Origin:gatewayOrigin});expectStatus(challenge,200);
     loginChallenges.push(String(challenge.value.id));
     const login=await json(`${gatewayOrigin}/api/auth/verify`,'POST',{id:challenge.value.id,signature:await merchant.signMessage({message:String(challenge.value.message)})},{Origin:gatewayOrigin,Cookie:challenge.cookie});expectStatus(login,200);
     merchantId=(login.value.merchant as {id:string}).id;
+    env.DEMO_MERCHANT_ID=merchantId;env.CRE_MERCHANT_WALLET=merchant.address;
     testMerchantIds.push(merchantId);
     const profile=await json(`${gatewayOrigin}/api/merchant`,'PATCH',{displayName:'Explicit local integration merchant',websiteOrigin:storeOrigin},{Origin:gatewayOrigin,Cookie:login.cookie});expectStatus(profile,200);
     await db.pool.query('insert into merchant_integrations(merchant_id,key_hash,webhook_url,order_api_url,webhook_secret,order_read_secret) values($1,$2,$3,$4,$5,$6)',[merchantId,hashToken(apiKey),`${storeOrigin}/api/webhooks/settlekit`,`${storeOrigin}/api/orders`,encryptSecret(webhookSecret,encryptionKey,`webhook:${merchantId}`),encryptSecret(orderReadKey,encryptionKey,`orders:${merchantId}`)]);
@@ -178,6 +190,14 @@ async function main(){
     const orderId=String(order.value.id);const reference=String(order.value.reference);
     assert.equal(order.value.amount_base_units,'25000000');
     const stored=(await storeDb.query('select state,fulfillment_count from store_orders where id=$1',[orderId])).rows[0];assert.equal(stored.fulfillment_count,0);
+    stage='JAVASCRIPT_ADAPTER_REAL_HTTP_AND_ORDER_READ';
+    const jsClient=new SettleKitClient({gatewayOrigin,storeOrigin,apiKey,webhookSecret,allowLocal:true});
+    const jsAdapter=createMerchantAdapter(storeDb,jsClient,orderReadKey);
+    assert.equal((await jsClient.createCheckout({id:orderId,amountBaseUnits:'25000000'},`${storeOrigin}/?order=${orderId}`)).reference,reference);
+    assert.equal((await jsAdapter.checkout(orderId)).reference,reference);
+    assert.equal((await jsAdapter.orderRead(orderId,`Bearer ${orderReadKey}`)).state,'pending');
+    await assert.rejects(jsAdapter.orderRead(orderId,'Bearer invalid'));
+    if(includeRecovery){const armed=await json(`${backendStoreOrigin}/api/dev/fail-next`,'POST',{remaining:1},{Authorization:`Bearer ${env.STORE_DEVELOPMENT_FAILURE_TOKEN}`});expectStatus(armed,200);}
 
     stage='PAYER_HTTP_SIWE_AND_AUTHORIZATION';
     const payerChallenge=await json(`${gatewayOrigin}/api/checkout/${reference}/challenge`,'POST',{address:payer.address},{Origin:gatewayOrigin});expectStatus(payerChallenge,200);
@@ -207,16 +227,40 @@ async function main(){
     const paymentId=String(payments[0].id);
     const deliveries=(await db.pool.query('select id from webhook_deliveries where payment_id=$1',[paymentId])).rows;assert.equal(deliveries.length,1);env.HARNESS_DELIVERY_ID=String(deliveries[0].id);
 
-    stage='HMAC_HTTP_DELIVERY_AND_LOST_ACK_RESTART';
-    await runChild(['--import','tsx',script,'--worker-deliver-noack'],env);
-    assert.equal((await storeDb.query('select fulfillment_count from store_orders where id=$1',[orderId])).rows[0].fulfillment_count,1);
-    // Accelerate this own lease expiry only; no shared/default jobs are touched.
-    await db.pool.query("update outbox_jobs set lease_until=clock_timestamp()-interval '1 second' where merchant_id=$1 and payload->>'deliveryId'=$2 and status='processing'",[merchantId,env.HARNESS_DELIVERY_ID]);
-    await runChild(['--import','tsx',script,'--worker-deliver'],env);
+    if(includeRecovery){
+      stage='CRE_CONTROLLED_REAL_HTTP_FAILURE';
+      await runChild(['--import','tsx',script,'--worker-deliver-expect-failure'],env);
+      assert.equal((await storeDb.query('select remaining from store_runtime_controls where key=\'payment-webhook\'')).rows[0].remaining,0);
+      assert.equal((await storeDb.query('select fulfillment_count from store_orders where id=$1',[orderId])).rows[0].fulfillment_count,0);
+      assert.equal((await db.pool.query('select status from webhook_deliveries where id=$1',[env.HARNESS_DELIVERY_ID])).rows[0].status,'dead');
+      stage='ACTUAL_CRE_CLI_RECOVERY_SIMULATION';
+      await runChild(['--import','tsx',resolve(root,'scripts/cre-recovery.ts'),'--simulate'],env,360000);
+      const recovery=(await db.pool.query('select stable_key,status,delivered_at from recovery_intents where merchant_id=$1',[merchantId])).rows;assert.equal(recovery.length,1);assert.equal(recovery[0].status,'scheduled');assert.equal(recovery[0].delivered_at,null);
+      stage='CRE_EXISTING_NOTIFICATION_ONE_FULFILLMENT';
+      await runChild(['--import','tsx',script,'--worker-deliver'],env);
+      assert.ok((await db.pool.query('select delivered_at from recovery_intents where merchant_id=$1',[merchantId])).rows[0].delivered_at);
+      assert.equal((await db.pool.query("select count(*)::int as n from audit_events where merchant_id=$1 and kind='recovery.delivered'",[merchantId])).rows[0].n,1);
+      const candidate=await json(`${gatewayOrigin}/api/recovery/candidates?limit=1&merchant=${merchant.address}`,'GET',undefined,{Authorization:`Bearer ${env.RECOVERY_SERVICE_TOKEN}`});expectStatus(candidate,200);assert.equal((candidate.value.items as unknown[]).length,0);
+      const duplicate=await json(`${gatewayOrigin}/api/recovery/request`,'POST',{paymentId,deliveryId:env.HARNESS_DELIVERY_ID,stateVersion:Number(payments[0].state_version),round:1,txHash:payment,blockHash:receipt.blockHash,logIndex:receipt.logs.find(log=>log.address.toLowerCase()===router.address.toLowerCase())!.logIndex},{Authorization:`Bearer ${env.RECOVERY_SERVICE_TOKEN}`});expectStatus(duplicate,200);assert.equal(duplicate.value.duplicate,true);
+      Object.assign(evidence,{recovery:{kind:'actual-CRE-CLI-with-local-EDR-and-real-Neon-store-HTTP',liveWhitechain:false,initialDeliveryFailed:true,normalRetryExhausted:true,existingEventRecovered:true,recoveryIntentCount:1,recoveryDeliveredAuditCount:1,repeatedRequestNoNewJob:true,cliEvidence:'../phase-5/cre-recovery-simulation.json'}});
+    }else{
+      stage='HMAC_HTTP_DELIVERY_AND_LOST_ACK_RESTART';
+      await runChild(['--import','tsx',script,'--worker-deliver-noack'],env);
+      assert.equal((await storeDb.query('select fulfillment_count from store_orders where id=$1',[orderId])).rows[0].fulfillment_count,1);
+      // Accelerate this own lease expiry only; no shared/default jobs are touched.
+      await db.pool.query("update outbox_jobs set lease_until=clock_timestamp()-interval '1 second' where merchant_id=$1 and payload->>'deliveryId'=$2 and status='processing'",[merchantId,env.HARNESS_DELIVERY_ID]);
+      await runChild(['--import','tsx',script,'--worker-deliver'],env);
+    }
     await runChild(['--import','tsx',script,'--worker-observe'],env);
     const finalOrder=(await storeDb.query('select state,fulfillment_count,payment_id from store_orders where id=$1',[orderId])).rows[0];assert.deepEqual(finalOrder,{state:'fulfilled',fulfillment_count:1,payment_id:paymentId});
     assert.equal((await storeDb.query('select count(*)::integer as count from store_receipts where order_id=$1',[orderId])).rows[0].count,1);
-    const finalJob=(await db.pool.query("select status,attempts from outbox_jobs where merchant_id=$1 and payload->>'deliveryId'=$2",[merchantId,env.HARNESS_DELIVERY_ID])).rows[0];assert.deepEqual(finalJob,{status:'completed',attempts:2});
+    if(includeRecovery)(evidence.recovery as Record<string,unknown>).storeFulfillmentCount=1;
+    const finalJobs=(await db.pool.query("select status,attempts from outbox_jobs where merchant_id=$1 and payload->>'deliveryId'=$2 order by created_at",[merchantId,env.HARNESS_DELIVERY_ID])).rows;
+    if(includeRecovery)assert.deepEqual(finalJobs.map(row=>row.status).sort(),['completed','dead']);else assert.deepEqual(finalJobs,[{status:'completed',attempts:2}]);
+    stage='JAVASCRIPT_ADAPTER_DUPLICATE_RAW_HMAC';
+    const eligibility=await jsClient.eligibility(paymentId);const raw=Buffer.from(JSON.stringify({...eligibility,event_id:env.HARNESS_DELIVERY_ID,event_type:'payment.accepted',created_at:new Date().toISOString()}));const timestamp=Math.floor(Date.now()/1000).toString();const signature=`v1=${createHmac('sha256',webhookSecret).update(`${timestamp}.${raw}`).digest('hex')}`;
+    assert.equal((await jsAdapter.webhook(raw,timestamp,signature) as {duplicate:boolean}).duplicate,true);assert.equal((await storeDb.query('select fulfillment_count from store_orders where id=$1',[orderId])).rows[0].fulfillment_count,1);
+    Object.assign(evidence,{javascriptAdapter:{actualCheckoutHttp:true,authenticatedOrderRead:true,rawHmacDuplicateVerified:true,durableFulfillmentCount:1},pythonAdapter:process.argv.includes('--python')?{actualServer:true,publicOrigin:storeOrigin,privateDurableStore:backendStoreOrigin,signedNotificationAndOrderReads:true,fulfillmentCount:1}:null});
     const publicStatus=await json(`${storeOrigin}/api/orders/${orderId}/status`);expectStatus(publicStatus,200);assert.equal(publicStatus.value.state,'fulfilled');
     const download=await fetch(`${storeOrigin}/api/orders/${orderId}/download`,{headers:{Authorization:`Bearer ${String(order.value.cancel_token)}`},signal:AbortSignal.timeout(8000)});assert.equal(download.status,200);assert.match(await download.text(),/Fieldwork/);
 
@@ -286,7 +330,7 @@ async function main(){
       stage='COLLECTION_REAL_ONE_BASE_UNIT_LINK';
       const activeLink=await json(`${gatewayOrigin}/api/operations/links`,'POST',{title:'Local one-base-unit payment link',amountBaseUnits:'1'},headers);expectStatus(activeLink,200);const link=activeLink.value.item as {reference:string};const linkSession=await json(`${gatewayOrigin}/api/collection/link/${link.reference}`,'POST',{}, {Origin:gatewayOrigin});expectStatus(linkSession,200);await payInternal('link',link.reference,String(linkSession.value.reference));
       stage='COLLECTION_PAUSE_BLOCKS_INVOICE_SESSION_AND_PROOF';
-      const invoiceCreated=await json(`${gatewayOrigin}/api/operations/invoices`,'POST',{title:'Local one-base-unit invoice',amountBaseUnits:'1'},headers);expectStatus(invoiceCreated,200);const invoiceDetail=await json(`${gatewayOrigin}/api/operations/invoices/${String(invoiceCreated.value.id)}`,'GET',undefined,{Cookie:ownLogin.cookie});expectStatus(invoiceDetail,200);const invoice=(invoiceDetail.value.item as {reference:string});
+      const invoiceCreated=await json(`${gatewayOrigin}/api/operations/invoices`,'POST',{title:'Local one-base-unit invoice',amountBaseUnits:'1'},headers);expectStatus(invoiceCreated,200);const createdInvoice=invoiceCreated.value.item as {id:string};assert.ok(createdInvoice?.id);const invoiceDetail=await json(`${gatewayOrigin}/api/operations/invoices/${createdInvoice.id}`,'GET',undefined,{Cookie:ownLogin.cookie});expectStatus(invoiceDetail,200);const invoice=(invoiceDetail.value.item as {reference:string});
       const invoiceSession=await json(`${gatewayOrigin}/api/collection/invoice/${invoice.reference}`,'POST',{}, {Origin:gatewayOrigin});expectStatus(invoiceSession,200);const invoiceRef=String(invoiceSession.value.reference);const invoiceProof=await challengeFor(invoiceRef);
       const settings=await json(`${gatewayOrigin}/api/operations/settings`,'GET',undefined,{Cookie:ownLogin.cookie});expectStatus(settings,200);const version=(settings.value.settings as {version:number}).version;
       const paused=await json(`${gatewayOrigin}/api/operations/settings`,'PATCH',{paused:true,version},headers);expectStatus(paused,200);expectStatus(await json(`${gatewayOrigin}/api/collection/invoice/${invoice.reference}`,'POST',{}, {Origin:gatewayOrigin}),409);expectStatus(await authorizeFor(invoiceRef,invoiceProof),409);
@@ -297,12 +341,16 @@ async function main(){
       Object.assign(refundEvidence,{collections:{status:'passed',freshMerchantWithoutExternalIntegration:true,deactivatedLinkBlockedNewSessionAndExistingProof:true,pausedMerchantBlockedInvoiceSessionAndExistingProof:true,invoiceReloadIdempotent:true,paidInvoiceRejectsNewCheckout:true,payments:paidCollections}});
     }
     Object.assign(evidence,{status:'passed',checkedAt:new Date().toISOString(),chainId:1874,tokenAddress:USDT_ADDRESS,tokenImplementation:'MockUsdt runtime copied by hardhat_setCode at sponsor address on local EDR only',router:router.address,routerCodeHash:keccak256(code),deploymentBlock:deploymentBlock.toString(),paymentTxHash:payment,paymentBlock:receipt.blockNumber.toString(),paymentBlockHash:receipt.blockHash,amountBaseUnits:'25000000',balancesBaseUnits:Object.fromEntries(Object.entries(balances).map(([key,value])=>[key,value.toString()])),gateway:'production Next.js HTTP on loopback3500',store:'actual standalone store HTTP on loopback3501',merchantSiwe:true,payerSiwe:true,serverAuthorization:true,observerProcessStarts:3,duplicateLogReplays:true,deliveryProcessStarts:2,acknowledgmentLossFixture:'Worker stopped after HTTP acknowledgment before outbox completion; own lease expiry accelerated explicitly',outboxAttempts:2,storeReceiptCount:1,storeFulfillmentCount:1,downloadVerified:true,cleanup:'Own merchant/orders/jobs/cursor deleted; original isolated screening source restored in finally.'});
+    Object.assign(evidence,{javascriptAdapter:{actualCheckoutHttp:true,authenticatedOrderRead:true,rawHmacDuplicateVerified:true,durableFulfillmentCount:1},pythonAdapter:process.argv.includes('--python')?{actualServer:true,publicOrigin:storeOrigin,privateDurableStore:backendStoreOrigin,signedNotificationAndOrderReads:true,fulfillmentCount:1}:null});
+    if(includeRecovery){evidence.acknowledgmentLossFixture=null;evidence.deliveryProof='Controlled initial HTTP failure, actual CRE CLI scheduling and normal signed worker delivery; no lost-ack fixture in this run.';}
     process.stdout.write('Explicit local EDR/mock-token full payment flow passed with actual isolated Neon/HTTP, worker restart and one store fulfillment. Not live Whitechain evidence.\n');
   }catch(error){
+    const detail=error as {actual?:unknown;expected?:unknown;message?:string;stack?:string};const safeValue=(value:unknown)=>typeof value==='number'||typeof value==='boolean'?value:typeof value==='string'&&['paid','fulfilled','pending','dead','accepted','review','orphaned','requested','authorized','confirmed','open','cancelled'].includes(value)?value:undefined;
+    const failure={actual:safeValue(detail.actual),expected:safeValue(detail.expected),publicCode:detail.message?.match(/HTTP status mismatch \(([A-Z_]{1,80})\)/)?.[1],sourceLines:[...new Set([...String(detail.stack??'').matchAll(/local-payment-flow\.ts:(\d+):\d+/g)].map(match=>Number(match[1])))]};evidence.failure=failure;
     Object.assign(evidence,{status:'failed',failedStage:stage,errorCode:typeof(error as {code?:unknown})?.code==='string'&&/^[A-Z_]{1,64}$/.test(String((error as {code:string}).code))?(error as {code:string}).code:'LOCAL_FLOW_CHECK_FAILED'});
     if(includeRefunds&&refundEvidence.status!=='passed')Object.assign(refundEvidence,{status:'failed',failedStage:stage});
     if(includeCollections&&stage.startsWith('COLLECTION_'))refundEvidence.collections={status:'failed',failedStage:stage};
-    process.stderr.write(`Local payment harness failed at ${stage}; no live-network claim.\n`);throw new Error(`LOCAL_PAYMENT_FLOW_FAILED_${stage}`);
+    process.stderr.write(`Local payment harness failed at ${stage}: ${JSON.stringify(failure)}; no live-network claim.\n`);throw new Error(`LOCAL_PAYMENT_FLOW_FAILED_${stage}`);
   }finally{
     for(const child of childServices.reverse())await stopChild(child);
     if(rpcServer){rpcServer.closeAllConnections();await new Promise<void>(resolve=>rpcServer!.close(()=>resolve()));}
@@ -317,10 +365,12 @@ async function main(){
     if(sourceReplaced){if(oldSource)await db.pool.query('update screening_sources set snapshot=$2,health=$3,fetched_at=$4,updated_at=$5 where source_id=$1',[OFAC_SOURCE_ID,JSON.stringify(oldSource.snapshot),JSON.stringify(oldSource.health),oldSource.fetched_at,oldSource.updated_at]);else await db.pool.query('delete from screening_sources where source_id=$1',[OFAC_SOURCE_ID]);}
     await db.pool.end();await storeDb.end();
     for(const key of Object.keys(process.env))if(!(key in environmentBackup))delete process.env[key];Object.assign(process.env,environmentBackup);process.chdir(root);
+    for(const [name,contents]of recoveryFiles){const path=resolve(root,'data',name);if(contents)await writeFile(path,contents,{mode:0o600});else try{await unlink(path);}catch(error){if((error as NodeJS.ErrnoException).code!=='ENOENT')throw error;}}
     await mkdir(resolve(root,'docs/evidence/phase-2'),{recursive:true});await writeFile(resolve(root,'docs/evidence/phase-2/local-payment-flow.json'),JSON.stringify(evidence,null,2)+'\n');
     if(includeRefunds||includeCollections){await mkdir(resolve(root,'docs/evidence/phase-4'),{recursive:true});await writeFile(resolve(root,'docs/evidence/phase-4/local-refund-flow.json'),JSON.stringify(refundEvidence,null,2)+'\n');}
+    if(includeRecovery){const complete=(evidence.recovery as Record<string,unknown>|undefined)?.storeFulfillmentCount===1;await mkdir(resolve(root,'docs/evidence/phase-5'),{recursive:true});await writeFile(resolve(root,'docs/evidence/phase-5/local-recovery-flow.json'),JSON.stringify({kind:'local-chain-mock-token-and-actual-CRE-CLI-HTTP-Neon-recovery',status:complete?'passed':'failed',combinedHarnessStatus:evidence.status,combinedHarnessFailedStage:evidence.failedStage??null,recovery:evidence.recovery??null,liveWhitechain:false,actualArkivWrite:false,oneFulfillment:complete,javascriptAdapter:evidence.javascriptAdapter??null,pythonAdapter:evidence.pythonAdapter??null},null,2)+'\n');}
   }
 }
 
-const workerMode=process.argv.find(value=>['--worker-observe','--worker-deliver','--worker-deliver-noack'].includes(value));
-if(workerMode)await workerOnce(workerMode);else await main();
+const workerMode=process.argv.find(value=>['--worker-observe','--worker-deliver','--worker-deliver-noack','--worker-deliver-expect-failure'].includes(value));
+if(workerMode)await workerOnce(workerMode).catch(error=>{const code=typeof error?.code==='string'&&/^[A-Z_]{1,64}$/.test(error.code)?error.code:'CHECK_FAILED';process.stderr.write(`HARNESS_WORKER_${code}\n`);process.exitCode=1;});else await main();

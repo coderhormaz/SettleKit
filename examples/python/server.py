@@ -23,6 +23,10 @@ ORDER_PATH = re.compile(rf"^/api/orders/({UUID})(?:/(status|checkout|cancel|down
 
 class Handler(BaseHTTPRequestHandler):
     server_version = "SettleKitMerchantAdapter"
+    def setup(self):
+        super().setup()
+        self.connection.settimeout(10)  # Bound headers as well as the later body.
+
     def log_message(self, *args):
         pass  # Credentials, request bodies and private order capabilities are never logged.
 
@@ -60,6 +64,8 @@ class Handler(BaseHTTPRequestHandler):
                     event = json.loads(raw)
                 except (UnicodeError, json.JSONDecodeError):
                     raise AdapterError("EVENT_INVALID", 400) from None
+                if not isinstance(event, dict):
+                    raise AdapterError("EVENT_INVALID", 400)
                 if isinstance(event, dict) and event.get("event_type") == "endpoint.test":
                     if set(event) != {"event_id", "event_type", "created_at", "message"} or not isinstance(event.get("message"), str) or len(event["message"]) > 256:
                         raise AdapterError("TEST_EVENT_INVALID", 400)

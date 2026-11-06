@@ -1,6 +1,6 @@
 # Phase 3 — merchant operations
 
-Authorized 6 November 2026 (IST), together with Phase 4; all six phases were subsequently authorized. Phase 2's local EVM/HTTP/Neon flow passed. Dashboard/collection source is integrated; funded deployment/payment/Arkiv-write proof remains deferred. Main agent only; further tests deferred. See current source/evidence boundaries in PROGRESS.md.
+Authorized6November2026; all six phases were subsequently authorized. The final114-test root/16-test browser runs, real Neon operations and complete local link/invoice flow pass. Contact invoice/payment history, overview follow-up and source-time disclosures are complete. Main agent only; funded live proofs remain open.
 
 ## Architecture and review
 
@@ -14,16 +14,16 @@ FILES TO CREATE: `packages/db/src/operations.ts` (typed contacts/links/invoices/
 
 FILES TO MODIFY: existing merchant/payment/auth/integration services, catchall API, checkout services/worker, private schema/exports, navigation, runbook/status/evidence. No database replacement or unrelated service.
 
-- [ ] 1. Verify prerequisite evidence and accepted bounded inventory, review data/UX/threat plan.
-- [ ] 2. Add typed tenant resources: contacts, payment links, invoices/internal collection orders, scoped API keys, webhook config/deliveries, review notes/settings/session controls; migrate isolated target first.
-- [ ] 3. Implement contacts create/edit/archive/history and fixed links create/list/copy/open/deactivate/expiry; honest outstanding authorization window.
-- [ ] 4. Implement invoices with optional private contact/due date/notes, printable view, overdue/paid/refunded derived state and eligible void. No-code collections must use durable internal orders rather than require an external merchant order API; external store mode keeps its strict authenticated price/order reads.
-- [ ] 5. Implement dated overview gross/refunded/net/counts/chart; payment search/status/date/sort/pagination/details. Accepted canonical money is distinct from risk/delivery. All aggregates use exact SQL numerics and current canonical refunds.
-- [ ] 6. Implement scoped key generation/reveal-once/hash/revoke/rotation and correct REST/JS/Python examples; actual setup/config test.
-- [ ] 7. Implement approved webhook/order URLs, encrypted secrets/reveal-once rotation, labeled test event, delivery errors/bounded eligible replay; SSRF/origin checks and endpoint revalidation. Test events never fulfill orders.
-- [ ] 8. Implement risk source freshness/coverage, current refresh, notes/evidence-based review resolution, settings/pause/session revocation, profile/domain/proven wallet controls and audited changes. No merchant hard-denial override.
-- [ ] 9. Export filtered exact reports with formula-safe CSV; verify every action/persistence, two-tenant isolation, races and responsive/keyboard/error states; independent review and fixes.
-- [ ] 10. Update actual evidence and push coherent milestones; report remaining live gates. Phase 4 is authorized next; Phase 5 requires instruction.
+- [x] 1. Verify prerequisite evidence and accepted bounded inventory, review data/UX/threat plan.
+- [x] 2. Add typed tenant resources: contacts, payment links, invoices/internal collection orders, scoped API keys, webhook config/deliveries, review notes/settings/session controls; migrate isolated target first.
+- [x] 3. Implement contacts create/edit/archive/history and fixed links create/list/copy/open/deactivate/expiry; honest outstanding authorization window.
+- [x] 4. Implement invoices with optional private contact/due date/notes, printable view, overdue/paid/refunded derived state and eligible void. No-code collections must use durable internal orders rather than require an external merchant order API; external store mode keeps its strict authenticated price/order reads.
+- [x] 5. Implement dated overview gross/refunded/net/counts/chart; payment search/status/date/sort/pagination/details. Accepted canonical money is distinct from risk/delivery. All aggregates use exact SQL numerics and current canonical refunds.
+- [x] 6. Implement scoped key generation/reveal-once/hash/revoke/rotation and correct REST/JS/Python examples; actual setup/config test.
+- [x] 7. Implement approved webhook/order URLs, encrypted secrets/reveal-once rotation, labeled test event, delivery errors/bounded eligible replay; SSRF/origin checks and endpoint revalidation. Test events never fulfill orders.
+- [x] 8. Implement risk source freshness/coverage, current refresh, notes/evidence-based review resolution, settings/pause/session revocation, profile/domain/proven wallet controls and audited changes. No merchant hard-denial override.
+- [x] 9. Export filtered exact reports with formula-safe CSV; verify every action/persistence, two-tenant isolation, races and responsive/keyboard/error states; independent review and fixes.
+- [x] 10. Update actual evidence and push coherent milestones; report remaining live gates. All phases are authorized; preserve pending live gates.
 
 Critical path: typed schema→services→API→UI. Internal collection mode must be integrated into authorization/observer/status before links/invoices can be called complete. Preserve external-store idempotency and historical settlement wallets. Settings/profile edits cannot rewrite existing invoice/payment/refund facts.
 
@@ -39,7 +39,7 @@ Risk resolution requires current fresh checks and chain/refund/order revalidatio
 
 ## UX and checks
 
-7 November status: source is integrated. Historical 89 root / 13 browser scopes and a separate real dashboard CRUD/HMAC browser pass are recorded in [progress](../../PROGRESS.md). Main agent only; further tests deferred. New recovery labels, manual-replay fences and setup navigation require the later regression/visual pass.
+7 November verification:114 root tests and16 browser cases pass, including actual wallet/Neon dashboard CRUD and explicit interface fixtures. Desktop/tablet/mobile captures were inspected; source-time and nested history states are covered. See PROGRESS.md and the audit.
 
 Merchant enters overview→payments/detail or create link/invoice; create/edit forms validate inline, persist, confirm and survive reload. Contacts can be archived while historical invoices retain their facts. Developer settings reveal a new key once and explain server-only use; copy controls work and report failure. Webhook test/retry shows a real result/history, with disabled reasons when unavailable. Review details show source/time/coverage and an explicit reason when resolution cannot proceed.
 

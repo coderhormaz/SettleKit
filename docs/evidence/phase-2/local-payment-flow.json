@@ -4,16 +4,41 @@
   "mockToken": true,
   "fixtureScreeningSource": true,
   "status": "passed",
-  "checkedAt": "2026-11-06T05:06:19.136Z",
+  "recovery": {
+    "kind": "actual-CRE-CLI-with-local-EDR-and-real-Neon-store-HTTP",
+    "liveWhitechain": false,
+    "initialDeliveryFailed": true,
+    "normalRetryExhausted": true,
+    "existingEventRecovered": true,
+    "recoveryIntentCount": 1,
+    "recoveryDeliveredAuditCount": 1,
+    "repeatedRequestNoNewJob": true,
+    "cliEvidence": "../phase-5/cre-recovery-simulation.json",
+    "storeFulfillmentCount": 1
+  },
+  "javascriptAdapter": {
+    "actualCheckoutHttp": true,
+    "authenticatedOrderRead": true,
+    "rawHmacDuplicateVerified": true,
+    "durableFulfillmentCount": 1
+  },
+  "pythonAdapter": {
+    "actualServer": true,
+    "publicOrigin": "http://127.0.0.1:3502",
+    "privateDurableStore": "http://127.0.0.1:3501",
+    "signedNotificationAndOrderReads": true,
+    "fulfillmentCount": 1
+  },
+  "checkedAt": "2026-11-06T23:38:21.714Z",
   "chainId": 1874,
   "tokenAddress": "0xcedfB56113143d55b2358b8CFbB0dEB5Ad2f55a7",
   "tokenImplementation": "MockUsdt runtime copied by hardhat_setCode at sponsor address on local EDR only",
   "router": "0xe7f1725e7734ce288f8367e1bb143e90bb3f0512",
   "routerCodeHash": "0x4a36a689de38f5d225ba6a10f833c2ade1fc2afcb7fbe35f6f470638f77bb35a",
   "deploymentBlock": "2",
-  "paymentTxHash": "0x64abbe0f480d7bee3dd3eed1a134cc07e74278d99f79c1aaf75d9e51df8bf57d",
+  "paymentTxHash": "0xaa84c84363d8bd0a608227504c387276d3d3fe0c3795cc32ca6b06316cb9408b",
   "paymentBlock": "6",
-  "paymentBlockHash": "0xaa65d498c2d05e0c2049d1e10f638d934df3d889606d6c78b76121f8acae3625",
+  "paymentBlockHash": "0x0af89104d8dcca76a58cd670f35c90da1de3e207f612c66babd6d67bd82341da",
   "amountBaseUnits": "25000000",
   "balancesBaseUnits": {
     "payer": "75000000",
@@ -28,10 +53,11 @@
   "observerProcessStarts": 3,
   "duplicateLogReplays": true,
   "deliveryProcessStarts": 2,
-  "acknowledgmentLossFixture": "Worker stopped after HTTP acknowledgment before outbox completion; own lease expiry accelerated explicitly",
+  "acknowledgmentLossFixture": null,
   "outboxAttempts": 2,
   "storeReceiptCount": 1,
   "storeFulfillmentCount": 1,
   "downloadVerified": true,
-  "cleanup": "Own merchant/orders/jobs/cursor deleted; original isolated screening source restored in finally."
+  "cleanup": "Own merchant/orders/jobs/cursor deleted; original isolated screening source restored in finally.",
+  "deliveryProof": "Controlled initial HTTP failure, actual CRE CLI scheduling and normal signed worker delivery; no lost-ack fixture in this run."
 }

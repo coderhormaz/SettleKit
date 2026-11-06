@@ -18,7 +18,7 @@ const merchant=privateKeyToAccount(generatePrivateKey()).address.toLowerCase() a
 const router='0x2222222222222222222222222222222222222222',txHash=`0x${randomToken()}`,blockHash=`0x${randomToken()}`;
 const orderId=randomUUID(),reference=randomToken();let checkoutId='',paymentId='',deliveryId='';
 const priorToken=process.env.RECOVERY_SERVICE_TOKEN;let priorSource:Record<string,unknown>|undefined;
-const snapshot=():SourceSnapshot=>({sourceId:OFAC_SOURCE_ID,sourceUrl:OFAC_SDN_URL,sha256:'a'.repeat(64),fetchedAt:new Date().toISOString(),publishedAt:new Date().toISOString(),coverage:{...SCREENING_COVERAGE},addresses:['0x8888888888888888888888888888888888888888'],entryCount:1,recordCount:1});
+const snapshot=():SourceSnapshot=>{const fetchedAt=new Date().toISOString();return {sourceId:OFAC_SOURCE_ID,sourceUrl:OFAC_SDN_URL,sha256:'a'.repeat(64),fetchedAt,publishedAt:fetchedAt,coverage:{...SCREENING_COVERAGE},addresses:['0x8888888888888888888888888888888888888888'],entryCount:1,recordCount:1};};
 const input=(round=1)=>({paymentId,deliveryId,stateVersion:1,round,txHash,blockHash,logIndex:0});
 const current=async()=>({payment_id:paymentId,checkout_reference:reference,merchant_order_id:orderId,state_version:1,amount_base_units:'25000000',token:USDT_ADDRESS,chain_id:1874,payer,merchant,confirmation_stage:'included_2_blocks',eligible:true,status:'accepted',refund_hold:false,refund_amount_base_units:'0',grant_expires_at:new Date(Date.now()+15000).toISOString()});
 const order=async():Promise<StoreOrder>=>({order_ref:orderId,amount_base_units:'25000000',state:'pending',payment_id:null,state_version:1});

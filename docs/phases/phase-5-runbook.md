@@ -1,6 +1,6 @@
 # CRE recovery operation and proof
 
-`packages/cre/recovery.ts` uses the real pinned SDK and compiles to WASM. Actual recovery simulation/recovered-order proof is **pending**. Phase 1's successful CLI result proves only the earlier Whitechain/diagnostic-API route. No DON deployment is claimed.
+`packages/cre/recovery.ts` uses the pinned real SDK. Actual CLI recovery simulation and recovered-order/one-fulfillment proof now pass against the local EVM/mock token, separate merchant HTTP API and real isolated Neon: [flow evidence](../evidence/phase-5/local-recovery-flow.json), [CLI hashes/log](../evidence/phase-5/cre-recovery-simulation.json). Phase1's Whitechain/diagnostic route proof is separate. Repeat with an actual funded Whitechain payment remains pending. No DON deployment is claimed.
 
 ## Prerequisites
 
@@ -41,4 +41,4 @@ The workflow uses a shared trigger-time slot to rotate its one-candidate selecti
 | Duplicate node/run for one round | Same persisted outcome |
 | More than 3 rounds or 60-second cooldown | Refuse/cool down |
 
-Service credentials prove authority, not that the CLI ran. Preserve actual CLI log/hashes plus before/after private ledger/order outcome. New matrix/runtime verification is deferred; funded payment/publication remain separate gates.
+Service credentials prove authority, not that the CLI ran. Preserve actual CLI log/hashes plus before/after private ledger/order outcome. Eleven real-Neon recovery auth/race/cap/fenced-attribution cases and the combined runtime proof pass. The latter exhausts initial ordinary retry, executes the actual CLI, then verifies one receiver fulfillment and a no-op duplicate request. Funded Whitechain payment/publication remain separate gates.

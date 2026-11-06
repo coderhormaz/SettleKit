@@ -7,6 +7,7 @@ import { access, chmod, mkdir, open, readFile, realpath, rename, unlink, writeFi
 import { constants } from 'node:fs';
 import { basename, delimiter, isAbsolute, join, relative, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import {rootCertificates} from 'node:tls';
 
 const root=fileURLToPath(new URL('../',import.meta.url));config({path:join(root,'.env'),quiet:true});
 const backupDirectory=join(root,'data','backups');
@@ -23,9 +24,17 @@ const host=(url:URL)=>url.hostname.toLowerCase().replace(/-pooler(?=\.|$)/,'');
 const databaseName=(url:URL)=>decodeURIComponent(url.pathname.slice(1));
 const identity=(url:URL)=>`${host(url)}:${url.port||'5432'}/${databaseName(url)}`;
 const fingerprint=(url:URL)=>createHash('sha256').update(identity(url)).digest('hex');
-function pgEnvironment(url:URL):NodeJS.ProcessEnv{
+async function pgEnvironment(url:URL):Promise<NodeJS.ProcessEnv>{
   const env:NodeJS.ProcessEnv={...process.env};for(const key of ['PGSERVICE','PGSERVICEFILE','PGPASSFILE','PGOPTIONS','PGHOSTADDR','PGTARGETSESSIONATTRS'])delete env[key];
-  return {...env,PGHOST:url.hostname,PGPORT:url.port||'5432',PGDATABASE:databaseName(url),PGUSER:decodeURIComponent(url.username),PGPASSWORD:decodeURIComponent(url.password),PGSSLMODE:'verify-full',PGSSLROOTCERT:process.env.PGSSLROOTCERT||'system',PGCONNECT_TIMEOUT:'10',PGAPPNAME:'SettleKit explicit local backup/restore'};
+  let certificates=process.env.PGSSLROOTCERT||'system';
+  // libpq's OpenSSL system bundle is often absent on Windows. Export only the
+  // installed Node runtime's public trust roots; keep hostname verification and
+  // allow an explicit private CA bundle through PGSSLROOTCERT.
+  if(!process.env.PGSSLROOTCERT&&process.platform==='win32'){
+    const directory=await backupsPath(),content=rootCertificates.join('\n')+'\n';certificates=join(directory,`public-ca-${createHash('sha256').update(content).digest('hex').slice(0,16)}.pem`);
+    try{await writeFile(certificates,content,{flag:'wx',mode:0o600});}catch(error){if((error as NodeJS.ErrnoException).code!=='EEXIST')throw error;if(!inside(directory,await realpath(certificates))||await readFile(certificates,'utf8')!==content)throw new BackupError('POSTGRES_TRUST_BUNDLE_CONFLICT');}
+  }
+  return {...env,PGHOST:url.hostname,PGPORT:url.port||'5432',PGDATABASE:databaseName(url),PGUSER:decodeURIComponent(url.username),PGPASSWORD:decodeURIComponent(url.password),PGSSLMODE:'verify-full',PGSSLROOTCERT:certificates,PGCONNECT_TIMEOUT:'10',PGAPPNAME:'SettleKit explicit local backup/restore'};
 }
 async function trustedTool(name:'pg_dump'|'pg_restore'){
   const override=process.env[name==='pg_dump'?'PG_DUMP_PATH':'PG_RESTORE_PATH'];const executable=process.platform==='win32'?`${name}.exe`:name;
@@ -35,11 +44,11 @@ async function trustedTool(name:'pg_dump'|'pg_restore'){
 }
 async function runTool(path:string,args:string[],env:NodeJS.ProcessEnv,version=false){
   return new Promise<string>((resolve,reject)=>{
-    const child=spawn(path,args,{cwd:root,env,windowsHide:true,stdio:['ignore','pipe','pipe']});let output='';let timeout=false;
+    const child=spawn(path,args,{cwd:root,env,windowsHide:true,stdio:['ignore','pipe','pipe']});let output='';let diagnostic='';let timeout=false;
     const timer=setTimeout(()=>{timeout=true;child.kill('SIGKILL');},version?5000:15*60_000);
-    child.stdout?.on('data',part=>{if(version&&output.length<4096)output+=part.toString();});child.stderr?.resume();
+    child.stdout?.on('data',part=>{if(version&&output.length<4096)output+=part.toString();});child.stderr?.on('data',part=>{if(diagnostic.length<65536)diagnostic+=part.toString();});
     child.once('error',()=>{clearTimeout(timer);reject(new BackupError('POSTGRES_TOOL_UNAVAILABLE'));});
-    child.once('exit',code=>{clearTimeout(timer);if(code!==0||timeout)reject(new BackupError(timeout?'POSTGRES_OPERATION_TIMEOUT':'POSTGRES_OPERATION_FAILED'));else resolve(output);});
+    child.once('exit',code=>{clearTimeout(timer);if(code!==0||timeout){const reason=timeout?'POSTGRES_OPERATION_TIMEOUT':/certificate|sslrootcert|root cert/i.test(diagnostic)?'POSTGRES_TLS_CONFIGURATION':/password authentication|no password|authentication failed/i.test(diagnostic)?'POSTGRES_AUTHENTICATION_FAILED':/permission denied|must be owner/i.test(diagnostic)?'POSTGRES_PERMISSION_DENIED':/already exists/i.test(diagnostic)?'RESTORE_TARGET_NOT_EMPTY':/could not connect|connection.*failed|timeout|network/i.test(diagnostic)?'POSTGRES_CONNECTION_UNAVAILABLE':'POSTGRES_OPERATION_FAILED';reject(new BackupError(reason));}else resolve(output);});
   });
 }
 async function version17(path:string){const value=await runTool(path,['--version'],process.env,true);if(!/\(PostgreSQL\) 17(?:\.|\s|$)/.test(value))throw new BackupError('POSTGRES17_CLIENT_REQUIRED');}
@@ -57,7 +66,7 @@ async function backup(database:DatabaseChoice){
   const name=`${database}-${new Date().toISOString().replace(/[:.]/g,'-')}-${randomBytes(4).toString('hex')}.dump`;const target=join(directory,name);const partial=target+'.partial';
   const file=await open(partial,'wx',0o600);await file.close();
   try{
-    await runTool(tool,['--format=custom','--no-owner','--no-acl',`--file=${partial}`],pgEnvironment(source));
+    await runTool(tool,['--format=custom','--no-owner','--no-acl',`--file=${partial}`],await pgEnvironment(source));
     await rename(partial,target);await chmod(target,0o600);
     const manifest:Manifest={version:1,database,format:'custom',createdAt:new Date().toISOString(),sourceFingerprint:fingerprint(source),sha256:await sha256(target),postgresClientMajor:17};
     await writeFile(target+'.json',JSON.stringify(manifest,null,2)+'\n',{mode:0o600});
@@ -82,7 +91,7 @@ async function restore(database:DatabaseChoice,fileName:string|undefined,confirm
   const tool=await trustedTool('pg_restore');await version17(tool);
   // No --clean, --create, DROP or arbitrary SQL. A pre-created empty, explicit
   // restore database is required. Any restore error rolls back the transaction.
-  await runTool(tool,[`--dbname=${targetName}`,'--single-transaction','--exit-on-error','--no-owner','--no-acl',archive],pgEnvironment(target));
+  await runTool(tool,[`--dbname=${targetName}`,'--single-transaction','--exit-on-error','--no-owner','--no-acl',archive],await pgEnvironment(target));
   await writeFile(join(directory,`restore-${new Date().toISOString().replace(/[:.]/g,'-')}.json`),JSON.stringify({version:1,restoredAt:new Date().toISOString(),archive:basename(archive),targetFingerprint:fingerprint(target),database,transactional:true},null,2)+'\n',{mode:0o600});
   process.stdout.write('Restore completed into the explicitly named isolated restore database. Runtime app URLs were not changed.\n');
 }

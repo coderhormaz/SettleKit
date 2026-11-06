@@ -2,7 +2,7 @@
 
 Updated: 7 November 2026, Asia/Kolkata (IST). Working name: **SettleKit**; name availability has not been checked.
 
-This is the detailed specification. Read it with `AGENTS.md`, `MEMORY.md`, `PROGRESS.md` and `IMPLEMENTATION_PLAN.md`. **All six phases are authorized; their implementation source is present. Latest instruction: main agent only, finish code and defer further tests.** See the implementation audit for source versus historical checks versus open live proof. No funded Whitechain deployment/payment/refund, signed Arkiv entity, actual CRE recovery, DON deployment or public application hosting is claimed.
+This is the detailed specification. Read it with `AGENTS.md`, `MEMORY.md`, `PROGRESS.md` and `IMPLEMENTATION_PLAN.md`. **All six phases are authorized; latest instruction resumes the complete audit/runtime/test/fix pass with the main agent only.** Actual local EVM/Neon/HTTP payment/refund/collections and actual CRE CLI recovery/one fulfillment now pass, as do isolated restores and lifecycle checks. See the audit for current regression results. No funded Whitechain deployment/payment/refund, signed Arkiv entity, DON deployment or public hosting is claimed.
 
 Quick reading order: [six-phase execution plan](IMPLEMENTATION_PLAN.md), [fixed decisions](#1-fixed-decisions-preserve-these), [sponsor gates](#3-sponsor-tracks-and-eligibility), [verified facts](#6-verified-network-facts-and-current-unknowns), [CRE design](#12-cre-recovery-workflow), [implementation order](#14-repository-configuration-and-implementation-order), and [current status/start prompt](#17-current-status-and-next-chat-startup). Other sections supply the implementation detail and official resource catalog.
 
@@ -725,11 +725,11 @@ Create an evidence index linking each sponsor requirement to implementation file
 - [x] Existing GitHub history fetched and preserved; `main` tracks the authorized remote. See `PROGRESS.md` for push evidence.
 - [x] Reviewed documentation baseline committed, pushed and independently verified on GitHub; current build status and checkpoint are in `PROGRESS.md`.
 - [x] `IMPLEMENTATION_PLAN.md` defines exactly six phases; all were subsequently authorized. Next.js/Neon, wallet-first login and local application operation are confirmed.
-- [x] Implementation, isolated Neon persistence and historical checks exist; latest code-first/testing-deferred instruction and main-agent-only constraint are recorded.
+- [x] Implementation, isolated Neon persistence and checks exist; latest audit/testing-resumed instruction and main-agent-only constraint are recorded.
 
 ### Current implementation evidence
 
-Foundation and payment/store checkpoints are pushed. Dashboard/collections/refunds/public projection/accountant/recovery/release source is implemented. Historical root/database/browser/contract results, actual empty public Arkiv queries and the earlier real CRE route simulation are recorded in `docs/IMPLEMENTATION_AUDIT.md` and `docs/evidence/index.md`. Newest recovery/correction/tooling verification is deferred. Funding remains explicitly deferred; no actual payment recovery or signed Arkiv write is inferred from earlier feasibility checks.
+Foundation/payment/store and verification fixes are pushed. All phase source is implemented. The complete local mock-token EVM + production HTTP + real Neon harness passes with JS/Python, actual CRE recovery/one fulfillment, original-payer5USDT refund/25–5–20 accounting and no-adapter link/invoice payments. Backup/isolated restore, six guards, supervisor lifecycle and gateway-stopped public accountant checks pass. Final regression results and funded proof boundaries are recorded in `docs/IMPLEMENTATION_AUDIT.md` and `docs/evidence/index.md`. Funding remains deferred; no live payment/entity proof is inferred from local evidence.
 
 ### Remaining implementation
 
@@ -739,17 +739,19 @@ Foundation and payment/store checkpoints are pushed. Dashboard/collections/refun
 - [x] Router/payment/refund primitives, screening enforcement, checkout/observer/worker and separate durable store implementation.
 - [x] Dashboard operations, no-code collections, original-payer refund service/UI and canonical event accounting implementation.
 - [x] Real Arkiv SDK writer/query/verifier and independent accountant implementation; actual signed public-write proof remains pending.
-- [x] Real CRE recovery workflow/API/failure demonstration source and WASM compilation; actual recovery execution remains pending.
+- [x] Real CRE recovery workflow/API and actual CLI local failure→recovery→one-fulfillment proof; funded Whitechain recovery remains pending.
 - [x] Local supervisor, safe backup/isolated restore commands, JS/Python adapters, runbooks and demo/release checklist.
-- [ ] Deferred final runtime/security/browser/end-to-end verification, funded deployment/source verification/payment/refund/publication and actual CRE recovery.
-- [ ] Actual isolated restore exercise, human-narrated video, real integration-time/merchant feedback measurement and any separately authorized hosting/submission.
+- [x] Complete combined local runtime/end-to-end flow, actual isolated gateway/store restores and supervisor/independent-accountant lifecycle checks.
+- [x] Final114-test root/16-test browser/7 Python regression and reviewed desktop/tablet/mobile captures.
+- [ ] Funded deployment/source verification/payment/refund/publication and funded Whitechain CRE recovery.
+- [ ] Human-narrated video, real integration-time/merchant feedback measurement and any separately authorized hosting/submission.
 
 Throwaway wallet keys and database credentials exist only in ignored local configuration. Public wallet addresses, zero balances, read-only probes and the actual CRE simulation are evidenced. No payment/refund transaction, deployed router, Arkiv entity write, public demo or merchant validation is claimed. Keep unresolved gates unresolved until their actual proof exists.
 
 ### First actions for the implementing agent
 
-Read current memory/audit/Git and preserve existing work. All six phases are authorized; do not ask again. Use the main agent only and defer further tests until instructed. Finish source gaps found by review, keep funding gates pending, update evidence and normal-push coherent checkpoints. Public application deployment remains deferred.
+Read current memory/audit/Git and preserve existing work. All six phases and the final test/runtime/fix pass are authorized; do not ask again. Use the main agent only. Finish concrete gaps/failures, preserve funded evidence gates, update exact results and normal-push coherent checkpoints. Public application deployment remains deferred.
 
 ### Prompt the user can paste into a new chat
 
-Continue SettleKit from AGENTS.md, MEMORY.md, PROGRESS.md, IMPLEMENTATION_PLAN.md and docs/IMPLEMENTATION_AUDIT.md. All six phases are authorized. Main agent only; further tests are deferred by the latest instruction. Preserve implemented code/historical evidence and funded live gates. Finish any concrete source gap, document accurately and push normally to the authorized repository; never infer live proof or hosting authorization.
+Continue SettleKit from AGENTS.md, MEMORY.md, PROGRESS.md, IMPLEMENTATION_PLAN.md and docs/IMPLEMENTATION_AUDIT.md. All six phases and final testing are authorized. Main agent only. Preserve implementation/local runtime proof and funded live gates. Finish concrete source/test failures, record exact evidence and push normally; never infer live proof or hosting authorization.

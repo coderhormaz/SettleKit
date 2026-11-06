@@ -14,7 +14,7 @@ The user confirmed these implementation preferences in this planning chat:
 - Runtime: run the Next.js app and persistent worker locally first, backed by **Neon PostgreSQL**. The user's latest database choice replaces SQLite/libSQL. Public app hosting remains deferred; database access is a Phase 1 prerequisite.
 - Quality: use the available design skills for a polished, distinctive product. Plan and review every requested phase before implementation, verify the complete phase afterward, then report and keep pushing coherent tested milestones.
 - Schedule: complete the entire six-phase scope even if work continues beyond the event deadline.
-- Execution: all six phase-start instructions have now been given. Continue remaining implementation under the latest main-agent-only/testing-deferred instruction; report gaps accurately instead of waiting for phase authorization already supplied.
+- Execution: all six phase-start instructions have been given. The latest instruction resumes the full audit/testing/runtime pass, completing gaps and fixing failures with the main agent only. Funding and public hosting remain deferred; never infer their authorization from test instructions.
 
 Fixed product boundaries remain:
 
@@ -127,12 +127,12 @@ Maintain `docs/evidence/index.md` mapping each requirement to its phase, impleme
 
 | Phase | Deliverable | Depends on | Current status |
 | --- | --- | --- | --- |
-| 1 | Proven tools/sponsor access, private foundation, wallet onboarding and design system | Authorized; test funding deferred | In progress; live write/transfer gates open |
-| 2 | Screened live payment, hosted checkout and one idempotent store fulfillment | Phase 1 payment/security gates | Authorized; independent implementation in progress, funded live evidence pending |
-| 3 | Complete merchant operating dashboard and integration controls | Phase 2 verified lifecycle | Authorized; detailed plan prepared |
-| 4 | Working refunds, Arkiv receipts and independent accounting | Phase 2 router; Phase 3 merchant controls | Authorized; detailed plan prepared, live funded gates deferred |
-| 5 | Real CRE reconciliation and safe failed-notification recovery | Phase 1 CRE proof; Phases 2–4 current-state rules | Authorized; detailed plan next, actual-payment proof pending funded gates |
-| 6 | Full-system verification, reproducible release and evidence/demo materials | All earlier exit gates | Authorized; complete available checks and preserve external/live/video gates |
+| 1 | Proven tools/sponsor access, private foundation, wallet onboarding and design system | Authorized; test funding deferred | Implemented/locally verified; live write/transfer gates open |
+| 2 | Screened live payment, hosted checkout and one idempotent store fulfillment | Phase 1 payment/security gates | Complete local EVM/HTTP/Neon flow passes; funded live proof pending |
+| 3 | Complete merchant operating dashboard and integration controls | Phase 2 verified lifecycle | Implemented, real database/browser checks and internal collection flow pass; 114 root/16 browser checks pass |
+| 4 | Working refunds, Arkiv receipts and independent accounting | Phase 2 router; Phase 3 merchant controls | Local5USDT refund/25–5–20 verifier/CSV passes; signed public entities and funded refund pending |
+| 5 | Real CRE reconciliation and safe failed-notification recovery | Phase 1 CRE proof; Phases 2–4 current-state rules | Actual local CLI recovery/one fulfillment and auth/race matrix pass; repeat with funded Whitechain payment pending |
+| 6 | Full-system verification, reproducible release and evidence/demo materials | All earlier exit gates | Combined JS/Python harness, backup/restore and lifecycle pass; 114 root/16 browser/7 Python checks pass; live/video gates remain open |
 
 ### Phase 1 — Foundation and feasibility
 

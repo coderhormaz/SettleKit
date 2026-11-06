@@ -1,6 +1,6 @@
 # Evidence index
 
-Updated 7 November 2026 (IST). All six phases are authorized and source is present. Further tests are user-deferred; main agent only. This index separates historical checks, current static builds, live reads, signed writes and actual CRE simulation. See the [implementation audit](../IMPLEMENTATION_AUDIT.md).
+Updated7November2026. All phases are authorized; main-agent-only testing resumed. Current verification below supersedes older snapshot counts. Local EVM, real Neon, actual CLI simulation, public reads and funded live proofs remain separate.
 
 | Requirement / gate | Implementation and reproducible command | Evidence / actual outcome |
 | --- | --- | --- |
@@ -28,16 +28,19 @@ Selected sponsor requirements remain in the handoff and phase plan. Later phases
 | Responsive UI | 8 Playwright checks passed; actual wallet login/profile persistence and explicit HTTP/RPC wallet/payment-state fixtures. [Checkout desktop](phase-2/screenshots/checkout-desktop.png), [mobile](phase-2/screenshots/checkout-mobile.png), [payments desktop](phase-2/screenshots/payments-desktop.png), [mobile](phase-2/screenshots/payments-mobile.png), [actual store](phase-2/screenshots/store-actual-pending-desktop.png). Overflow fixed, keyboard/mobile navigation checked. |
 | Remaining live exit gates | Actual source-verified Whitechain router, 25 sponsor-USDT payment/one external fulfillment and explorer link; later original-payer refund and signed Arkiv receipts remain funded gates. No source/transaction/entity claim is inferred from a local fixture. |
 
-## Phase 3–6 implementation and evidence boundary
+## Final phase3–6 verification
 
-| Scope | Actual result / limitation |
+| Scope | Actual result / boundary |
 | --- | --- |
-| Dashboard | 89 expanded root cases included9 real-Neon operation cases;13 browser cases included5 dashboard HTTP fixtures. Separate real wallet-signature/Neon CRUD/HMAC browser pass: [checks](phase-3/dashboard-checks.json), [desktop](phase-3/screenshots/real-overview-desktop.png), [tablet](phase-3/screenshots/real-overview-tablet.png), [mobile](phase-3/screenshots/real-overview-mobile.png). No live payment in that pass. |
-| Refund service | 8 dedicated real-Neon cases with explicitly simulated RPC evidence passed. Source: `packages/db/test/refunds.integration.test.ts`. Newest observer/correction changes still need regression. Extended local harness `--refunds --collections` is authored but not run after the testing deferral. |
-| Public accounting | 15 earlier synthetic Arkiv/source/writer cases passed. Actual [SDK public query](../../packages/arkiv/evidence/public-read.json) and [gateway-stopped public browser](../../apps/accountant/evidence/public-browser.json) returned zero entities. No positive signed receipt/accounting/renewal proof. |
-| Recovery source | `packages/cre/recovery.ts` compiles to actual WASM; service APIs, current-state checks, stable rounds, failure fixture and delivery attribution exist. **Actual recovery simulation remains pending.** Earlier Phase1 simulation cannot substitute for it. |
-| Latest static release checks | [Recorded compilation/schema results](phase-6/compilation.json): TypeScript including JS examples, both Next builds, real recovery WASM and Python syntax passed; migration0008 applied to isolated test then dev. These are not runtime/security tests. |
-| Integration size | [Static source lines/bytes](phase-6/integration-inventory.json) include reusable helpers plus separate durable order system. Hands-on time/merchant validation unmeasured; new JS/Python execution deferred. |
-| Operations/video | Supervisor, backup/isolated restore and bounded failed-publication repair commands exist; actual execution/restore checks deferred. [Demo script](../demo-script.md) exists; human narration/final video absent. |
+| Root |114/114 tests across13files; actual isolated Neon plus explicit HTTP/RPC/source fixtures. Includes11 recovery,10 operation,8 refund and5 projection cases. |
+| Contracts |26 local simulated-EVM cases; no live deployment. |
+| Browser |16/16 Chromium flows, actual wallet-signature/Neon persistence and labeled interface/wallet/RPC fixtures. Desktop/tablet/mobile, nested dialogs/focus and refund retry states checked. |
+| Python |7 standard-library tests, real local HTTP callback/redirect/response-limit checks and explicit current-state fixtures. Actual Python positive signed delivery/order read also executes in the combined harness. |
+| Integrated local flow |[Payment/JS/Python](phase-2/local-payment-flow.json), [refund/collections](phase-4/local-refund-flow.json): production HTTP, real isolated Neon, local EDR/mock token; exact25–5–20 sums/CSV, one fulfillment, one-base-unit link/invoice payments, pause/deactivation/duplicates. Public verifier entity metadata is explicitly synthetic. |
+| CRE |[Actual CLI simulation](phase-5/cre-recovery-simulation.json), [sanitized log](phase-5/cre-recovery-simulation.log), [persisted recovery/one fulfillment](phase-5/local-recovery-flow.json). Actual local chain + separate merchant API + real Neon, not DON execution or a funded Whitechain payment. |
+| Public accountant |[Actual gateway-stopped browser](../../apps/accountant/evidence/public-browser.json), [SDK query](../../packages/arkiv/evidence/public-read.json): no gateway/private credentials, zero entities. Positive signed accounting/history completeness pending funding. |
+| Operations |[Actual backup/isolated restore and six guards](phase-6/backup-restore.json), [supervisor lifecycle](phase-6/local-lifecycle.json), [complete verification record](phase-6/verification.json). Runtime app URLs unchanged by restore. |
+| Integration effort |[Full source lines/bytes](phase-6/integration-inventory.json); includes helpers/durable order system and Python tests separately. Hands-on time/merchant validation unmeasured. |
+| Open gates |Funded explorer-verified Whitechain deployment/payment/refund; signed Rabdi entities/renewal and positive independent accounting; funded Whitechain recovery; human-narrated video. Hosting/submission/customer funds/sponsor messages require applicable authorization. |
 
-Current open proof queue is [release-checklist.md](../release-checklist.md). No fabricated transaction hash, entity key, successful recovery, DON deployment, human narration, customer adoption or eligibility is supplied.
+Earlier failed attempts are recorded in the audit: harness response-envelope error, transient Neon DNS/transport failures and a screening test fixture whose publication timestamp could exceed fetch time. Fixed/clean reruns are distinct from those failures. No screening bypass, TLS weakening or retry of ambiguous commits was introduced.

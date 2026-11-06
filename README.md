@@ -2,7 +2,7 @@
 
 Screened USDT checkout on Whitechain, direct merchant settlement, original-payer refunds, a merchant dashboard, independent accounting and recovery of failed store notifications through Chainlink CRE.
 
-**Status, 7 November 2026:** source for all six authorized phases is present. Further test runs were deferred by the user. Static compilation does not establish the remaining live gates: funded Whitechain deployment/payment/refund, signed Arkiv receipts and an actual CRE recovery run. See the [implementation audit](docs/IMPLEMENTATION_AUDIT.md) and [evidence index](docs/evidence/index.md).
+**Status, 7 November 2026:** all six authorized phases have implementation source and the local runtime audit is complete. 114 root tests,26 contract tests,16 browser tests and7 Python checks pass. Actual local payment/refund execution, real CRE CLI recovery, independent merchant fulfillment and isolated backup/restore pass. Funded Whitechain deployment/payment/refund and signed Arkiv receipts remain open live gates. See the [implementation audit](docs/IMPLEMENTATION_AUDIT.md) and [evidence index](docs/evidence/index.md) for exact current checks and limitations.
 
 ## Product and stack
 
@@ -16,6 +16,8 @@ Screened USDT checkout on Whitechain, direct merchant settlement, original-payer
 Next.js 16 / React 19 / TypeScript 5.9; Neon PostgreSQL 17 / Drizzle / pg; viem / wagmi; Hardhat / OpenZeppelin; Arkiv SDK and CRE SDK. Exact compatible versions are pinned in the lockfile and [version notes](docs/versions.md). Local app/worker operation is selected; public application hosting remains deferred.
 
 Payments/refunds use **Whitechain Sepolia 1874**, USDT **`0xcedfB56113143d55b2358b8CFbB0dEB5Ad2f55a7`**, six decimals. Screening enforces configured address lists/freshness; it does not guarantee lawful funds or provide source-of-funds tracing. Unsolicited transfers never satisfy an invoice. Arc, ENS and bridges are excluded.
+
+Whitechain settlement makes an order-bound stablecoin payment and its original-payer partial refund publicly verifiable by the merchant, customer and independent accountant. The router transfers directly to the merchant and emits evidence that another system can verify and reconcile without trusting SettleKit's private ledger. A regular payment rail does not expose these same programmable token transfers and public contract events on Whitechain. Actual sponsor-USDT explorer links will be added after the deferred funded deployment/payment; local mock-token transactions do not satisfy that requirement.
 
 ## Local startup
 
@@ -47,9 +49,11 @@ Sign in, save the approved business origin, prove settlement ownership, create a
 
 Use the [complete independent store](examples/store/README.md), [JavaScript adapter](examples/javascript/README.md) or [Python HTTP adapter](examples/python/README.md). Include order reads, configuration, bounded transport and durable callbacks when estimating work; integration time has not been measured.
 
-Historical verification includes89 root checks, 26 local contract checks,13 browser cases, a separate real dashboard CRUD browser case and 8 refund database cases. These are different scopes/snapshots, not one current-suite total. New recovery/correction/tooling changes require the deferred [release pass](docs/release-checklist.md).
+Run the root unit/isolated-Neon suite with `pnpm test`, contracts with `pnpm test:contracts`, and Chromium flows with `pnpm test:browser`. The [release checklist](docs/release-checklist.md) records current results and boundaries. Database/browser/integrated suites must run sequentially because they temporarily replace the isolated test screening snapshot.
 
-Live evidence proves official OFAC ingestion, Whitechain read-only metadata, public Arkiv queries and the Phase 1 actual CRE route simulation. Local mock-token payment/fulfillment evidence is separate. No signed Arkiv entity, funded Whitechain payment/refund, recovered CRE order, deployed DON, merchant validation or completed narrated video is claimed.
+Live evidence proves official OFAC ingestion, Whitechain read-only metadata and public Arkiv queries. Actual CRE recovery simulation has also run against the local EVM, separate merchant API and real isolated Neon databases; the one-fulfillment outcome is separately checked. This remains local mock-token proof. No signed Arkiv entity, funded Whitechain payment/refund, deployed DON, merchant validation or completed narrated video is claimed.
+
+The configured public Arkiv writer is **`0xAB5C7220E7d98D57181346d00D6E7957f42Af486`**. It is unfunded and has not yet written signed entities. Run `node --import tsx packages/arkiv/scripts/public-read.ts` for an actual public SDK query scoped to this writer/creator and the demo merchant, or use the independent accountant. An empty query is not proof of complete accounting history. Entity schema, ownership, retention and indexed fields are documented in [arkiv/schema.md](arkiv/schema.md).
 
 ## Review
 

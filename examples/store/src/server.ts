@@ -1,13 +1,14 @@
 import { createServer, type IncomingMessage, type ServerResponse } from 'node:http';
 import { readFile } from 'node:fs/promises';
 import { createHash } from 'node:crypto';
-import { IntegrationError, bearerMatches, parseEligibility, parsePaymentEvent, safeJsonRequest, verifyWebhook } from '../../../packages/integration/src/index.ts';
+import { IntegrationError, bearerMatches, isEndpointTest, parseEligibility, parsePaymentEvent, safeJsonRequest, verifyWebhook } from '../../../packages/integration/src/index.ts';
 import { adapterOrder, applyReceipt, cancelOrder, CATALOG_PRICE, createOrder, createStoreDatabase, orderById, publicOrder, saveCheckout } from './store.ts';
 import { html, script, styles } from './ui.ts';
 
 const origin=new URL(process.env.STORE_ORIGIN??'http://127.0.0.1:3200').origin;
 const gatewayOrigin=new URL(process.env.APP_ORIGIN??'http://127.0.0.1:3000').origin;
 const allowLocal=process.env.ALLOW_LOCAL_HTTP==='true';
+const developmentFailures=process.env.ALLOW_DEVELOPMENT_FAILURES==='true'&&allowLocal&&new URL(origin).protocol==='http:'&&['localhost','127.0.0.1','[::1]'].includes(new URL(origin).hostname)&&(process.env.STORE_DEVELOPMENT_FAILURE_TOKEN?.length??0)>=32;
 const apiKey=process.env.STORE_GATEWAY_API_KEY??'';
 const webhookSecret=process.env.STORE_WEBHOOK_SECRET??'';
 const orderReadKey=process.env.STORE_ORDER_READ_KEY??'';
@@ -53,11 +54,24 @@ const server=createServer(async(req,res)=>{
     if(req.method==='GET'&&url.pathname==='/store.css'){res.writeHead(200,{'Content-Type':'text/css; charset=utf-8'});res.end(styles);return;}
     if(req.method==='GET'&&url.pathname==='/app.js'){res.writeHead(200,{'Content-Type':'text/javascript; charset=utf-8'});res.end(script);return;}
     if(req.method==='GET'&&url.pathname==='/fonts/manrope.ttf'){res.writeHead(200,{'Content-Type':'font/ttf'});res.end(await readFile(new URL('../../../apps/gateway/public/fonts/manrope-variable.ttf',import.meta.url)));return;}
+    if(req.method==='POST'&&url.pathname==='/api/dev/fail-next'){
+      if(!developmentFailures)throw new IntegrationError('NOT_FOUND',404);
+      if(!bearerMatches(req.headers.authorization,process.env.STORE_DEVELOPMENT_FAILURE_TOKEN??''))throw new IntegrationError('UNAUTHORIZED',401);
+      let input:unknown;try{input=JSON.parse((await readBody(req)).toString());}catch{throw new IntegrationError('INVALID_FAILURE_CONFIG');}
+      if(!input||typeof input!=='object'||!('remaining'in input)||Object.keys(input).length!==1||!Number.isInteger(input.remaining)||Number(input.remaining)<0||Number(input.remaining)>3)throw new IntegrationError('INVALID_FAILURE_CONFIG');
+      await pool.query("insert into store_runtime_controls(key,remaining) values('payment-webhook',$1) on conflict(key) do update set remaining=excluded.remaining,updated_at=now()",[input.remaining]);
+      send(res,200,{armed:true,remaining:input.remaining,developmentFixture:true});return;
+    }
     if(req.method==='POST'&&url.pathname==='/api/webhooks/settlekit'){
       if(!req.headers['content-type']?.startsWith('application/json'))throw new IntegrationError('CONTENT_TYPE_INVALID',415);
       const raw=await readBody(req);const timestamp=req.headers['x-settlekit-timestamp'];const signature=req.headers['x-settlekit-signature'];
       verifyWebhook(raw,typeof timestamp==='string'?timestamp:undefined,typeof signature==='string'?signature:undefined,webhookSecret);
+      if(isEndpointTest(raw)){send(res,200,{acknowledged:true,test:true,fulfillment:false});return;}
       const event=parsePaymentEvent(raw);
+      if(developmentFailures){
+        const failed=await pool.query("update store_runtime_controls set remaining=remaining-1,updated_at=now() where key='payment-webhook' and remaining>0 returning remaining");
+        if(failed.rowCount){send(res,503,{error:{code:'DEVELOPMENT_DELIVERY_FAILURE',message:'Explicit local failure fixture; no order was fulfilled.'}});return;}
+      }
       const current=parseEligibility(await safeJsonRequest(new URL(`/api/v1/payments/${event.payment_id}/eligibility`,gatewayOrigin),{approvedOrigin:gatewayOrigin,allowLocal,headers:{Authorization:`Bearer ${apiKey}`}}));
       send(res,200,await applyReceipt(pool,event,current));return;
     }

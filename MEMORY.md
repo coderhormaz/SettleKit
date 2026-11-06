@@ -1,12 +1,12 @@
 # SettleKit: persistent project memory
 
-Updated: 6 November 2026 (IST). Repository: [coderhormaz/SettleKit](https://github.com/coderhormaz/SettleKit/).
+Updated: 7 November 2026 (IST). Repository: [coderhormaz/SettleKit](https://github.com/coderhormaz/SettleKit/).
 
 Read this file, `PROGRESS.md`, `AGENTS.md`, `PROJECT_HANDOFF.md` and `IMPLEMENTATION_PLAN.md` at the start of each implementation chat. This is repository-owned memory, not a claim that a separate app-wide memory service was updated. Latest user instructions take precedence; keep these documents consistent.
 
 ## Accepted user intent
 
-Build an easy-to-integrate stablecoin payment gateway with a premium, fully functional merchant dashboard. The user approved **Whitechain + Arkiv + Chainlink**, mandatory screening, same-chain refunds, premium UI and frequent GitHub checkpoints. **Phases 3 and 4 were authorized together on 6 November 2026.** Finish Phase 2's checkpoint, then implement/review the dashboard, refunds and independent accounting while preserving deferred funded gates. Wait before Phase 5. Use focused token-efficient subagents and avoid duplicate research/reviews.
+Build an easy-to-integrate stablecoin payment gateway with a premium merchant dashboard. The user approved **Whitechain + Arkiv + Chainlink**, mandatory screening, same-chain refunds and frequent GitHub checkpoints. **All Phases 1–6 are authorized. Latest steering: main agent only, all subagents stopped, finish remaining implementation and defer further test runs.** Do not delegate or restart agents. Keep historical evidence distinct from newer untested changes. Public hosting, production funds and sponsor messages remain separately controlled.
 
 ## Latest planning decisions
 
@@ -14,8 +14,8 @@ Build an easy-to-integrate stablecoin payment gateway with a premium, fully func
 - Merchant authentication: wallet-signature login with ownership proof and durable secure sessions.
 - The user's stack choice is **Next.js + Neon PostgreSQL** with Drizzle/pg, wallet signatures and the other accepted components. The isolated Neon development/test branches are now provisioned, migrations applied and actual PostgreSQL integration checks run. App/worker run locally; public app hosting remains deferred. See `docs/versions.md` for installed compatible pins.
 - Complete all six phases even beyond the published event deadline; do not imply late work constitutes a timely entry.
-- Exact dependency pins remain untested until Phase 1. The non-upgradeable router must include tested payment and refund primitives before its initial deployment; Phase 4 adds the refund service/UI and live refund evidence.
-- Current stage: Phase 2 screened payment/store implementation and verification. Phase 1 foundation checkpoint `4ee6743` is pushed and remotely verified. Wallet-first onboarding was confirmed; user completed CRE login. Official-source ingestion and real Neon persistence work; CRE route simulation and independent Arkiv queries have live evidence. The user explicitly deferred test funding, leaving Arkiv signed write and Whitechain approval/transfer/deployment proofs open. Do not re-request funding repeatedly or call an unproven phase complete.
+- Compatible pins are installed and locked. The non-upgradeable router includes payment/refund primitives with26 historical local contract checks; actual deployment/source verification remains a funded gate.
+- Current stage: implementation across all six phases is present, including dashboard/collections/refunds/Arkiv/accountant/CRE recovery and release tooling. TypeScript, gateway/accountant production builds and recovery WASM compilation pass; newest recovery/correction/tools still require the deferred verification pass. Historical results and exact gaps are mapped in `docs/IMPLEMENTATION_AUDIT.md`. Foundation `4ee6743` and payment/store `e3fa622` are remotely verified. Obtain the newer checkpoint from Git/PROGRESS. User completed CRE login and explicitly deferred funding; do not re-request it or call unproven live gates complete.
 - Before coding every requested phase, prepare/review its detailed plan, UX/data/security changes, sponsor requirements, meaningful checks and exit criteria. Then implement, verify all in-scope behavior, update evidence, commit/push coherent milestones and report. Use the available design skills for a polished product and actual browser inspection, not build success alone.
 
 ## Non-negotiable product decisions

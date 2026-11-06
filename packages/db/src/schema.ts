@@ -115,6 +115,8 @@ export const checkouts = pgTable('checkout_sessions', {
   refundAmount: numeric('refund_amount').notNull().default('0'),
   riskState: text('risk_state').notNull().default('unchecked'),
   submittedTxHash: text('submitted_tx_hash'),
+  mode: text('mode').notNull().default('store'),
+  collectionOrderId: uuid('collection_order_id'),
   expiresAt: time('expires_at').notNull(),
   createdAt: time('created_at').notNull().defaultNow(),
 }, t => [uniqueIndex('checkout_idempotency_idx').on(t.merchantId,t.idempotencyKey), uniqueIndex('checkout_order_idx').on(t.merchantId,t.orderId), index('checkout_merchant_idx').on(t.merchantId,t.createdAt), check('checkout_amount_uint',sql`${t.amount}=trunc(${t.amount}) and ${t.amount}>0 and ${t.amount}<=115792089237316195423570985008687907853269984665640564039457584007913129639935`),check('checkout_refund_uint',sql`${t.refundAmount}=trunc(${t.refundAmount}) and ${t.refundAmount}>=0 and ${t.refundAmount}<=${t.amount}`),check('checkout_status',sql`${t.status} in ('open','accepted','orphaned','review','cancelled')`)]);
@@ -150,6 +152,7 @@ export const payments = pgTable('payments', {
   payer: text('payer').notNull(),
   canonical: boolean('canonical').notNull().default(true),
   checkedAt: time('checked_at').notNull().defaultNow(),
+  blockTime: time('block_time'),
   createdAt: time('created_at').notNull().defaultNow(),
 },t=>[uniqueIndex('payment_event_idx').on(t.txHash,t.logIndex)]);
 export const deliveries = pgTable('webhook_deliveries', {

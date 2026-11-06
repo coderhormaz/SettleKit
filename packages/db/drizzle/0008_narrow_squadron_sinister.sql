@@ -1,0 +1,2 @@
+ALTER TABLE "recovery_intents" ADD COLUMN "delivered_at" timestamp with time zone;--> statement-breakpoint
+CREATE INDEX "recovery_delivery_idx" ON "recovery_intents" USING btree ("delivery_id","delivered_at");

@@ -1,0 +1,7 @@
+{
+  "name": "@settlekit/arkiv",
+  "private": true,
+  "type": "module",
+  "exports": { ".": "./src/index.ts", "./server": "./src/server.ts" },
+  "dependencies": { "@arkiv-network/sdk": "1.0.1", "@settlekit/core": "workspace:*", "viem": "2.57.16", "zod": "4.6.7" }
+}

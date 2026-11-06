@@ -1,7 +1,7 @@
 import { createHmac } from 'node:crypto';
 import { createServer, type Server } from 'node:http';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
-import { bearerMatches, isPublicAddress, parseEligibility, parsePaymentEvent, receiptDisposition, safeJsonRequest, TOKEN, verifyWebhook, type CurrentEligibility, type PaymentEvent } from '../src/index.ts';
+import { bearerMatches, isEndpointTest, isPublicAddress, parseEligibility, parsePaymentEvent, receiptDisposition, safeJsonRequest, TOKEN, verifyWebhook, type CurrentEligibility, type PaymentEvent } from '../src/index.ts';
 
 const secret='test-only-webhook-secret-'.repeat(3);
 const now=Date.now();
@@ -11,6 +11,11 @@ const raw=Buffer.from(JSON.stringify(event));const timestamp=String(Math.floor(n
 const sign=(body=raw,time=timestamp)=>`v1=${createHmac('sha256',secret).update(time+'.').update(body).digest('hex')}`;
 
 describe('real raw-byte webhook receiver protocol',()=>{
+  it('acknowledges a distinct verified endpoint test without admitting payment association fields',()=>{
+    const testEvent=Buffer.from(JSON.stringify({event_id:'test_12345678',event_type:'endpoint.test',created_at:new Date().toISOString(),message:'Endpoint test; no fulfillment.'}));
+    expect(isEndpointTest(testEvent)).toBe(true);expect(isEndpointTest(raw)).toBe(false);
+    expect(()=>isEndpointTest(Buffer.from(JSON.stringify({...JSON.parse(testEvent.toString()),payment_id:'payment_12345678'})))).toThrow('TEST_EVENT_INVALID');
+  });
   it('validates bounded exact bytes and a fresh HMAC; altered body/time/header cannot pass',()=>{
     expect(()=>verifyWebhook(raw,timestamp,sign(),secret,now)).not.toThrow();
     expect(()=>verifyWebhook(Buffer.concat([raw,Buffer.from(' ')]),timestamp,sign(),secret,now)).toThrow('WEBHOOK_UNAUTHORIZED');

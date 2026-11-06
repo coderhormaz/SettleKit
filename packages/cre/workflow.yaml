@@ -5,3 +5,10 @@ staging-settings:
     workflow-path: "./main.ts"
     config-path: "./config.staging.json"
     secrets-path: ""
+recovery-settings:
+  user-workflow:
+    workflow-name: "settlekit-current-state-recovery"
+  workflow-artifacts:
+    workflow-path: "./recovery.ts"
+    config-path: "../../data/cre-recovery.config.json"
+    secrets-path: "./secrets.recovery.yaml"

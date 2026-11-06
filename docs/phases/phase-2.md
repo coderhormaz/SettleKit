@@ -1,6 +1,6 @@
 # Phase 2 — screened payment and store fulfillment
 
-Authorized by the user on 6 November 2026 (IST). Phase 1's independent checks passed; its funded Whitechain and Arkiv write gates remain deferred. Phase 2 local implementation is authorized now; live deployment/payment evidence remains dependent on test funding. Phase 3 is not authorized.
+Authorized by the user on 6 November 2026 (IST); all six phases were subsequently authorized. Phase 2 local implementation/checkpoint is pushed; funded Whitechain deployment/payment and Arkiv write gates remain deferred. Latest steering: main agent only, finish code and defer further tests. Current source/check boundaries are in PROGRESS.md.
 
 ## Outcome and boundaries
 

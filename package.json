@@ -24,7 +24,17 @@
     "test:contracts": "pnpm --filter @settlekit/contracts test",
     "store": "pnpm --filter @settlekit/example-store start",
     "demo:setup": "tsx --env-file=.env scripts/setup-demo.ts",
-    "policy:sync": "tsx --env-file=.env packages/worker/src/sync-policy.ts"
+    "policy:sync": "tsx --env-file=.env packages/worker/src/sync-policy.ts",
+    "cre:compile": "tsx scripts/cre-recovery.ts",
+    "accountant": "pnpm --filter @settlekit/accountant start",
+    "db:restore": "tsx scripts/database-backup.ts restore",
+    "cre:recover": "tsx scripts/cre-recovery.ts --simulate",
+    "db:backup": "tsx scripts/database-backup.ts backup",
+    "build:all": "pnpm --filter @settlekit/gateway build && pnpm --filter @settlekit/accountant build",
+    "audit:secrets": "tsx scripts/check-secrets.ts",
+    "stack": "tsx scripts/local-stack.ts",
+    "recovery:demo": "tsx scripts/recovery-demo.ts",
+    "receipts": "tsx scripts/public-receipts.ts"
   },
   "devDependencies": {
     "@playwright/test": "1.65.0",

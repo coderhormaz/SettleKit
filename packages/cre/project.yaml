@@ -4,3 +4,8 @@ staging-settings:
     # The workflow makes no native EVM calls; actual business-chain reads use fixed Whitechain HTTP RPC.
     - chain-name: "ethereum-testnet-sepolia"
       url: "https://ethereum-sepolia-rpc.publicnode.com"
+recovery-settings:
+  rpcs:
+    # Simulator bootstrap only. Recovery's payment evidence uses Whitechain HTTP.
+    - chain-name: "ethereum-testnet-sepolia"
+      url: "https://ethereum-sepolia-rpc.publicnode.com"

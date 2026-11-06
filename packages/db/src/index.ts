@@ -7,3 +7,7 @@ export * from './payments.ts';
 export * from './observer.ts';
 export * from './policy.ts';
 export * from './integration.ts';
+export * from './refunds.ts';
+export * from './refund-observer.ts';
+export * from './projection.ts';
+export * from './recovery.ts';

@@ -14,7 +14,7 @@ type CheckoutData = {
   reference: string; amount_base_units: string; merchant_name: string; merchant_wallet: string;
   status: 'open' | 'accepted' | 'review' | 'orphaned' | 'expired' | 'pending'; payment_id: string | null;
   confirmation_stage: 'included_2_blocks'; router: string | null; token: string; chain_id: number;
-  expires_at: string; return_url: string; delivery_status: string | null; tx_hash?: Hex | null;
+  expires_at: string; return_url: string; delivery_status: string | null; mode?: 'store'|'collection'; tx_hash?: Hex | null;
 };
 type Authorization = { invoiceId: Hex; payer: Address; merchant: Address; token: Address; amount: string; evidence: Hex; epoch: string; deadline: string };
 type AuthorizationResponse = { authorization: Authorization; signature: Hex; router: Address };
@@ -199,7 +199,7 @@ export function Checkout({ reference }: { reference: string }) {
             <button className={`primary-button ${styles.payButton}`} disabled={busy || !configured || query.isError} onClick={() => void run(action)}>{busy ? <LoaderCircle className="spin" size={17} /> : <Wallet size={17} />}{busy ? loadingLabel : actionLabel}{!busy && <ArrowRight size={16} />}</button>
             {account.address && <p className={styles.connected}>Connected wallet <code title={account.address}>{short(account.address)}</code></p>}
           </> : null}
-          {checkout.payment_id && <dl className={styles.statusList}><div><dt>Payment</dt><dd>{checkout.status === 'accepted' ? 'Received' : checkout.status}</dd></div><div><dt>Store notification</dt><dd>{checkout.delivery_status ?? 'Not delivered yet'}</dd></div></dl>}
+          {checkout.payment_id && <dl className={styles.statusList}><div><dt>Payment</dt><dd>{checkout.status === 'accepted' ? 'Received' : checkout.status}</dd></div><div><dt>{checkout.mode === 'collection' ? 'Collection record' : 'Store notification'}</dt><dd>{checkout.mode === 'collection' && checkout.delivery_status === 'delivered' ? 'Recorded' : checkout.delivery_status ?? 'Not delivered yet'}</dd></div></dl>}
           {(txHash || checkout.tx_hash) && <a className={styles.transaction} href={`https://explorer.testnet.whitechain.io/tx/${txHash ?? checkout.tx_hash}`} target="_blank" rel="noreferrer">View submitted transaction<ExternalLink size={14} /></a>}
           {(pending || terminal || query.isError) && <button className={`secondary-button ${styles.refresh}`} disabled={query.isFetching} onClick={() => void query.refetch()}><RefreshCw size={15} className={query.isFetching ? 'spin' : ''} />Refresh payment status</button>}
           {pending && checkout.status === 'open' && !expired && !query.isError && <div className={styles.retryArea}>{retryConfirmation ? <div className={styles.retryConfirmation}><strong>Start another payment attempt?</strong><p>A submitted transaction may still confirm. Retrying does not cancel it. The SettleKit router accepts this invoice only once, so another attempt cannot charge it twice. Check the transaction first; network fees may still apply.</p><div><button className="secondary-button" disabled={retryChecking || query.isFetching} onClick={() => void retryPayment()}>{retryChecking && <LoaderCircle className="spin" size={14} />}Start a new payment attempt</button><button className="text-button" disabled={retryChecking} onClick={() => setRetryConfirmation(false)}>Keep waiting</button></div></div> : <button className="text-button" onClick={() => setRetryConfirmation(true)}>Try payment again</button>}</div>}

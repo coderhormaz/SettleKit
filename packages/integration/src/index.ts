@@ -52,6 +52,14 @@ export function parsePaymentEvent(raw: Buffer): PaymentEvent {
   if (!id(event.event_id) || !['payment.accepted', 'payment.review'].includes(String(event.event_type)) || typeof event.created_at !== 'string' || !Number.isFinite(Date.parse(event.created_at))) throw new IntegrationError('EVENT_INVALID');
   return event as unknown as PaymentEvent;
 }
+/** Call only after raw-body HMAC verification. Test acknowledgments never read or fulfill an order. */
+export function isEndpointTest(raw:Buffer):boolean {
+  if(raw.byteLength>32768)throw new IntegrationError('BODY_TOO_LARGE',413);
+  let value:unknown;try{value=JSON.parse(raw.toString('utf8'));}catch{return false;}
+  if(!record(value)||value.event_type!=='endpoint.test')return false;
+  if(!id(value.event_id)||typeof value.created_at!=='string'||!Number.isFinite(Date.parse(value.created_at))||typeof value.message!=='string'||value.message.length>256||Object.keys(value).some(key=>!['event_id','event_type','created_at','message'].includes(key)))throw new IntegrationError('TEST_EVENT_INVALID');
+  return true;
+}
 export function parseEligibility(value: unknown): CurrentEligibility {
   association(value);
   const current = value as Association & Record<string, unknown>;

@@ -8,3 +8,5 @@ Phase 1 observations, 6 November 2026. These are actual local/read-only integrat
 - Explorer proxy metadata identifies an EIP-1967 implementation, but the queried proxy/implementation smart-contract API responses did not expose a verified ABI/source in this probe. We have not inferred all issuer powers, pause behavior or permit support from a few getters. A sponsor-provided canonical ABI and exact-token funding instructions would remove that uncertainty.
 
 Reproduce with the scripts and sanitized JSON under `packages/feasibility` and `docs/evidence/phase-1`. No payment, refund, router deployment or prize qualification is claimed yet.
+
+7 November update: the actual screened router and original-payer full/partial refund primitives now have26 historical local contract cases, and the complete separate-store payment/one-fulfillment path ran against local mock-token EVM plus real Neon/production HTTP. Dashboard/refund/accounting source is present. These are local implementation results; funded specified-USDT deployment/source verification/payment/refund remain open. Further tests are user-deferred. No sponsor message has been sent.

@@ -1,6 +1,6 @@
 # SettleKit: six-phase implementation plan
 
-Updated: 6 November 2026 (IST). Status: Phases 3 and 4 now authorized together; Phase 2's local checks passed and its checkpoint is being finished. Deferred funded gates stay open; Phases 5–6 remain pending. Actual results are in `PROGRESS.md`, the detailed phase documents and `docs/evidence/`.
+Updated: 7 November 2026 (IST). All six phases are authorized and their implementation source is present. Latest steering: main agent only; finish code and defer further test runs. No delegation. Static compilation and historical results do not close live funded/runtime gates. See `PROGRESS.md`, `docs/IMPLEMENTATION_AUDIT.md` and `docs/evidence/` for actual status.
 
 Read with [AGENTS.md](AGENTS.md), [MEMORY.md](MEMORY.md), [PROGRESS.md](PROGRESS.md) and [PROJECT_HANDOFF.md](PROJECT_HANDOFF.md). The handoff retains the detailed product/security requirements; this document replaces its former Phase 0–4 numbering with exactly **Phases 1–6**. Current user instructions take precedence.
 
@@ -14,7 +14,7 @@ The user confirmed these implementation preferences in this planning chat:
 - Runtime: run the Next.js app and persistent worker locally first, backed by **Neon PostgreSQL**. The user's latest database choice replaces SQLite/libSQL. Public app hosting remains deferred; database access is a Phase 1 prerequisite.
 - Quality: use the available design skills for a polished, distinctive product. Plan and review every requested phase before implementation, verify the complete phase afterward, then report and keep pushing coherent tested milestones.
 - Schedule: complete the entire six-phase scope even if work continues beyond the event deadline.
-- Execution: wait for an instruction such as **“Start Phase 1.”** Complete the requested phase accurately, report its evidence and stop before the next phase. This planning request does not start application implementation.
+- Execution: all six phase-start instructions have now been given. Continue remaining implementation under the latest main-agent-only/testing-deferred instruction; report gaps accurately instead of waiting for phase authorization already supplied.
 
 Fixed product boundaries remain:
 
@@ -131,8 +131,8 @@ Maintain `docs/evidence/index.md` mapping each requirement to its phase, impleme
 | 2 | Screened live payment, hosted checkout and one idempotent store fulfillment | Phase 1 payment/security gates | Authorized; independent implementation in progress, funded live evidence pending |
 | 3 | Complete merchant operating dashboard and integration controls | Phase 2 verified lifecycle | Authorized; detailed plan prepared |
 | 4 | Working refunds, Arkiv receipts and independent accounting | Phase 2 router; Phase 3 merchant controls | Authorized; detailed plan prepared, live funded gates deferred |
-| 5 | Real CRE reconciliation and safe failed-notification recovery | Phase 1 CRE proof; Phases 2–4 current-state rules | Not started |
-| 6 | Full-system verification, reproducible release and evidence/demo materials | All earlier exit gates | Not started |
+| 5 | Real CRE reconciliation and safe failed-notification recovery | Phase 1 CRE proof; Phases 2–4 current-state rules | Authorized; detailed plan next, actual-payment proof pending funded gates |
+| 6 | Full-system verification, reproducible release and evidence/demo materials | All earlier exit gates | Authorized; complete available checks and preserve external/live/video gates |
 
 ### Phase 1 — Foundation and feasibility
 
@@ -256,7 +256,7 @@ No further product decision is required to start Phase 1. The user selected Next
 
 | Input | Needed for | Handling |
 | --- | --- | --- |
-| Selected Neon project/development branch and server-only pooled/direct connections | Actual private persistence, migrations and integration tests | Reuse a supplied project/URL; otherwise resolve access in Phase 1. Isolate destructive tests/restore targets and keep credentials off chat/Git/browser/logs. No database has been provisioned or tested during planning. |
+| Selected Neon project/development branch and server-only pooled/direct connections | Actual private persistence, migrations and integration tests | Provisioned dedicated development/test branches with separate gateway/store databases and limited roles; credentials stay private. Isolate restore targets and keep credentials off chat/Git/browser/logs. |
 | Throwaway test wallets, WBT and exact sponsor USDT | Live Whitechain payment/refund | Use local ignored configuration/user wallet; never paste private keys into chat. Do not substitute a self-minted token. |
 | Arkiv Hub faucet/access if required | Actual funded Rabdi writes and reproducible reads | User completes account actions where necessary; private credentials stay server-side. |
 | Chainlink account/CLI login if required | Real CRE simulation | User completes interactive login; inspect actual CLI help. Live DON deployment access is not required for the agreed simulation evidence. |
@@ -270,4 +270,4 @@ If a credential blocks one gate, continue independent work in the authorized pha
 
 Say **“Start Phase 1”**, then **“Start Phase 2”**, and so on. Before changes, inspect current files, memory and Git state; revalidate the requested phase's prerequisites and relevant current docs. Implement only the requested phase and its necessary in-scope fixes, verify it, update memory/evidence, commit/push coherent milestones and report the result. If an earlier required gate is missing, explain it and progress independent tasks without pretending the dependency passed.
 
-Phase 1 is now authorized. Continue its outstanding verification/evidence work and report accurately; do not begin Phase 2 without the user's instruction.
+All Phases 1–6 are authorized. The latest instruction defers further tests and requires the main agent only. Preserve funded live-proof gates and use the implementation audit/release checklist for the later verification pass.

@@ -1,0 +1,73 @@
+{
+  "kind": "static-integration-source-inventory",
+  "measuredAt": "2026-11-06T22:19:21.8133163Z",
+  "files": [
+    {
+      "path": "examples/javascript/server.ts",
+      "physicalLines": 45,
+      "bytes": 4402
+    },
+    {
+      "path": "examples/javascript/adapter.ts",
+      "physicalLines": 26,
+      "bytes": 1730
+    },
+    {
+      "path": "examples/javascript/browser.ts",
+      "physicalLines": 7,
+      "bytes": 858
+    },
+    {
+      "path": "examples/javascript/browser.js",
+      "physicalLines": 13,
+      "bytes": 847
+    },
+    {
+      "path": "examples/python/settlekit_adapter.py",
+      "physicalLines": 202,
+      "bytes": 10071
+    },
+    {
+      "path": "examples/python/server.py",
+      "physicalLines": 113,
+      "bytes": 7235
+    },
+    {
+      "path": "examples/store/src/server.ts",
+      "physicalLines": 100,
+      "bytes": 10090
+    },
+    {
+      "path": "examples/store/src/store.ts",
+      "physicalLines": 80,
+      "bytes": 7027
+    },
+    {
+      "path": "examples/store/src/ui.ts",
+      "physicalLines": 12,
+      "bytes": 12045
+    },
+    {
+      "path": "examples/store/src/migrate.ts",
+      "physicalLines": 10,
+      "bytes": 832
+    },
+    {
+      "path": "examples/store/migrations/001_orders.sql",
+      "physicalLines": 32,
+      "bytes": 1369
+    },
+    {
+      "path": "examples/store/migrations/002_development_failures.sql",
+      "physicalLines": 5,
+      "bytes": 201
+    },
+    {
+      "path": "packages/integration/src/index.ts",
+      "physicalLines": 152,
+      "bytes": 11177
+    }
+  ],
+  "integrationTime": "not measured",
+  "boundary": "Counts include reusable helpers and the separately listed durable store implementation. Compact long lines understate complexity. Runtime tests of the new JS/Python adapters are deferred."
+}

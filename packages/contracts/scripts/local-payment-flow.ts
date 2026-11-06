@@ -1,6 +1,9 @@
 /**
  * Explicit local EDR/mock-token + real isolated Neon/production HTTP integration.
  * Run from repo root: node --env-file=.env --import tsx packages/contracts/scripts/local-payment-flow.ts
+ * Add --refunds --collections for the Phase 4 refund/public-verifier and
+ * separate no-adapter internal-collection scenarios. Those flags also write
+ * docs/evidence/phase-4/local-refund-flow.json; Arkiv metadata stays a fixture.
  * Never a Whitechain deployment/payment or sponsor-eligibility claim.
  */
 import assert from 'node:assert/strict';
@@ -18,9 +21,11 @@ import { createDatabase, completeJob, policyCommitment, transaction, type Claime
 import { observePayments, deliverPayment } from '../../worker/src/payments.ts';
 import { encryptSecret, hashToken, randomToken } from '../../core/src/server.ts';
 import { USDT_ADDRESS } from '../../core/src/index.ts';
-import { routerAbi, type PaymentAuthorization } from '../../core/src/router.ts';
+import { routerAbi, type PaymentAuthorization, type RefundAuthorization } from '../../core/src/router.ts';
 import { OFAC_SDN_URL, OFAC_SOURCE_ID, SCREENING_COVERAGE, type SourceSnapshot } from '../../screening/src/index.ts';
 import { createStoreDatabase } from '../../../examples/store/src/store.ts';
+import {cleanupTestMerchants} from '../../db/test/cleanup.ts';
+import { accountingCsv,parseReceipt,summarizeVerified,verifyReceipt,type ReceiptEntity } from '../../arkiv/src/index.ts';
 
 const root=fileURLToPath(new URL('../../../',import.meta.url));
 const script=fileURLToPath(import.meta.url);
@@ -86,6 +91,7 @@ function expectStatus(result:JsonResponse,status:number){
 }
 
 async function main(){
+  const includeRefunds=process.argv.includes('--refunds');const includeCollections=process.argv.includes('--collections');
   assert.equal(process.env.TEST_DATABASE_ISOLATED,'true','Explicit isolated test configuration is mandatory.');
   const gatewayUrl=process.env.TEST_DATABASE_URL;const storeUrl=process.env.TEST_STORE_DATABASE_URL;
   assert.ok(gatewayUrl&&storeUrl&&gatewayUrl!==process.env.DATABASE_URL&&storeUrl!==process.env.STORE_DATABASE_URL,'Separate isolated runtime databases are mandatory.');
@@ -93,9 +99,11 @@ async function main(){
   const childServices:ChildProcess[]=[];let rpcServer:Server|undefined;
   let connection:{close():Promise<void>}|undefined;let merchantId:string|undefined;let routerAddress:string|undefined;
   const loginChallenges:string[]=[];
+  const testMerchantIds:string[]=[];
   let oldSource:Record<string,unknown>|undefined;let sourceReplaced=false;const orderIds:string[]=[];
   const environmentBackup={...process.env};let stage='INITIALIZE';
   const evidence:Record<string,unknown>={kind:'local-EDR-mock-USDT-actual-isolated-Neon-and-production-HTTP',liveWhitechain:false,mockToken:true,fixtureScreeningSource:true,status:'running'};
+  const refundEvidence:Record<string,unknown>={kind:'local-EDR-mock-token-refund-and-explicit-public-entity-fixtures',liveWhitechain:false,actualArkivWrite:false,mockToken:true,fixtureScreeningSource:true,chainId:1874,tokenAddress:USDT_ADDRESS,status:'not_requested'};
   try{
     stage='LOCAL_EDR';process.chdir(resolve(root,'packages/contracts'));
     const hre=(await import('hardhat')).default;
@@ -108,6 +116,7 @@ async function main(){
     const runtime=await client.getCode({address:localMock.address});assert.ok(runtime);
     await network.provider.request({method:'hardhat_setCode',params:[USDT_ADDRESS,runtime]});
     await network.provider.request({method:'hardhat_setBalance',params:[payer.address,'0x56bc75e2d63100000']});
+    await network.provider.request({method:'hardhat_setBalance',params:[merchant.address,'0x56bc75e2d63100000']});
     const router=await network.viem.deployContract('SettleKitRouter',[USDT_ADDRESS,admin.account.address,signer.address]);
     routerAddress=router.address.toLowerCase();const deploymentBlock=await client.getBlockNumber();
     const code=await client.getCode({address:router.address});assert.ok(code);
@@ -158,6 +167,7 @@ async function main(){
     loginChallenges.push(String(challenge.value.id));
     const login=await json(`${gatewayOrigin}/api/auth/verify`,'POST',{id:challenge.value.id,signature:await merchant.signMessage({message:String(challenge.value.message)})},{Origin:gatewayOrigin,Cookie:challenge.cookie});expectStatus(login,200);
     merchantId=(login.value.merchant as {id:string}).id;
+    testMerchantIds.push(merchantId);
     const profile=await json(`${gatewayOrigin}/api/merchant`,'PATCH',{displayName:'Explicit local integration merchant',websiteOrigin:storeOrigin},{Origin:gatewayOrigin,Cookie:login.cookie});expectStatus(profile,200);
     await db.pool.query('insert into merchant_integrations(merchant_id,key_hash,webhook_url,order_api_url,webhook_secret,order_read_secret) values($1,$2,$3,$4,$5,$6)',[merchantId,hashToken(apiKey),`${storeOrigin}/api/webhooks/settlekit`,`${storeOrigin}/api/orders`,encryptSecret(webhookSecret,encryptionKey,`webhook:${merchantId}`),encryptSecret(orderReadKey,encryptionKey,`orders:${merchantId}`)]);
 
@@ -209,32 +219,106 @@ async function main(){
     const finalJob=(await db.pool.query("select status,attempts from outbox_jobs where merchant_id=$1 and payload->>'deliveryId'=$2",[merchantId,env.HARNESS_DELIVERY_ID])).rows[0];assert.deepEqual(finalJob,{status:'completed',attempts:2});
     const publicStatus=await json(`${storeOrigin}/api/orders/${orderId}/status`);expectStatus(publicStatus,200);assert.equal(publicStatus.value.state,'fulfilled');
     const download=await fetch(`${storeOrigin}/api/orders/${orderId}/download`,{headers:{Authorization:`Bearer ${String(order.value.cancel_token)}`},signal:AbortSignal.timeout(8000)});assert.equal(download.status,200);assert.match(await download.text(),/Fieldwork/);
+
+    if(includeRefunds){
+      refundEvidence.status='running';
+      const merchantHeaders={Origin:gatewayOrigin,Cookie:login.cookie};
+      stage='REFUND_INTENT_AND_IMMEDIATE_HOLD';
+      const request={paymentId,amountBaseUnits:'5000000',idempotencyKey:`local-refund:${randomUUID()}`};
+      const intent=await json(`${gatewayOrigin}/api/refunds`,'POST',request,merchantHeaders);expectStatus(intent,200);const intentId=String(intent.value.id);
+      const repeated=await json(`${gatewayOrigin}/api/refunds`,'POST',request,merchantHeaders);expectStatus(repeated,200);assert.equal(repeated.value.id,intentId);
+      const hold=(await db.pool.query('select c.refund_hold,c.refund_amount,c.state_version from payments p join checkout_sessions c on c.id=p.checkout_id where p.id=$1',[paymentId])).rows[0];assert.equal(hold.refund_hold,true);assert.equal(hold.refund_amount,'0');assert.ok(hold.state_version>payments[0].state_version);
+      stage='REFUND_FRESH_SERVER_AUTHORIZATION';
+      const authorized=await json(`${gatewayOrigin}/api/refunds/${intentId}/authorize`,'POST',{},merchantHeaders);expectStatus(authorized,200);
+      const terms=authorized.value.authorization as Record<string,string>;
+      const refund={...terms,amount:BigInt(terms.amount),epoch:BigInt(terms.epoch),deadline:BigInt(terms.deadline)} as unknown as RefundAuthorization;
+      assert.equal(refund.amount,5_000_000n);assert.equal(refund.payer.toLowerCase(),payer.address.toLowerCase());assert.equal(refund.merchant.toLowerCase(),merchant.address.toLowerCase());assert.equal(refund.invoiceId,message.invoiceId);assert.equal(refund.token.toLowerCase(),USDT_ADDRESS.toLowerCase());
+      stage='REFUND_ORIGINAL_MERCHANT_EXECUTION';
+      const merchantClient=createWalletClient({account:merchant,chain,transport:http(rpc,{retryCount:0})});
+      const refundApproval=await merchantClient.writeContract({address:USDT_ADDRESS,abi:erc20Abi,functionName:'approve',args:[router.address,refund.amount]});assert.equal((await publicClient.waitForTransactionReceipt({hash:refundApproval})).status,'success');
+      const refundTx=await merchantClient.writeContract({address:router.address,abi:routerAbi,functionName:'refund',args:[refund,authorized.value.signature as Hex]});const refundReceipt=await publicClient.waitForTransactionReceipt({hash:refundTx});assert.equal(refundReceipt.status,'success');
+      const submitted=await json(`${gatewayOrigin}/api/refunds/${intentId}/submitted`,'POST',{txHash:refundTx},merchantHeaders);expectStatus(submitted,200);
+      assert.equal((await db.pool.query('select refund_amount from checkout_sessions where reference=$1',[reference])).rows[0].refund_amount,'0');
+      await network.provider.request({method:'evm_mine',params:[]});
+      await runChild(['--import','tsx',script,'--worker-observe'],env);await runChild(['--import','tsx',script,'--worker-observe'],env);
+      const refundEvents=(await db.pool.query('select amount::text,canonical from refund_events where payment_id=$1',[paymentId])).rows;assert.deepEqual(refundEvents,[{amount:'5000000',canonical:true}]);
+      const detail=await json(`${gatewayOrigin}/api/refunds/${intentId}`,'GET',undefined,{Cookie:login.cookie});expectStatus(detail,200);assert.equal(detail.value.status,'confirmed');assert.equal(detail.value.canonicalRefundedBaseUnits,'5000000');
+      const afterRefund={payer:await publicClient.readContract({address:USDT_ADDRESS,abi:erc20Abi,functionName:'balanceOf',args:[payer.address]}),merchant:await publicClient.readContract({address:USDT_ADDRESS,abi:erc20Abi,functionName:'balanceOf',args:[merchant.address]}),router:await publicClient.readContract({address:USDT_ADDRESS,abi:erc20Abi,functionName:'balanceOf',args:[router.address]})};assert.deepEqual(afterRefund,{payer:80_000_000n,merchant:20_000_000n,router:0n});
+      stage='REFUND_OVERVIEW_AND_EXACT_CSV';
+      const period=new Date(Number((await publicClient.getBlock({blockNumber:refundReceipt.blockNumber})).timestamp)*1000).toISOString().slice(0,10);
+      const overview=await json(`${gatewayOrigin}/api/operations/overview?from=${period}&to=${period}`,'GET',undefined,{Cookie:login.cookie});expectStatus(overview,200);assert.equal(overview.value.grossBaseUnits,'25000000');assert.equal(overview.value.refundedBaseUnits,'5000000');assert.equal(overview.value.netBaseUnits,'20000000');assert.equal(overview.value.paymentCount,1);assert.equal(overview.value.unverifiedTimestampCount,0);
+      const csvResponse=await fetch(`${gatewayOrigin}/api/operations/reports.csv?from=${period}&to=${period}`,{headers:{Cookie:login.cookie},signal:AbortSignal.timeout(15000)});assert.equal(csvResponse.status,200);const privateReport=await csvResponse.text();assert.match(privateReport,/"payment"[^\r\n]*"25000000","25"/);assert.match(privateReport,/"refund"[^\r\n]*"-5000000","-5"/);
+      stage='REFUND_PUBLIC_VERIFIER_WITH_EXPLICIT_ENTITY_FIXTURES';
+      const projections=(await db.pool.query<{payload:unknown}>('select payload from arkiv_mappings where merchant_id=$1 and kind in (\'payment\',\'refund\')',[merchantId])).rows;assert.equal(projections.length,2);
+      const publicEntities:ReceiptEntity[]=projections.map(row=>{const receipt=parseReceipt(row.payload);return {entityKey:keccak256(new TextEncoder().encode(`EXPLICIT_LOCAL_ENTITY_FIXTURE:${receipt.eventId}`)),owner:signer.address,creator:signer.address,expiresAt:'1000000',readAtBlock:'100',receipt};});
+      const verified=await Promise.all(publicEntities.map(entity=>verifyReceipt(entity,{writer:signer.address,router:router.address,routerCodeHash:keccak256(code),deploymentBlock:deploymentBlock.toString(),whitechainRpcUrl:rpc})));
+      assert.ok(verified.every(item=>item.status==='verified'));const totals=summarizeVerified(verified);assert.deepEqual({gross:totals.grossBaseUnits,refunded:totals.refundedBaseUnits,net:totals.netBaseUnits},{gross:'25000000',refunded:'5000000',net:'20000000'});const publicCsv=accountingCsv(totals.records);assert.match(publicCsv,/"25000000"/);assert.match(publicCsv,/"5000000"/);
+      stage='REFUND_REVIEW_NOTIFICATION_AND_NO_SECOND_FULFILLMENT';
+      const corrective=(await db.pool.query<{id:string}>('select id from webhook_deliveries where payment_id=$1 and event_type=\'payment.review\' order by state_version desc limit 1',[paymentId])).rows[0];assert.ok(corrective);env.HARNESS_DELIVERY_ID=corrective.id;await runChild(['--import','tsx',script,'--worker-deliver'],env);
+      const correctedOrder=(await storeDb.query('select state,fulfillment_count from store_orders where id=$1',[orderId])).rows[0];assert.deepEqual(correctedOrder,{state:'review',fulfillment_count:1});
+      assert.equal((await storeDb.query("select count(*)::integer as n from store_review_events where order_id=$1 and code='CORRECTION_AFTER_FULFILLMENT'",[orderId])).rows[0].n,1);
+      const originalDelivery=String(deliveries[0].id);await db.pool.query("update outbox_jobs set status='pending',available_at=now(),lease_token=null,lease_until=null where merchant_id=$1 and payload->>'deliveryId'=$2",[merchantId,originalDelivery]);env.HARNESS_DELIVERY_ID=originalDelivery;await runChild(['--import','tsx',script,'--worker-deliver'],env);assert.equal((await storeDb.query('select fulfillment_count from store_orders where id=$1',[orderId])).rows[0].fulfillment_count,1);
+      Object.assign(refundEvidence,{status:'passed',checkedAt:new Date().toISOString(),paymentTxHash:payment,refundTxHash:refundTx,refundBlock:refundReceipt.blockNumber.toString(),refundBlockHash:refundReceipt.blockHash,refundAmountBaseUnits:'5000000',originalPayer:payer.address,originalMerchant:merchant.address,router:router.address,refundExecutedBy:'Original merchant Node-held throwaway local account only',balancesBaseUnits:Object.fromEntries(Object.entries(afterRefund).map(([key,value])=>[key,value.toString()])),gatewayTotalsBaseUnits:{gross:'25000000',refunded:'5000000',net:'20000000'},dashboardCsvVerified:true,publicVerifierRows:2,publicVerifierEntities:'Explicitly simulated Arkiv entity metadata wrapping actual local EDR/observer receipt payloads; not actual Arkiv writes',publicVerifierTotalsBaseUnits:{gross:totals.grossBaseUnits,refunded:totals.refundedBaseUnits,net:totals.netBaseUnits},publicCsvVerified:true,storeFulfillmentCount:1,storeCorrectionExposureAuditCount:1,oldAcceptedEventReplayDidNotFulfill:true});
+    }
+
+    if(includeCollections){
+      stage='COLLECTION_FRESH_MERCHANT_NO_EXTERNAL_INTEGRATION';
+      const owner=privateKeyToAccount(generatePrivateKey());const ownChallenge=await json(`${gatewayOrigin}/api/auth/challenge`,'POST',{address:owner.address},{Origin:gatewayOrigin});expectStatus(ownChallenge,200);loginChallenges.push(String(ownChallenge.value.id));
+      const ownLogin=await json(`${gatewayOrigin}/api/auth/verify`,'POST',{id:ownChallenge.value.id,signature:await owner.signMessage({message:String(ownChallenge.value.message)})},{Origin:gatewayOrigin,Cookie:ownChallenge.cookie});expectStatus(ownLogin,200);const ownerId=(ownLogin.value.merchant as {id:string}).id;testMerchantIds.push(ownerId);const headers={Origin:gatewayOrigin,Cookie:ownLogin.cookie};
+      const setup=await json(`${gatewayOrigin}/api/merchant`,'PATCH',{displayName:'Local collection merchant without store adapter',websiteOrigin:gatewayOrigin},headers);expectStatus(setup,200);assert.equal((await db.pool.query('select count(*)::integer as n from merchant_integrations where merchant_id=$1',[ownerId])).rows[0].n,0);
+      const localCollectionEnv={...env,HARNESS_MERCHANT_ID:ownerId};const paidCollections:Record<string,unknown>[]=[];
+      const challengeFor=async(ref:string)=>{const result=await json(`${gatewayOrigin}/api/checkout/${ref}/challenge`,'POST',{address:payer.address},{Origin:gatewayOrigin});expectStatus(result,200);return result;};
+      const authorizeFor=async(ref:string,proof:JsonResponse)=>json(`${gatewayOrigin}/api/checkout/${ref}/authorize`,'POST',{id:proof.value.id,signature:await payer.signMessage({message:String(proof.value.message)})},{Origin:gatewayOrigin,Cookie:proof.cookie});
+      const payInternal=async(kind:'link'|'invoice',collectionReference:string,ref:string)=>{
+        const quote=await authorizeFor(ref,await challengeFor(ref));expectStatus(quote,200);const terms=quote.value.authorization as Record<string,string>;const auth={...terms,amount:BigInt(terms.amount),epoch:BigInt(terms.epoch),deadline:BigInt(terms.deadline)} as unknown as PaymentAuthorization;assert.equal(auth.amount,1n);assert.equal(auth.merchant.toLowerCase(),owner.address.toLowerCase());
+        const approved=await payerClient.writeContract({address:USDT_ADDRESS,abi:erc20Abi,functionName:'approve',args:[router.address,1n]});await publicClient.waitForTransactionReceipt({hash:approved});const hash=await payerClient.writeContract({address:router.address,abi:routerAbi,functionName:'pay',args:[auth,quote.value.signature as Hex]});assert.equal((await publicClient.waitForTransactionReceipt({hash})).status,'success');await network.provider.request({method:'evm_mine',params:[]});
+        await runChild(['--import','tsx',script,'--worker-observe'],localCollectionEnv);
+        const found=(await db.pool.query<{payment_id:string;order_id:string;state:string;version:number;mode:string}>('select p.id as payment_id,o.id as order_id,o.state,o.version,c.mode from payments p join checkout_sessions c on c.id=p.checkout_id join internal_collection_orders o on o.id=c.collection_order_id where c.reference=$1 and c.merchant_id=$2',[ref,ownerId])).rows[0];assert.equal(found.mode,'collection');assert.equal(found.state,'pending');
+        const delivery=(await db.pool.query<{id:string}>('select id from webhook_deliveries where payment_id=$1 order by state_version desc limit 1',[found.payment_id])).rows[0];const deliveryEnv={...localCollectionEnv,HARNESS_DELIVERY_ID:delivery.id};await runChild(['--import','tsx',script,'--worker-deliver'],deliveryEnv);
+        const fulfilled=(await db.pool.query('select state,version from internal_collection_orders where id=$1',[found.order_id])).rows[0];assert.equal(fulfilled.state,'fulfilled');
+        await db.pool.query("update outbox_jobs set status='pending',available_at=now(),lease_token=null,lease_until=null where merchant_id=$1 and payload->>'deliveryId'=$2",[ownerId,delivery.id]);await runChild(['--import','tsx',script,'--worker-deliver'],deliveryEnv);assert.deepEqual((await db.pool.query('select state,version from internal_collection_orders where id=$1',[found.order_id])).rows[0],fulfilled);
+        paidCollections.push({kind,amountBaseUnits:'1',txHash:hash,internalFulfillment:'fulfilled',repeatDeliveryDidNotRepeatEffect:true});
+      };
+      stage='COLLECTION_DEACTIVATION_BLOCKS_EXISTING_PROOF';
+      const inactiveLink=await json(`${gatewayOrigin}/api/operations/links`,'POST',{title:'Deactivate before quote',amountBaseUnits:'1'},headers);expectStatus(inactiveLink,200);const inactive=inactiveLink.value.item as {id:string;reference:string;version:number};
+      const beforeDeactivate=await json(`${gatewayOrigin}/api/collection/link/${inactive.reference}`,'POST',{}, {Origin:gatewayOrigin});expectStatus(beforeDeactivate,200);const existingProof=await challengeFor(String(beforeDeactivate.value.reference));
+      expectStatus(await json(`${gatewayOrigin}/api/operations/links/${inactive.id}/deactivate`,'POST',{version:inactive.version},headers),200);expectStatus(await json(`${gatewayOrigin}/api/collection/link/${inactive.reference}`,'POST',{}, {Origin:gatewayOrigin}),409);expectStatus(await authorizeFor(String(beforeDeactivate.value.reference),existingProof),409);
+      stage='COLLECTION_REAL_ONE_BASE_UNIT_LINK';
+      const activeLink=await json(`${gatewayOrigin}/api/operations/links`,'POST',{title:'Local one-base-unit payment link',amountBaseUnits:'1'},headers);expectStatus(activeLink,200);const link=activeLink.value.item as {reference:string};const linkSession=await json(`${gatewayOrigin}/api/collection/link/${link.reference}`,'POST',{}, {Origin:gatewayOrigin});expectStatus(linkSession,200);await payInternal('link',link.reference,String(linkSession.value.reference));
+      stage='COLLECTION_PAUSE_BLOCKS_INVOICE_SESSION_AND_PROOF';
+      const invoiceCreated=await json(`${gatewayOrigin}/api/operations/invoices`,'POST',{title:'Local one-base-unit invoice',amountBaseUnits:'1'},headers);expectStatus(invoiceCreated,200);const invoiceDetail=await json(`${gatewayOrigin}/api/operations/invoices/${String(invoiceCreated.value.id)}`,'GET',undefined,{Cookie:ownLogin.cookie});expectStatus(invoiceDetail,200);const invoice=(invoiceDetail.value.item as {reference:string});
+      const invoiceSession=await json(`${gatewayOrigin}/api/collection/invoice/${invoice.reference}`,'POST',{}, {Origin:gatewayOrigin});expectStatus(invoiceSession,200);const invoiceRef=String(invoiceSession.value.reference);const invoiceProof=await challengeFor(invoiceRef);
+      const settings=await json(`${gatewayOrigin}/api/operations/settings`,'GET',undefined,{Cookie:ownLogin.cookie});expectStatus(settings,200);const version=(settings.value.settings as {version:number}).version;
+      const paused=await json(`${gatewayOrigin}/api/operations/settings`,'PATCH',{paused:true,version},headers);expectStatus(paused,200);expectStatus(await json(`${gatewayOrigin}/api/collection/invoice/${invoice.reference}`,'POST',{}, {Origin:gatewayOrigin}),409);expectStatus(await authorizeFor(invoiceRef,invoiceProof),409);
+      const resumed=await json(`${gatewayOrigin}/api/operations/settings`,'PATCH',{paused:false,version:(paused.value.settings as {version:number}).version},headers);expectStatus(resumed,200);
+      stage='COLLECTION_REAL_ONE_BASE_UNIT_INVOICE';
+      const sameSession=await json(`${gatewayOrigin}/api/collection/invoice/${invoice.reference}`,'POST',{}, {Origin:gatewayOrigin});expectStatus(sameSession,200);assert.equal(sameSession.value.reference,invoiceRef);await payInternal('invoice',invoice.reference,invoiceRef);
+      const paidInvoice=await json(`${gatewayOrigin}/api/collection/invoice/${invoice.reference}`);expectStatus(paidInvoice,200);assert.equal(paidInvoice.value.status,'paid');expectStatus(await json(`${gatewayOrigin}/api/collection/invoice/${invoice.reference}`,'POST',{}, {Origin:gatewayOrigin}),409);assert.equal((await db.pool.query('select count(*)::integer as n from merchant_integrations where merchant_id=$1',[ownerId])).rows[0].n,0);
+      Object.assign(refundEvidence,{collections:{status:'passed',freshMerchantWithoutExternalIntegration:true,deactivatedLinkBlockedNewSessionAndExistingProof:true,pausedMerchantBlockedInvoiceSessionAndExistingProof:true,invoiceReloadIdempotent:true,paidInvoiceRejectsNewCheckout:true,payments:paidCollections}});
+    }
     Object.assign(evidence,{status:'passed',checkedAt:new Date().toISOString(),chainId:1874,tokenAddress:USDT_ADDRESS,tokenImplementation:'MockUsdt runtime copied by hardhat_setCode at sponsor address on local EDR only',router:router.address,routerCodeHash:keccak256(code),deploymentBlock:deploymentBlock.toString(),paymentTxHash:payment,paymentBlock:receipt.blockNumber.toString(),paymentBlockHash:receipt.blockHash,amountBaseUnits:'25000000',balancesBaseUnits:Object.fromEntries(Object.entries(balances).map(([key,value])=>[key,value.toString()])),gateway:'production Next.js HTTP on loopback3500',store:'actual standalone store HTTP on loopback3501',merchantSiwe:true,payerSiwe:true,serverAuthorization:true,observerProcessStarts:3,duplicateLogReplays:true,deliveryProcessStarts:2,acknowledgmentLossFixture:'Worker stopped after HTTP acknowledgment before outbox completion; own lease expiry accelerated explicitly',outboxAttempts:2,storeReceiptCount:1,storeFulfillmentCount:1,downloadVerified:true,cleanup:'Own merchant/orders/jobs/cursor deleted; original isolated screening source restored in finally.'});
     process.stdout.write('Explicit local EDR/mock-token full payment flow passed with actual isolated Neon/HTTP, worker restart and one store fulfillment. Not live Whitechain evidence.\n');
   }catch(error){
     Object.assign(evidence,{status:'failed',failedStage:stage,errorCode:typeof(error as {code?:unknown})?.code==='string'&&/^[A-Z_]{1,64}$/.test(String((error as {code:string}).code))?(error as {code:string}).code:'LOCAL_FLOW_CHECK_FAILED'});
+    if(includeRefunds&&refundEvidence.status!=='passed')Object.assign(refundEvidence,{status:'failed',failedStage:stage});
+    if(includeCollections&&stage.startsWith('COLLECTION_'))refundEvidence.collections={status:'failed',failedStage:stage};
     process.stderr.write(`Local payment harness failed at ${stage}; no live-network claim.\n`);throw new Error(`LOCAL_PAYMENT_FLOW_FAILED_${stage}`);
   }finally{
     for(const child of childServices.reverse())await stopChild(child);
     if(rpcServer){rpcServer.closeAllConnections();await new Promise<void>(resolve=>rpcServer!.close(()=>resolve()));}
     await connection?.close();
     if(orderIds.length){await storeDb.query('delete from store_review_events where order_id=any($1::uuid[])',[orderIds]);await storeDb.query('delete from store_receipts where order_id=any($1::uuid[])',[orderIds]);await storeDb.query('delete from store_orders where id=any($1::uuid[])',[orderIds]);}
-    if(merchantId){
-      await db.pool.query('delete from outbox_jobs where merchant_id=$1',[merchantId]);
-      await db.pool.query('delete from webhook_deliveries where merchant_id=$1',[merchantId]);
-      await db.pool.query('delete from payments where checkout_id in(select id from checkout_sessions where merchant_id=$1)',[merchantId]);
-      await db.pool.query('delete from payment_authorizations where checkout_id in(select id from checkout_sessions where merchant_id=$1)',[merchantId]);
-      await db.pool.query('delete from payer_challenges where checkout_id in(select id from checkout_sessions where merchant_id=$1)',[merchantId]);
-      await db.pool.query('delete from checkout_sessions where merchant_id=$1',[merchantId]);
-      for(const table of ['merchant_integrations','screening_decisions','audit_events','merchant_sessions','wallet_challenges'])await db.pool.query(`delete from ${table} where merchant_id=$1`,[merchantId]);
-      await db.pool.query('delete from merchants where id=$1',[merchantId]);
-    }
+    // The helper additionally checks the original default/runtime target differs
+    // from TEST_DATABASE_URL. All child services have stopped before restoring it.
+    process.env.DATABASE_URL=environmentBackup.DATABASE_URL;
+    if(testMerchantIds.length)await cleanupTestMerchants(db,testMerchantIds);
     if(routerAddress)await db.pool.query('delete from chain_cursors where router=$1',[routerAddress]);
     if(loginChallenges.length)await db.pool.query('delete from wallet_challenges where id=any($1::uuid[])',[loginChallenges]);
     if(sourceReplaced){if(oldSource)await db.pool.query('update screening_sources set snapshot=$2,health=$3,fetched_at=$4,updated_at=$5 where source_id=$1',[OFAC_SOURCE_ID,JSON.stringify(oldSource.snapshot),JSON.stringify(oldSource.health),oldSource.fetched_at,oldSource.updated_at]);else await db.pool.query('delete from screening_sources where source_id=$1',[OFAC_SOURCE_ID]);}
     await db.pool.end();await storeDb.end();
     for(const key of Object.keys(process.env))if(!(key in environmentBackup))delete process.env[key];Object.assign(process.env,environmentBackup);process.chdir(root);
     await mkdir(resolve(root,'docs/evidence/phase-2'),{recursive:true});await writeFile(resolve(root,'docs/evidence/phase-2/local-payment-flow.json'),JSON.stringify(evidence,null,2)+'\n');
+    if(includeRefunds||includeCollections){await mkdir(resolve(root,'docs/evidence/phase-4'),{recursive:true});await writeFile(resolve(root,'docs/evidence/phase-4/local-refund-flow.json'),JSON.stringify(refundEvidence,null,2)+'\n');}
   }
 }
 

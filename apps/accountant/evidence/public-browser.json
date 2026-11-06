@@ -1,0 +1,19 @@
+{
+  "kind": "actual-independent-public-Arkiv-browser-read",
+  "checkedAt": "2026-11-06T10:06:14.979Z",
+  "origin": "http://127.0.0.1:3400",
+  "viewports": [
+    1440,
+    768,
+    390
+  ],
+  "actualPublicRpcRequestCount": 2,
+  "gatewayHistoryApiRequests": 0,
+  "pageErrors": [],
+  "returnedRows": 0,
+  "privateCredentialUsed": false,
+  "signedWriteExecuted": false,
+  "gatewayPort3000Closed": true,
+  "gatewayProcessStopped": true,
+  "limitation": "Actual empty public query and responsive/validation checks. Parent stopped its verified gateway process; this script independently confirmed TCP3000refused. No signed receipt/history/completeness proof is claimed."
+}

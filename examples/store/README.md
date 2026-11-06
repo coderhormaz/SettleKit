@@ -26,7 +26,7 @@ node --env-file=.env --import tsx examples/store/src/migrate.ts
 node --env-file=.env --import tsx examples/store/src/server.ts
 ```
 
-The migration uses the direct **store** connection. Apply the same versioned SQL to the separate test store with its migration credentials before integration tests. It creates only `store_orders`, `store_receipts` and `store_review_events`. The runtime should have data access to these tables and sequence, without schema/admin rights.
+The migration uses the direct **store** connection. Apply the same versioned SQL to the separate test store with its migration credentials before integration tests. Migration001 creates `store_orders`, `store_receipts` and `store_review_events`; migration002 adds the explicitly local development-failure counter. The runtime has data access to these tables/sequence without schema/admin rights. Failure injection is disabled by default, requires a private operator token and loopback HTTP, and never applies to endpoint.test.
 
 ## Integration contract
 
@@ -59,7 +59,7 @@ The first checks server-owned pricing, key/origin boundaries, request bounds, id
 
 This reference intentionally shows the complete custom merchant server, order transactions, authenticated order reads, public status/cancellation/download UI and setup. Do not describe its full integration as a 20-line snippet or claim an unmeasured integration time. Shared protocol/HTTP helpers are reusable; production merchants connect the transaction callback to their own order system.
 
-Implementation inventory on 6 November 2026: custom HTTP server 86 physical lines / 8,370 bytes; merchant order transactions 80 lines / 7,027 bytes; static UI 12 lines / 12,045 bytes; migration 32 lines / 1,369 bytes; reusable protocol/transport helper 144 lines / 10,459 bytes. The HTML/CSS/JavaScript strings use compact long lines, so physical line count understates their size. Setup, order reads and transaction callbacks are included above; hands-on integration time has not been measured.
+Current full [static integration inventory](../../docs/evidence/phase-6/integration-inventory.json) includes physical lines and bytes for HTTP, transactions, UI, both migrations, reusable transport, and JS/Python adapters. Compact long lines understate complexity. Setup, authenticated order reads and durable callbacks count toward integration work; hands-on time has not been measured. New adapters/failure tooling require the user-deferred verification pass.
 
 The store extends the pinned graphite/mint world. Its pale workbook preview intentionally adds paper/ink colors `#e9eee9` / `#183029` and a quiet rule `#b5c3ba` to distinguish the downloadable document from application chrome. The visual detector reported advisory color/radius/type additions, with no hard findings; these are not a claim of detector `[]`. Initial desktop/tablet/mobile rendering and keyboard focus were inspected through the actual store server on a temporary preview port. Preview-only credentials were explicitly fake and no checkout call was made in that visual pass; functional payment/fulfillment evidence is separate.
 

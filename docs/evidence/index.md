@@ -1,6 +1,6 @@
 # Evidence index
 
-Updated 6 November 2026 (IST). Phase 1 independent checks and Phase 2 local implementation passed; funded testnet gates stay deferred. Phases 3 and 4 are authorized. This index distinguishes local checks/fixtures, live reads, signed writes and real CRE simulation.
+Updated 7 November 2026 (IST). All six phases are authorized and source is present. Further tests are user-deferred; main agent only. This index separates historical checks, current static builds, live reads, signed writes and actual CRE simulation. See the [implementation audit](../IMPLEMENTATION_AUDIT.md).
 
 | Requirement / gate | Implementation and reproducible command | Evidence / actual outcome |
 | --- | --- | --- |
@@ -27,3 +27,17 @@ Selected sponsor requirements remain in the handoff and phase plan. Later phases
 | Matching separate services | [13 actual local HTTP checks](../../examples/store/evidence/local-http.json) and [actual Chromium pending flow](../../examples/store/evidence/browser-flow.json); server catalog25USDT, keys/origin/body/HMAC/idempotency rejection, no payment/fulfillment because deployment absent. |
 | Responsive UI | 8 Playwright checks passed; actual wallet login/profile persistence and explicit HTTP/RPC wallet/payment-state fixtures. [Checkout desktop](phase-2/screenshots/checkout-desktop.png), [mobile](phase-2/screenshots/checkout-mobile.png), [payments desktop](phase-2/screenshots/payments-desktop.png), [mobile](phase-2/screenshots/payments-mobile.png), [actual store](phase-2/screenshots/store-actual-pending-desktop.png). Overflow fixed, keyboard/mobile navigation checked. |
 | Remaining live exit gates | Actual source-verified Whitechain router, 25 sponsor-USDT payment/one external fulfillment and explorer link; later original-payer refund and signed Arkiv receipts remain funded gates. No source/transaction/entity claim is inferred from a local fixture. |
+
+## Phase 3–6 implementation and evidence boundary
+
+| Scope | Actual result / limitation |
+| --- | --- |
+| Dashboard | 89 expanded root cases included9 real-Neon operation cases;13 browser cases included5 dashboard HTTP fixtures. Separate real wallet-signature/Neon CRUD/HMAC browser pass: [checks](phase-3/dashboard-checks.json), [desktop](phase-3/screenshots/real-overview-desktop.png), [tablet](phase-3/screenshots/real-overview-tablet.png), [mobile](phase-3/screenshots/real-overview-mobile.png). No live payment in that pass. |
+| Refund service | 8 dedicated real-Neon cases with explicitly simulated RPC evidence passed. Source: `packages/db/test/refunds.integration.test.ts`. Newest observer/correction changes still need regression. Extended local harness `--refunds --collections` is authored but not run after the testing deferral. |
+| Public accounting | 15 earlier synthetic Arkiv/source/writer cases passed. Actual [SDK public query](../../packages/arkiv/evidence/public-read.json) and [gateway-stopped public browser](../../apps/accountant/evidence/public-browser.json) returned zero entities. No positive signed receipt/accounting/renewal proof. |
+| Recovery source | `packages/cre/recovery.ts` compiles to actual WASM; service APIs, current-state checks, stable rounds, failure fixture and delivery attribution exist. **Actual recovery simulation remains pending.** Earlier Phase1 simulation cannot substitute for it. |
+| Latest static release checks | [Recorded compilation/schema results](phase-6/compilation.json): TypeScript including JS examples, both Next builds, real recovery WASM and Python syntax passed; migration0008 applied to isolated test then dev. These are not runtime/security tests. |
+| Integration size | [Static source lines/bytes](phase-6/integration-inventory.json) include reusable helpers plus separate durable order system. Hands-on time/merchant validation unmeasured; new JS/Python execution deferred. |
+| Operations/video | Supervisor, backup/isolated restore and bounded failed-publication repair commands exist; actual execution/restore checks deferred. [Demo script](../demo-script.md) exists; human narration/final video absent. |
+
+Current open proof queue is [release-checklist.md](../release-checklist.md). No fabricated transaction hash, entity key, successful recovery, DON deployment, human narration, customer adoption or eligibility is supplied.

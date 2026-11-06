@@ -1,0 +1,34 @@
+{
+  "kind": "static-compilation-and-schema-checks",
+  "recordedAt": "2026-11-06T22:21:08.0834836Z",
+  "checks": [
+    {
+      "command": "node node_modules/typescript/bin/tsc --noEmit",
+      "result": "passed",
+      "scope": "Root source including JavaScript adapters; not test execution"
+    },
+    {
+      "command": "pnpm build:all",
+      "result": "passed",
+      "scope": "Gateway and independent accountant production builds"
+    },
+    {
+      "command": "node --import tsx scripts/cre-recovery.ts",
+      "result": "passed",
+      "scope": "Actual pinned CRE SDK/Bun WASM compilation only; no simulation"
+    },
+    {
+      "command": "python ast.parse on examples/python/*.py",
+      "result": "passed",
+      "scope": "Two source files parsed; no service execution"
+    },
+    {
+      "command": "node --env-file=.env --import tsx packages/db/src/migrate.ts --test, then without --test",
+      "result": "passed",
+      "scope": "Migration0008 on isolated test then development"
+    }
+  ],
+  "creSourceSha256": "795ca831d73204d5de0077ba46f5e4c15a47b3a1bdb1d91a5cb620f69ba3723b",
+  "creWasmSha256": "e0f36ffddb9d7997ce66b5b810304b5a7962961bb6a4c82ab8445bff1976d86b",
+  "boundary": "No new unit, database, contract, browser or recovery-simulation suite was run after the user deferred testing. No funded/live transaction, Arkiv signed write or DON deployment is established."
+}

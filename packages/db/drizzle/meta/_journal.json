@@ -36,6 +36,34 @@
       "when": 1793940521965,
       "tag": "0004_tough_nocturne",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1793958393346,
+      "tag": "0005_sleepy_tarantula",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1793959279386,
+      "tag": "0006_long_katie_power",
+      "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1793977047918,
+      "tag": "0007_open_invisible_woman",
+      "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1794002193041,
+      "tag": "0008_narrow_squadron_sinister",
+      "breakpoints": true
     }
   ]
 }

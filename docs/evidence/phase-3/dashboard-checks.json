@@ -1,0 +1,17 @@
+{
+  "checkedAt": "2026-11-06T15:03:42.469Z",
+  "scope": "Actual wallet-signature login, gateway HTTP API and isolated Neon persistence; signed loopback endpoint test. No payment transaction or Arkiv write claimed.",
+  "checks": [
+    "contact create/edit/archive/reload and historical invoice snapshot",
+    "exact invoice/link base units and private/public projection",
+    "public link creates real immutable checkout",
+    "invoice void/link deactivate",
+    "scoped API read, denied create and immediate revoke",
+    "actual HMAC endpoint.test delivery with no fulfillment",
+    "pause/resume persistence",
+    "CSV HTTP download and scrubbed audit"
+  ],
+  "verifiedNonfinancialWebhookTests": 1,
+  "fundedEvidence": "pending user-deferred funding",
+  "secretsCaptured": false
+}

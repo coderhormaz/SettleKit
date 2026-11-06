@@ -27,7 +27,7 @@ async function handle(req:NextRequest) {
     const db=database();
     // Server adapters use scoped keys rather than browser cookies/Origin.
     if(path.startsWith('/api/v1/')) {
-      const merchantId=await authenticateApiKey(db,req.headers.get('authorization'));
+      const merchantId=await authenticateApiKey(db,req.headers.get('authorization'),req.method==='POST'?'checkout:create':'payment:read');
       if(path==='/api/v1/checkouts'&&req.method==='POST')return response(await createCheckout(db,merchantId,req.headers.get('idempotency-key'),await body(req)));
       const eligibility=path.match(/^\/api\/v1\/payments\/([0-9a-f-]{36})\/eligibility$/);
       if(eligibility&&req.method==='GET')return response(await paymentState(db,merchantId,z.string().uuid().parse(eligibility[1])));

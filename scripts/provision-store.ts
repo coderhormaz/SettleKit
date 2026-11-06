@@ -11,7 +11,7 @@ for(const testing of [true,false]){
   owner.pathname=testing?'/settlekit_store_test':'/settlekit_store';
   const db=createDatabase(owner.toString(),1);const role=testing?'settlekit_store_test_app':'settlekit_store_app';const password=randomBytes(32).toString('hex');
   try{
-    await db.pool.query(await readFile(new URL('../examples/store/migrations/001_orders.sql',import.meta.url),'utf8'));
+    for(const file of ['001_orders.sql','002_development_failures.sql'])await db.pool.query(await readFile(new URL(`../examples/store/migrations/${file}`,import.meta.url),'utf8'));
     if(!(await db.pool.query('select 1 from pg_roles where rolname=$1',[role])).rowCount)await db.pool.query(`create role ${role} login password '${password}' nosuperuser nocreatedb nocreaterole noinherit nobypassrls`);
     else throw new Error('Role already exists; preserve its credential and configure locally instead of resetting it.');
     await db.pool.query(`grant usage on schema public to ${role}`);

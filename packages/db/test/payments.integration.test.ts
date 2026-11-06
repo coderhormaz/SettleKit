@@ -6,6 +6,7 @@ import type { Hex } from 'viem';
 import { hashToken,randomToken,encryptSecret } from '@settlekit/core/server';
 import { USDT_ADDRESS } from '@settlekit/core';
 import { deliverPayment } from '../../worker/src/payments.ts';
+import {cleanupTestMerchants} from './cleanup.ts';
 import { OFAC_SOURCE_ID,OFAC_SDN_URL,SCREENING_COVERAGE,type SourceSnapshot } from '@settlekit/screening';
 import { authenticateApiKey,authorizeCheckout,checkoutRow,createCheckout,createDatabase,holdPayment,listPayments,persistObservation,publishSnapshot,requestPayerChallenge,type CheckedPolicy } from '../src/index.ts';
 
@@ -26,9 +27,7 @@ beforeAll(async()=>{
 });
 afterAll(async()=>{
   if(oldSigner===undefined)delete process.env.PAYMENT_AUTHORIZER_PRIVATE_KEY;else process.env.PAYMENT_AUTHORIZER_PRIVATE_KEY=oldSigner;
-  for(const table of ['webhook_deliveries','payments','payment_authorizations','payer_challenges'])await db.pool.query(`delete from ${table} where ${table==='webhook_deliveries'?'merchant_id=$1':table==='payments'?'checkout_id in(select id from checkout_sessions where merchant_id=$1)':'checkout_id in(select id from checkout_sessions where merchant_id=$1)'}`,[merchantId]);
-  for(const table of ['checkout_sessions','merchant_integrations','audit_events','outbox_jobs'])await db.pool.query(`delete from ${table} where merchant_id=any($1::uuid[])`,[[merchantId,otherId]]);
-  await db.pool.query('delete from merchants where id=any($1::uuid[])',[[merchantId,otherId]]);
+  await cleanupTestMerchants(db,[merchantId,otherId]);
   await db.pool.query('delete from screening_sources where source_id=$1',[OFAC_SOURCE_ID]);if(oldSource)await db.pool.query('insert into screening_sources(source_id,snapshot,health,fetched_at,updated_at) values($1,$2,$3,$4,$5)',[oldSource.source_id,JSON.stringify(oldSource.snapshot),JSON.stringify(oldSource.health),oldSource.fetched_at,oldSource.updated_at]);
   server.closeAllConnections();await new Promise<void>(resolve=>server.close(()=>resolve()));await db.pool.end();
 });

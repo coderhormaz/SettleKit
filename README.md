@@ -1,78 +1,61 @@
 # SettleKit
 
-Screened USDT checkout on Whitechain, same-chain refunds, a premium merchant dashboard, independently verifiable accounting records, and recovery of missed payment notifications.
+Screened USDT checkout on Whitechain, direct merchant settlement, original-payer refunds, a merchant dashboard, independent accounting and recovery of failed store notifications through Chainlink CRE.
 
-**Status:** Phase 2 is authorized. The router, screened checkout, canonical observer, signed notifications and separate durable store are implemented with local tests. Funded Whitechain deployment/source verification/payment and the Phase 1 Arkiv signed write remain pending user-deferred funding. Public app hosting is deferred; Phases 3 and 4 are now authorized.
+**Status, 7 November 2026:** source for all six authorized phases is present. Further test runs were deferred by the user. Static compilation does not establish the remaining live gates: funded Whitechain deployment/payment/refund, signed Arkiv receipts and an actual CRE recovery run. See the [implementation audit](docs/IMPLEMENTATION_AUDIT.md) and [evidence index](docs/evidence/index.md).
 
-## Start here
+## Product and stack
 
-- [Six-phase implementation plan](IMPLEMENTATION_PLAN.md): selected Next.js + Neon PostgreSQL stack, ordered work, prerequisites, exit checks and checkpoints. Wallet-signature login; local app/worker development; public app hosting deferred.
-- [Detailed project handoff](PROJECT_HANDOFF.md): product decisions, sponsor requirements/resources, current technology candidates, architecture, security, dashboard inventory, tests and demo.
-- [Persistent project memory](MEMORY.md): accepted decisions and user preferences for new chats.
-- [Current progress](PROGRESS.md): completed work, unverified gates and next actions.
-- [Agent instructions](AGENTS.md): scope and build/checkpoint rules.
-- [Phase 1 execution/evidence](docs/phases/phase-1.md), [evidence index](docs/evidence/index.md), [installed versions](docs/versions.md) and [design system](DESIGN.md).
+- Wallet-first merchant login and verified settlement ownership.
+- Hosted checkout, scoped keys, signed notifications and a separate durable store with idempotent fulfillment.
+- Responsive dashboard: overview, payments/refund details, payment links, invoices, contacts, developers, webhooks, reports, risk reviews, settings and audit.
+- Full/partial merchant-funded refunds to the original payer in the original token/chain.
+- Arkiv payment/refund/correction publication and an independent accountant with source verification, coverage and CSV.
+- Actual CRE SDK workflow comparing chain evidence, current eligibility and the separate order API before recovering the existing notification. CRE never moves money.
 
-## Agreed sponsor integrations
+Next.js 16 / React 19 / TypeScript 5.9; Neon PostgreSQL 17 / Drizzle / pg; viem / wagmi; Hardhat / OpenZeppelin; Arkiv SDK and CRE SDK. Exact compatible versions are pinned in the lockfile and [version notes](docs/versions.md). Local app/worker operation is selected; public application hosting remains deferred.
 
-| Sponsor | Track | Role |
-| --- | --- | --- |
-| Whitechain | [Operate · Stablecoin Payments for Business](https://ethglobal.com/events/mumbai/prizes/whitechain) | USDT payments and full/partial refunds on Whitechain Sepolia |
-| Arkiv | [Build on Arkiv (from scratch)](https://ethglobal.com/events/mumbai/prizes/arkiv) | Queryable receipts, independent accounting and exports |
-| Chainlink | [Best workflow with CRE](https://ethglobal.com/events/mumbai/prizes/chainlink) | Compare blockchain and store state; recover eligible failed notifications |
+Payments/refunds use **Whitechain Sepolia 1874**, USDT **`0xcedfB56113143d55b2358b8CFbB0dEB5Ad2f55a7`**, six decimals. Screening enforces configured address lists/freshness; it does not guarantee lawful funds or provide source-of-funds tracing. Unsolicited transfers never satisfy an invoice. Arc, ENS and bridges are excluded.
 
-The actual CRE HTTP/Whitechain-RPC feasibility simulation passed; payment recovery, native support and prize eligibility remain separate gates. Arc and ENS are excluded from the accepted MVP.
+## Local startup
 
-## Product requirements
-
-- Minimal website integration through REST, hosted checkout and a small merchant webhook/order-state adapter.
-- Mandatory wallet screening with named sources, explicit freshness/coverage and execution-time authorization controls.
-- Merchant-authorized refunds in the original USDT on Whitechain to the original payer.
-- Working, isolated merchant dashboards for payments, links, invoices, customers, refunds, risk cases, keys, webhooks, reports and settings.
-- Accurate data, complete UI states and premium responsive design.
-- Idempotent fulfillment, durable delivery state and evidence-backed recovery.
-
-Screening enforces configured checks; it cannot guarantee all funds are lawful or prevent direct unsolicited transfers to public wallets. Production use needs verified data-provider coverage and the applicable legal/compliance process. The hackathon build uses test tokens.
-
-## Run the local foundation
-
-Use a supported Node LTS and pnpm 11.25.0. The lockfile is committed. Keep an existing local `.env`; for a fresh checkout, copy `.env.example` and fill it privately. Runtime `DATABASE_URL` is a limited Neon role on a dedicated development branch; `DATABASE_URL_UNPOOLED` is its direct migration credential. TLS uses `verify-full`. Never use a customer/shared default database for integration tests.
+Use Node 22.13+ LTS and pnpm 11.25.0. Preserve an existing ignored `.env`. On a fresh checkout copy `.env.example` and privately configure dedicated Neon gateway/store databases, pooled limited-role runtime URLs, direct migration URLs and server credentials. Use TLS `verify-full`. Never put keys in browser code or chat.
 
 ```powershell
 pnpm install --frozen-lockfile
 pnpm db:migrate
+node --env-file=.env --import tsx examples/store/src/migrate.ts
 pnpm screening:import
-pnpm dev
+pnpm build:all
+pnpm stack start
 ```
 
-Open **http://127.0.0.1:3000** (the origin must match `APP_ORIGIN`). Connect an injected EVM wallet and sign the exact login message; no approval/token transfer occurs. Save the business name/website, inspect the proven settlement address and current configured checks. A separate settlement wallet requires its own ownership signature. Unknown/stale/unavailable source data cannot show passed checks.
+| Surface | Local address |
+| --- | --- |
+| Wallet/business setup | http://127.0.0.1:3000 |
+| Merchant dashboard | http://127.0.0.1:3000/dashboard |
+| Independent Fieldwork store | http://127.0.0.1:3200 |
+| Independent accountant | http://127.0.0.1:3400 |
 
-In a second terminal run `pnpm worker` for source refresh and persisted screening jobs. Stop it with Ctrl+C. The app and worker use Neon, so local startup is not an offline database mode. No merchant-facing infrastructure configuration is exposed.
+Run `pnpm stack status` / `pnpm stack stop` in another terminal. The supervisor manages only its own children and refuses occupied ports. Existing standalone processes must be stopped through their original terminal. It does not build, migrate or broadcast policy transactions. Without a verified router/current onchain policy, checkout remains unavailable. See [operator setup](docs/operations.md).
 
-```powershell
-pnpm typecheck
-pnpm test:unit
-pnpm build
-pnpm check:imports
-# Actual isolated database/browser checks need TEST_DATABASE_* and TEST_DATABASE_ISOLATED=true.
-pnpm exec tsx --env-file=.env packages/db/src/migrate.ts --test
-pnpm test:db
-pnpm exec playwright install chromium
-pnpm test:browser
-```
+For separate terminals use `pnpm dev`, `pnpm store`, `pnpm worker`, and `pnpm --filter @settlekit/accountant dev`. Do not combine them with services already using the same ports.
 
-Phase 1 baseline: 37 unit/database tests and 3 browser tests passed. Current Phase 2 checks and their exact fixture/live boundaries are tracked in [progress](PROGRESS.md) and the [evidence index](docs/evidence/index.md). Browser tests use a Node-held throwaway signer with real server verification/persistence; the session-expiry UI test deliberately injects a 401 response. Desktop/tablet/mobile screenshots were inspected; visual review returned ship for that scope. CI runs secret-free typing/unit/build checks; live database/browser/sponsor proofs remain separate.
+## Merchant integration and evidence
 
-## Sponsor feasibility and pending funding
+Sign in, save the approved business origin, prove settlement ownership, create a scoped server key and configure the webhook/authenticated order-read API. Your backend creates checkout using the persisted order price. Your receiver verifies raw HMAC, asks for current eligibility, and commits receipt deduplication plus one fulfillment atomically. A return URL never proves payment.
 
-Real commands/evidence are in `packages/cre/README.md` and `docs/evidence/index.md`. Whitechain uses the exact sponsor USDT; zero-amount `eth_call` success is not a signed payment. Arkiv owner queries work from the SDK and a separately served public browser, but the writer has zero tGLM and no entity yet. The actual CRE simulation reads Whitechain HTTP/RPC plus a separate diagnostic merchant API; supported Sepolia configuration only bootstraps the CLI. It does not prove native Whitechain support, live DON execution, payment recovery or prize eligibility.
+Use the [complete independent store](examples/store/README.md), [JavaScript adapter](examples/javascript/README.md) or [Python HTTP adapter](examples/python/README.md). Include order reads, configuration, bounded transport and durable callbacks when estimating work; integration time has not been measured.
 
-The user deferred test-wallet funding. Once funded, resume the existing scripts and record actual transaction/entity proof before completing Phase 1. Test keys stay only in ignored `data/phase-1-wallets.json`; database and access credentials stay out of Git/browser/logs. See `PROGRESS.md` for exact outstanding gates. Phase 2 implementation is authorized; live funded evidence remains open.
+Historical verification includes89 root checks, 26 local contract checks,13 browser cases, a separate real dashboard CRUD browser case and 8 refund database cases. These are different scopes/snapshots, not one current-suite total. New recovery/correction/tooling changes require the deferred [release pass](docs/release-checklist.md).
 
-## Development checkpoints
+Live evidence proves official OFAC ingestion, Whitechain read-only metadata, public Arkiv queries and the Phase 1 actual CRE route simulation. Local mock-token payment/fulfillment evidence is separate. No signed Arkiv entity, funded Whitechain payment/refund, recovered CRE order, deployed DON, merchant validation or completed narrated video is claimed.
 
-Preserve existing history and push each coherent, appropriately tested milestone to this repository throughout the build. Do not accumulate the entire project into a single final commit. Keep project memory, validation results and real evidence current. Never commit secrets or fabricate progress.
+## Review
 
-For every requested phase: prepare/review the detailed plan and relevant sponsor docs, use the available design skills, implement complete features, test real persistence/integrations, inspect responsive UI, fix findings, then report verified results. The database choice is Neon PostgreSQL; the app and worker initially run locally. Actual implementation and evidence are recorded in the linked phase documents.
+- [Six-phase plan](IMPLEMENTATION_PLAN.md), [detailed plans](docs/phases/), [handoff](PROJECT_HANDOFF.md), [memory](MEMORY.md), [progress](PROGRESS.md).
+- [Operations](docs/operations.md), [CRE recovery](docs/phases/phase-5-runbook.md), [release checklist](docs/release-checklist.md), [demo script](docs/demo-script.md).
+- [Product](PRODUCT.md), [design](DESIGN.md), [API contract](docs/phases/phase-3-api.md), [public schema](arkiv/schema.md).
+- [License](LICENSE), [third-party attribution](THIRD_PARTY_NOTICES.md), [AI use](AI_USAGE.md), [Whitechain feedback](WHITECHAIN_FEEDBACK.md), [Chainlink feedback](CHAINLINK_FEEDBACK.md), [Arkiv criteria](arkiv/).
 
-Phases 3 and 4 are authorized. Preserve the funded proof gates and wait before Phase 5. See the [Phase 2 plan](docs/phases/phase-2.md), [local runbook](docs/phases/phase-2-runbook.md) and [store adapter](examples/store/README.md).
+Selected tracks: [Whitechain · Operate](https://ethglobal.com/events/mumbai/prizes/whitechain), [Arkiv · Build from scratch](https://ethglobal.com/events/mumbai/prizes/arkiv), [Chainlink · Best workflow with CRE](https://ethglobal.com/events/mumbai/prizes/chainlink). Requirements map to implementation/evidence in the audit. Public hosting, customer funds, sponsor messages and submission need applicable user authorization. Work after the deadline is not a claim of timely entry or eligibility.

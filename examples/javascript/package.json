@@ -1,0 +1,6 @@
+{
+  "name": "@settlekit/javascript-example",
+  "private": true,
+  "type": "module",
+  "dependencies": { "@settlekit/integration": "workspace:*", "@settlekit/core": "workspace:*", "pg": "8.23.1" }
+}

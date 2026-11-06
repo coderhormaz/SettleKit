@@ -1,6 +1,6 @@
 # Phase 4 — refunds and independent accounting
 
-Authorized 6 November 2026 (IST), together with Phase 3. The non-upgradeable router already includes locally tested full/partial original-payer refund primitives. Funding, live deployment/payment/refund and Arkiv signed writes remain deferred. Phase 5 remains unauthorized.
+Authorized 6 November 2026 (IST); all six phases were subsequently authorized. Source is integrated, including refund service/UI/observer and public projection/accountant. Eight dedicated real-Neon refund cases with explicit RPC fixtures and earlier Arkiv/accountant checks passed. Latest instruction: main agent only; further tests deferred. New correction/retraction changes need regression. Funded live payment/refund/Arkiv-write gates remain open. See the [implementation audit](../IMPLEMENTATION_AUDIT.md).
 
 ## Architecture and current docs
 
@@ -26,6 +26,8 @@ FILES TO MODIFY: private schema/migrations, observer/worker job dispatch, source
 - [ ] 10. Verify responsive/keyboard/wallet/error flows, local full refund→accounting harness, actual SDK read/write when funded, genuine explorer/entity references, evidence/docs and coherent GitHub pushes.
 
 Critical path: refund hold schema/atomic eligibility→authorization→UI→canonical observer; public schema/writer dedupe→queries/verification→coverage/accountant. The accountant must not import private database, gateway history API or writer key. Isolated tests precede dev migration; preserve funded live gates.
+
+Pre-code independent review: PROCEED. Keep each intent's refundId/amount immutable across retries and serialize reservations; read verified monetary chain state separately from fulfillment eligibility after applying the deliberate hold. Persist canonical source timestamps. Public correction records never contribute sums. Verify before deduplicating so an orphaned earlier record cannot suppress a later canonical version; reconcile explicit source-event block ranges.
 
 ## Data, privacy and races
 

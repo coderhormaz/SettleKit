@@ -29,4 +29,10 @@ CLI `1.39.0` requires one registered native RPC client before running even an HT
 
 Two current Windows/tooling constraints are explicit: CRE's command wrapper fails on this workspace's path with spaces, so compile through Bun directly and pass `--wasm`; CRE's validator requires the legacy TypeScript compiler API, so use the verified compatible `5.9.3` pin rather than the incompatible native TypeScript 7 package.
 
-The official SDK's HTTP calls may execute repeatedly across nodes/runs. Cache settings are a best-effort optimization; our eventual recovery endpoint must enforce durable idempotency independently.
+The official SDK's HTTP calls may execute repeatedly across nodes/runs. Cache settings are a best-effort optimization; the implemented recovery endpoint enforces durable idempotency independently.
+
+## Phase 5 recovery implementation
+
+`recovery.ts` is the separate real SDK workflow for payment recovery. It verifies canonical chain evidence, reads the independent merchant order API and fresh gateway eligibility, then submits a stable capped recovery round after consensus. The backend revalidates and schedules only the existing notification. Manual replay cannot receive its persisted CRE delivery attribution.
+
+`pnpm cre:compile` compiles actual recovery WASM and has passed. `pnpm cre:recover` performs the real CLI simulation using private prepared configuration; it has **not** yet been run for recovery. Follow the [recovery runbook](../../docs/phases/phase-5-runbook.md). Latest test/runtime verification is deferred. No ordinary Node retry or Phase1 route simulation is described as recovered fulfillment or DON deployment.

@@ -19,6 +19,11 @@ const config:Record<string,string>={
   STORE_GATEWAY_API_KEY:process.env.STORE_GATEWAY_API_KEY||`sk_${randomToken()}`,
   STORE_WEBHOOK_SECRET:process.env.STORE_WEBHOOK_SECRET||randomToken(),
   STORE_ORDER_READ_KEY:process.env.STORE_ORDER_READ_KEY||randomToken(),
+  RECOVERY_SERVICE_TOKEN:process.env.RECOVERY_SERVICE_TOKEN||randomToken(),
+  STORE_DEVELOPMENT_FAILURE_TOKEN:process.env.STORE_DEVELOPMENT_FAILURE_TOKEN||randomToken(),
+  CRE_MERCHANT_WALLET:keys.merchant.address,
+  ARKIV_WRITER_PRIVATE_KEY:process.env.ARKIV_WRITER_PRIVATE_KEY||keys.arkivWriter.privateKey,
+  ARKIV_PUBLIC_WRITER_ADDRESS:privateKeyToAccount((process.env.ARKIV_WRITER_PRIVATE_KEY||keys.arkivWriter.privateKey) as Hex).address,
 };
 const db=database();
 try{

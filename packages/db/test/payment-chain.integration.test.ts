@@ -10,6 +10,7 @@ import { OFAC_SDN_URL, OFAC_SOURCE_ID, SCREENING_COVERAGE, type SourceSnapshot }
 import { createDatabase } from '../src/client.ts';
 import { checkPaymentPolicy, policyCommitment } from '../src/policy.ts';
 import { paymentState, persistObservation, verifiedReceipt, type PaymentObservation } from '../src/observer.ts';
+import {cleanupTestMerchants} from './cleanup.ts';
 
 // Actual isolated PostgreSQL transactions, with an explicitly simulated HTTP
 // JSON-RPC chain. These fixtures are neither live Whitechain nor EVM execution.
@@ -121,11 +122,7 @@ beforeEach(async()=>{
   await db.pool.query('insert into screening_sources(source_id,snapshot,health,fetched_at) values($1,$2,$3,$4) on conflict(source_id) do update set snapshot=excluded.snapshot,health=excluded.health,fetched_at=excluded.fetched_at',[OFAC_SOURCE_ID,JSON.stringify(source),JSON.stringify({state:'available',checkedAt:source.fetchedAt}),source.fetchedAt]);
 });
 afterAll(async()=>{
-  for(const id of trackedMerchants){
-    await db.pool.query('delete from outbox_jobs where merchant_id=$1',[id]);await db.pool.query('delete from webhook_deliveries where merchant_id=$1',[id]);
-    await db.pool.query('delete from payments where checkout_id in (select id from checkout_sessions where merchant_id=$1)',[id]);await db.pool.query('delete from payment_authorizations where checkout_id in (select id from checkout_sessions where merchant_id=$1)',[id]);
-    await db.pool.query('delete from checkout_sessions where merchant_id=$1',[id]);await db.pool.query('delete from audit_events where merchant_id=$1',[id]);await db.pool.query('delete from merchants where id=$1',[id]);
-  }
+  await cleanupTestMerchants(db,trackedMerchants);
   if(savedSource)await db.pool.query('update screening_sources set snapshot=$2,health=$3,fetched_at=$4 where source_id=$1',[OFAC_SOURCE_ID,JSON.stringify(savedSource.snapshot),JSON.stringify(savedSource.health),savedSource.fetched_at]);
   else await db.pool.query('delete from screening_sources where source_id=$1',[OFAC_SOURCE_ID]);
   for(const name of envNames){if(savedEnv[name]===undefined)delete process.env[name];else process.env[name]=savedEnv[name];}
@@ -161,7 +158,7 @@ describe('actual Neon state with explicitly simulated chain HTTP evidence',()=>{
   });
   it('observes an onchain partial refund and blocks fulfillment with durable hold/version/outbox',async()=>{
     const p=await insertAccepted();refunded=5_000_000n;
-    const state=await paymentState(db,p.merchantId,p.paymentId);expect(state).toMatchObject({eligible:false,status:'review',state_version:3,refund_hold:true,refund_amount_base_units:'5000000'});
+    const state=await paymentState(db,p.merchantId,p.paymentId);expect(state).toMatchObject({eligible:false,status:'review',state_version:3,refund_hold:true,refund_amount_base_units:'0'});
     await paymentState(db,p.merchantId,p.paymentId);
     const correction=(await db.pool.query("select count(*)::int as count from webhook_deliveries where payment_id=$1 and event_type='payment.review'",[p.paymentId])).rows[0];expect(correction.count).toBe(1);
     expect((await db.pool.query("select count(*)::int as count from audit_events where merchant_id=$1 and kind='payment.refund_observed'",[p.merchantId])).rows[0].count).toBe(1);

@@ -2,5 +2,5 @@
   "name": "@settlekit/worker",
   "private": true,
   "type": "module",
-  "dependencies": { "@settlekit/core": "workspace:*", "@settlekit/db": "workspace:*", "@settlekit/screening": "workspace:*", "@settlekit/integration": "workspace:*", "viem": "2.57.16" }
+  "dependencies": { "@settlekit/core": "workspace:*", "@settlekit/db": "workspace:*", "@settlekit/screening": "workspace:*", "@settlekit/integration": "workspace:*", "@settlekit/arkiv": "workspace:*", "viem": "2.57.16" }
 }

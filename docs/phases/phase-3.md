@@ -1,6 +1,6 @@
 # Phase 3 — merchant operations
 
-Authorized 6 November 2026 (IST), together with Phase 4. Phase 2's local EVM/HTTP/Neon vertical flow passes; funded deployment/payment and Phase 1 Arkiv write remain deferred. Build independent application behavior without inventing those proofs. Phase 5 remains unauthorized.
+Authorized 6 November 2026 (IST), together with Phase 4; all six phases were subsequently authorized. Phase 2's local EVM/HTTP/Neon flow passed. Dashboard/collection source is integrated; funded deployment/payment/Arkiv-write proof remains deferred. Main agent only; further tests deferred. See current source/evidence boundaries in PROGRESS.md.
 
 ## Architecture and review
 
@@ -27,6 +27,8 @@ FILES TO MODIFY: existing merchant/payment/auth/integration services, catchall A
 
 Critical path: typed schema→services→API→UI. Internal collection mode must be integrated into authorization/observer/status before links/invoices can be called complete. Preserve external-store idempotency and historical settlement wallets. Settings/profile edits cannot rewrite existing invoice/payment/refund facts.
 
+Pre-code independent review: PROCEED. Implement typed tenant-bound internal collection mode; recheck pause/link/invoice state under the authorization lock and current fulfillment; separate scoped key rows from durable integration config; persist canonical source block timestamps and use period inflows minus period refund outflows consistently; distinct nonfinancial webhook tests and separate capped/cooldown replay budget. Do not create fake financial payments for endpoint tests.
+
 ## Security and state review
 
 Each mutation validates strict schema, cookie origin, tenant and current version; audit and job transition share a transaction. Contacts remain private. Immutable amount/currency/settlement snapshots bind issued checkout. Link deactivation/void/pause blocks new authorization; previously signed payloads can survive until their short onchain expiry, disclosed accurately. A late valid chain payment is retained and reviewed, never discarded as unpaid.
@@ -36,6 +38,8 @@ API keys use random material shown once, hash lookup and explicit scope checks. 
 Risk resolution requires current fresh checks and chain/refund/order revalidation; review notes alone cannot clear a hard denial or an orphan. Pause affects new payment authorization and fulfillment, not custody or freezing a wallet. Preserve session expiry/reauthentication states and require fresh ownership proof for settlement changes. CSV protects leading formula characters, quotes/newlines and exact amounts; no floating-point totals.
 
 ## UX and checks
+
+7 November status: source is integrated. Historical 89 root / 13 browser scopes and a separate real dashboard CRUD/HMAC browser pass are recorded in [progress](../../PROGRESS.md). Main agent only; further tests deferred. New recovery labels, manual-replay fences and setup navigation require the later regression/visual pass.
 
 Merchant enters overview→payments/detail or create link/invoice; create/edit forms validate inline, persist, confirm and survive reload. Contacts can be archived while historical invoices retain their facts. Developer settings reveal a new key once and explain server-only use; copy controls work and report failure. Webhook test/retry shows a real result/history, with disabled reasons when unavailable. Review details show source/time/coverage and an explicit reason when resolution cannot proceed.
 

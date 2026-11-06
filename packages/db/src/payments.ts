@@ -12,13 +12,11 @@ import { evaluateWallet } from '@settlekit/screening';
 import { readStoreOrder } from './integration.ts';
 
 export const createCheckoutInput=z.object({order_id:z.string().min(1).max(120),amount_base_units:baseUnitsSchema.refine(v=>BigInt(v)>0n),return_url:z.string().url().max(500)}).strict();
-export interface CheckoutRow {id:string;reference:string;merchant_id:string;order_id:string;invoice_id:Hex;merchant_wallet:Hex;amount:string;return_url:string;status:string;state_version:number;refund_hold:boolean;refund_amount:string;risk_state:string;submitted_tx_hash:string|null;expires_at:Date;created_at:Date}
-export async function authenticateApiKey(db:Database,bearer:string|null):Promise<string> {
-  if(!bearer||!/^Bearer sk_[a-f0-9]{64}$/.test(bearer))throw new AppError('API_KEY_REQUIRED',401,'A valid server API key is required.');
-  const result=await db.pool.query<{merchant_id:string}>('select merchant_id from merchant_integrations where key_hash=$1 and active=true',[hashToken(bearer.slice(7))]);
-  if(!result.rows[0])throw new AppError('API_KEY_INVALID',401,'A valid server API key is required.');return result.rows[0].merchant_id;
+export interface CheckoutRow {id:string;reference:string;merchant_id:string;order_id:string;invoice_id:Hex;merchant_wallet:Hex;amount:string;return_url:string;status:string;state_version:number;refund_hold:boolean;refund_amount:string;risk_state:string;submitted_tx_hash:string|null;mode:'store'|'collection';collection_order_id:string|null;expires_at:Date;created_at:Date}
+export async function authenticateApiKey(db:Database,bearer:string|null,scope:'checkout:create'|'payment:read'='checkout:create'):Promise<string> {
+  return (await import('./operations.ts')).authenticateOperationKey(db,bearer,scope);
 }
-export async function createCheckout(db:Database,merchantId:string,key:string|null,input:unknown,orderRead=readStoreOrder) {
+export async function createCheckout(db:Database,merchantId:string,key:string|null,input:unknown,orderRead=readStoreOrder,collectionOrderId?:string) {
   const data=createCheckoutInput.parse(input);
   if(!key||!/^[a-zA-Z0-9_.:-]{8,128}$/.test(key))throw new AppError('IDEMPOTENCY_REQUIRED',400,'Use a unique Idempotency-Key for this order.');
   const order=await orderRead(db,merchantId,data.order_id,data.amount_base_units);
@@ -26,13 +24,15 @@ export async function createCheckout(db:Database,merchantId:string,key:string|nu
   return transaction(db,async sql=>{
     const merchant=await sql.query<{settlement_wallet:string;website_origin:string;display_name:string}>('select settlement_wallet,website_origin,display_name from merchants where id=$1 for update',[merchantId]);
     const m=merchant.rows[0];if(!m?.display_name||!m.website_origin)throw new AppError('SETUP_REQUIRED',409,'Complete the merchant profile before creating a checkout.');
+    await (await import('./operations.ts')).assertCollectionPayable(sql,{merchant_id:merchantId,amount:data.amount_base_units,mode:collectionOrderId?'collection':'store',collection_order_id:collectionOrderId??null});
     const url=new URL(data.return_url);
-    if(url.origin!==m.website_origin||url.username||url.password||url.hash)throw new AppError('RETURN_URL_DENIED',400,'Use a return URL on the approved merchant origin.');
+    if(url.origin!==(collectionOrderId?runtimeConfig().origin:m.website_origin)||url.username||url.password||url.hash)throw new AppError('RETURN_URL_DENIED',400,'Use a return URL on the approved merchant origin.');
     const existing=await sql.query<CheckoutRow&{request_hash:string;idempotency_key:string}>('select * from checkout_sessions where merchant_id=$1 and (idempotency_key=$2 or order_id=$3)',[merchantId,key,data.order_id]);
     if(existing.rows[0]){const row=existing.rows[0];if(row.request_hash!==requestHash||row.idempotency_key!==key)throw new AppError('IDEMPOTENCY_CONFLICT',409,'This order or key was already used with a different request.');return {reference:row.reference,checkout_url:`${runtimeConfig().origin}/checkout/${row.reference}`};}
     if(order.state!=='pending')throw new AppError('ORDER_CLOSED',409,'This merchant order is no longer payable.');
     const reference=randomToken();const invoice=keccak256(toHex(randomToken()));
-    await sql.query("insert into checkout_sessions(reference,merchant_id,order_id,idempotency_key,request_hash,invoice_id,merchant_wallet,amount,return_url,expires_at) values($1,$2,$3,$4,$5,$6,$7,$8,$9,now()+interval '30 minutes')",[reference,merchantId,data.order_id,key,requestHash,invoice,m.settlement_wallet,data.amount_base_units,url.href]);
+    if(collectionOrderId)z.string().uuid().parse(collectionOrderId);
+    await sql.query("insert into checkout_sessions(reference,merchant_id,order_id,idempotency_key,request_hash,invoice_id,merchant_wallet,amount,return_url,mode,collection_order_id,expires_at) values($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,now()+interval '30 minutes')",[reference,merchantId,data.order_id,key,requestHash,invoice,m.settlement_wallet,data.amount_base_units,url.href,collectionOrderId?'collection':'store',collectionOrderId??null]);
     await sql.query("insert into audit_events(merchant_id,kind,metadata) values($1,'checkout.created',$2)",[merchantId,JSON.stringify({invoiceId:invoice,amount:data.amount_base_units})]);
     return {reference,checkout_url:`${runtimeConfig().origin}/checkout/${reference}`};
   });
@@ -44,7 +44,7 @@ export async function checkoutRow(db:Database,reference:string):Promise<Checkout
 export async function publicCheckout(db:Database,reference:string) {
   const row=await checkoutRow(db,reference);
   const detail=(await db.pool.query<{display_name:string;payment_id:string|null;delivery_status:string|null}>(`select m.display_name,p.id as payment_id,(select status from webhook_deliveries where payment_id=p.id order by state_version desc limit 1) as delivery_status from merchants m left join payments p on p.checkout_id=$2 where m.id=$1`,[row.merchant_id,row.id])).rows[0];
-  return {reference,amount_base_units:row.amount,merchant_name:detail.display_name,merchant_wallet:row.merchant_wallet,status:row.status==='open'&&row.expires_at.getTime()<=Date.now()?'expired':row.status,payment_id:detail.payment_id,confirmation_stage:'included_2_blocks',router:process.env.WHITECHAIN_ROUTER_ADDRESS??null,token:USDT_ADDRESS,chain_id:1874,expires_at:row.expires_at.toISOString(),return_url:row.return_url,delivery_status:detail.delivery_status,tx_hash:row.submitted_tx_hash};
+  return {reference,mode:row.mode,amount_base_units:row.amount,merchant_name:detail.display_name,merchant_wallet:row.merchant_wallet,status:row.status==='open'&&row.expires_at.getTime()<=Date.now()?'expired':row.status,payment_id:detail.payment_id,confirmation_stage:'included_2_blocks',router:process.env.WHITECHAIN_ROUTER_ADDRESS??null,token:USDT_ADDRESS,chain_id:1874,expires_at:row.expires_at.toISOString(),return_url:row.return_url,delivery_status:detail.delivery_status,tx_hash:row.submitted_tx_hash};
 }
 function payable(row:CheckoutRow) {if(row.status!=='open'||row.refund_hold||row.expires_at.getTime()<=Date.now())throw new AppError('CHECKOUT_CLOSED',409,'This checkout is no longer available for a new payment.');}
 export async function requestPayerChallenge(db:Database,reference:string,addressInput:string,browserToken:string) {
@@ -59,14 +59,17 @@ export async function requestPayerChallenge(db:Database,reference:string,address
 }
 export async function authorizeCheckout(db:Database,reference:string,input:{id:string;signature:Hex;browserToken:string},policyCheck=checkPaymentPolicy) {
   const row=await checkoutRow(db,reference);payable(row);
-  if((await readStoreOrder(db,row.merchant_id,row.order_id,row.amount)).state!=='pending')throw new AppError('ORDER_CLOSED',409,'This merchant order is no longer payable.');
+  const order=row.mode==='collection'?await (await import('./operations.ts')).readInternalOrder(db,row.merchant_id,row.order_id,row.amount):await readStoreOrder(db,row.merchant_id,row.order_id,row.amount);
+  if(!order||order.state!=='pending')throw new AppError('ORDER_CLOSED',409,'This merchant order is no longer payable.');
   const challenge=(await db.pool.query<{payer:Hex;message:string;browser_hash:string;expires_at:Date;consumed_at:Date|null}>('select * from payer_challenges where id=$1 and checkout_id=$2',[input.id,row.id])).rows[0];
   if(!challenge||challenge.consumed_at||challenge.expires_at.getTime()<=Date.now()||challenge.browser_hash!==hashToken(input.browserToken))throw new AppError('PAYER_PROOF_INVALID',400,'This payment wallet request expired. Connect and sign again.');
   const valid=await chainClient().verifySiweMessage({address:challenge.payer,message:challenge.message,signature:input.signature,domain:runtimeConfig().domain,time:new Date()});
   if(!valid)throw new AppError('PAYER_PROOF_INVALID',400,'The signature did not prove this payment wallet.');
   const policy=await policyCheck(db,[challenge.payer,row.merchant_wallet]);
   return transaction(db,async sql=>{
+    await sql.query('select id from merchants where id=$1 for update',[row.merchant_id]);
     const current=(await sql.query<CheckoutRow>('select * from checkout_sessions where id=$1 for update',[row.id])).rows[0];payable(current);
+    await (await import('./operations.ts')).assertCollectionPayable(sql,current);
     // Lock the source to prevent an importer from replacing/failing it between check and commit.
     const source=(await sql.query('select snapshot,health from screening_sources where source_id=$1 for share',['ofac-sdn-ethereum-addresses'])).rows[0];
     if(!source||source.snapshot?.sha256!==policy.sourceHash||source.snapshot?.fetchedAt!==policy.sourceFetchedAt||[challenge.payer,row.merchant_wallet].some(address=>evaluateWallet({address,snapshot:source.snapshot,providerHealth:source.health}).state!=='allowed')||Date.now()-policy.checkedAt>15_000)throw new AppError('SCREENING_CHANGED',409,'Payment checks changed. Please check again.');

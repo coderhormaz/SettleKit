@@ -2,6 +2,6 @@
   "name": "@settlekit/core",
   "private": true,
   "type": "module",
-  "exports": { ".": "./src/index.ts", "./server": "./src/server.ts" },
+  "exports": { ".": "./src/index.ts", "./server": "./src/server.ts", "./router": "./src/router.ts" },
   "dependencies": { "viem": "2.57.16", "zod": "4.6.7" }
 }

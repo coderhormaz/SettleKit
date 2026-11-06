@@ -50,7 +50,7 @@ Security gates: browser-bound single-use nonce; atomic consumption/session creat
 - [x] 5. Implement/test browser-bound SIWE login, session/logout, tenant-isolated profile and settlement proof/screening.
 - [x] 6. Implement and inspect the polished wallet-first onboarding shell and complete UI states at mobile/tablet/desktop sizes.
 - [ ] 7. Prove exact Whitechain token/network behavior and test funding paths; real Arkiv create/read/browser access; real CRE HTTP/RPC plus diagnostic store API simulation. Preserve exact blocked gates while continuing independent tasks.
-- [ ] 8. Run relevant integrated checks, fresh code/design review, fix findings, update evidence/memory and verify GitHub milestone pushes. Report Phase 1 accurately; do not start Phase 2.
+- [x] 8. Run relevant independent integrated checks, fresh code/design review, fix findings, update evidence/memory and verify GitHub milestone push `4ee6743`. Report funded gates accurately. The user's subsequent Phase 2 instruction supersedes the former wait instruction.
 
 Critical path: schema/types precede domain/worker/UI; browser security precedes login/profile writes; valid source snapshots precede allowed screening; test funding precedes real Arkiv writes/token operations; CRE tooling/account access precedes its simulation. Independent sponsor/access work may progress while the local foundation is built.
 

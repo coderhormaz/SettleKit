@@ -1,0 +1,7 @@
+{
+  "name": "@settlekit/example-store",
+  "private": true,
+  "type": "module",
+  "scripts": { "start": "tsx --env-file=../../.env src/server.ts", "migrate": "tsx --env-file=../../.env src/migrate.ts" },
+  "dependencies": { "pg": "8.23.1", "tsx": "4.23.15" }
+}

@@ -15,6 +15,6 @@ Updated 6 November 2026 (IST). Exact dependency resolutions are in `pnpm-lock.ya
 | Checks | Vitest 5.1.0; Playwright 1.65.0, Chromium 1254 installed. |
 | Arkiv | SDK 1.0.1: real network query succeeds; write remains unfunded. |
 | CRE | SDK 1.23.0, CLI 1.39.0, Bun 1.4.4; verified binary checksums/CLI Authenticode, authenticated account; simulation result is recorded separately, not inferred from compilation. |
-| Contracts | Hardhat 3.21.2 / viem toolbox 5.0.7 / solc 0.8.38 / OpenZeppelin 5.6.1; smoke compiles for prague. No router or deployment yet. |
+| Contracts | Hardhat 3.21.2 / viem toolbox 5.0.7 / solc 0.8.38 / OpenZeppelin 5.6.1; router and refund primitives compile for prague; 26 local EVM tests pass. No live deployment yet. |
 
 The release-age exceptions in workspace configuration name only the inspected pinned UI/test releases encountered by pnpm's policy. Do not globally disable package checks or approve unrelated build scripts. CRE is separately compiled with Bun/WASM; it does not use ordinary application networking or imply native Whitechain support.

@@ -1,0 +1,26 @@
+{
+  "checkedAt": "2026-11-06T04:57:22.481Z",
+  "kind": "actual-local-HTTP-and-Neon",
+  "storeOrigin": "http://127.0.0.1:3200",
+  "gatewayOrigin": "http://127.0.0.1:3000",
+  "orderId": "20dd0247-a9f8-432d-a7b4-5a1f65c0c25c",
+  "checkoutReference": "e2bfb7dc0012c1569d2ef590a81af79968fa154b3c0fc611c6293ac75c5a01f8",
+  "checks": [
+    "Store catalog overrides untrusted browser amount and creates actual25USDT checkout.",
+    "Scoped authenticated minimal order read matches real persisted order.",
+    "Missing/forged order-read credentials rejected401.",
+    "Public status is minimal actual state; no redirect-driven fulfillment.",
+    "Actual public checkout preserves exact token/chain/amount; absent router is explicit.",
+    "Same merchant idempotency key/body returns the same persisted checkout.",
+    "Changed idempotent request rejected409.",
+    "Forged gateway server key rejected401.",
+    "Unapproved return origin rejected400.",
+    "Foreign browser mutation origin rejected403.",
+    "Oversized ignored catalog payload still rejected413 before creating an order.",
+    "Owner retry reopens the same checkout without creating another order.",
+    "Forged raw-body webhook rejected401 before eligibility lookup."
+  ],
+  "paymentExecuted": false,
+  "fulfillmentCount": 0,
+  "fundingGate": "No deployed router or live Whitechain payment. Store order remains pending."
+}

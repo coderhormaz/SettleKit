@@ -1,6 +1,6 @@
 # SettleKit: six-phase implementation plan
 
-Updated: 6 November 2026 (IST). Status: Phase 1 authorized and in progress; Phases 2–6 remain pending. Actual results are in `PROGRESS.md`, `docs/phases/phase-1.md` and `docs/evidence/`.
+Updated: 6 November 2026 (IST). Status: Phases 3 and 4 now authorized together; Phase 2's local checks passed and its checkpoint is being finished. Deferred funded gates stay open; Phases 5–6 remain pending. Actual results are in `PROGRESS.md`, the detailed phase documents and `docs/evidence/`.
 
 Read with [AGENTS.md](AGENTS.md), [MEMORY.md](MEMORY.md), [PROGRESS.md](PROGRESS.md) and [PROJECT_HANDOFF.md](PROJECT_HANDOFF.md). The handoff retains the detailed product/security requirements; this document replaces its former Phase 0–4 numbering with exactly **Phases 1–6**. Current user instructions take precedence.
 
@@ -55,7 +55,7 @@ Reuse an existing explicitly selected project/connection when available; otherwi
 
 ### Metadata checked during planning
 
-Official registry metadata on 6 November 2026 returned these **candidates**. Nothing has been installed or build-tested in this chat.
+Historical planning metadata on 6 November 2026 returned these **candidates**. Actual installed/verified pins now supersede this candidate table; see [versions](docs/versions.md) and the lockfile (including TypeScript 5.9.3).
 
 | Group | Candidate versions |
 | --- | --- |
@@ -128,9 +128,9 @@ Maintain `docs/evidence/index.md` mapping each requirement to its phase, impleme
 | Phase | Deliverable | Depends on | Current status |
 | --- | --- | --- | --- |
 | 1 | Proven tools/sponsor access, private foundation, wallet onboarding and design system | Authorized; test funding deferred | In progress; live write/transfer gates open |
-| 2 | Screened live payment, hosted checkout and one idempotent store fulfillment | Phase 1 payment/security gates | Not started |
-| 3 | Complete merchant operating dashboard and integration controls | Phase 2 verified lifecycle | Not started |
-| 4 | Working refunds, Arkiv receipts and independent accounting | Phase 2 router; Phase 3 merchant controls | Not started |
+| 2 | Screened live payment, hosted checkout and one idempotent store fulfillment | Phase 1 payment/security gates | Authorized; independent implementation in progress, funded live evidence pending |
+| 3 | Complete merchant operating dashboard and integration controls | Phase 2 verified lifecycle | Authorized; detailed plan prepared |
+| 4 | Working refunds, Arkiv receipts and independent accounting | Phase 2 router; Phase 3 merchant controls | Authorized; detailed plan prepared, live funded gates deferred |
 | 5 | Real CRE reconciliation and safe failed-notification recovery | Phase 1 CRE proof; Phases 2–4 current-state rules | Not started |
 | 6 | Full-system verification, reproducible release and evidence/demo materials | All earlier exit gates | Not started |
 

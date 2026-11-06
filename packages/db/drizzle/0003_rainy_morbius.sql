@@ -1,0 +1,1 @@
+ALTER TABLE "checkout_sessions" ADD COLUMN "submitted_tx_hash" text;

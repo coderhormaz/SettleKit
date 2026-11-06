@@ -6,7 +6,7 @@ Read this file, `PROGRESS.md`, `AGENTS.md`, `PROJECT_HANDOFF.md` and `IMPLEMENTA
 
 ## Accepted user intent
 
-Build an easy-to-integrate stablecoin payment gateway with a premium, fully functional merchant dashboard. The user approved **Whitechain + Arkiv + Chainlink**, mandatory screening, same-chain refunds, premium UI and frequent GitHub checkpoints. **Phase 1 was authorized on 6 November 2026 and is in progress.** Complete and report its actual results/gates, then wait before Phase 2. The user also requested token-efficient focused subagents; avoid duplicate research and broad repeated reviews.
+Build an easy-to-integrate stablecoin payment gateway with a premium, fully functional merchant dashboard. The user approved **Whitechain + Arkiv + Chainlink**, mandatory screening, same-chain refunds, premium UI and frequent GitHub checkpoints. **Phases 3 and 4 were authorized together on 6 November 2026.** Finish Phase 2's checkpoint, then implement/review the dashboard, refunds and independent accounting while preserving deferred funded gates. Wait before Phase 5. Use focused token-efficient subagents and avoid duplicate research/reviews.
 
 ## Latest planning decisions
 
@@ -15,7 +15,7 @@ Build an easy-to-integrate stablecoin payment gateway with a premium, fully func
 - The user's stack choice is **Next.js + Neon PostgreSQL** with Drizzle/pg, wallet signatures and the other accepted components. The isolated Neon development/test branches are now provisioned, migrations applied and actual PostgreSQL integration checks run. App/worker run locally; public app hosting remains deferred. See `docs/versions.md` for installed compatible pins.
 - Complete all six phases even beyond the published event deadline; do not imply late work constitutes a timely entry.
 - Exact dependency pins remain untested until Phase 1. The non-upgradeable router must include tested payment and refund primitives before its initial deployment; Phase 4 adds the refund service/UI and live refund evidence.
-- Current stage: Phase 1 foundation/verification. Wallet-first onboarding was confirmed; user completed CRE login. Official-source ingestion and real Neon persistence work; CRE route simulation and independent Arkiv queries have live evidence. The user explicitly deferred test funding, leaving Arkiv signed write and Whitechain approval/transfer proof open. Do not re-request funding repeatedly or call the phase complete.
+- Current stage: Phase 2 screened payment/store implementation and verification. Phase 1 foundation checkpoint `4ee6743` is pushed and remotely verified. Wallet-first onboarding was confirmed; user completed CRE login. Official-source ingestion and real Neon persistence work; CRE route simulation and independent Arkiv queries have live evidence. The user explicitly deferred test funding, leaving Arkiv signed write and Whitechain approval/transfer/deployment proofs open. Do not re-request funding repeatedly or call an unproven phase complete.
 - Before coding every requested phase, prepare/review its detailed plan, UX/data/security changes, sponsor requirements, meaningful checks and exit criteria. Then implement, verify all in-scope behavior, update evidence, commit/push coherent milestones and report. Use the available design skills for a polished product and actual browser inspection, not build success alone.
 
 ## Non-negotiable product decisions
@@ -24,7 +24,7 @@ Build an easy-to-integrate stablecoin payment gateway with a premium, fully func
 - Refunds: full/partial, merchant-authorized, same original USDT and chain, original payer only, bounded by remaining amount, idempotent. Fresh screening is also required; a new hard match pauses refund execution for review.
 - Whitechain track: **Operate · Stablecoin Payments for Business**.
 - Arkiv track: **Build on Arkiv (from scratch)**. Actual Rabdi writes and user-visible queries; independent accountant page, correct totals/export and explicit history coverage.
-- Chainlink track: **Best workflow with CRE**. Actual workflow compares Whitechain payment evidence with an external merchant order API and recovers eligible failed notifications. A real CLI simulation is permitted; native CRE support for Whitechain and the proposed HTTP/RPC route remain unproven until tested.
+- Chainlink track: **Best workflow with CRE**. Actual workflow must compare Whitechain payment evidence with an external merchant API and recover eligible failed notifications. The Phase 1 CLI HTTP/RPC route simulation passed; native Whitechain support, actual recovery and prize eligibility remain separate gates.
 - **Arc and ENS are rejected.** No bridge, crosschain refund, extra settlement network, required ENS name or merchant-facing infrastructure configuration.
 - AI is optional. Wallet screening is **mandatory**, not optional.
 

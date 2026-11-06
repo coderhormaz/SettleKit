@@ -24,6 +24,7 @@ test('wallet absence, safe error and mobile/desktop first-use layouts',async({pa
   await page.goto('/');await expect(page.getByRole('button',{name:'Connect & verify wallet'})).toBeVisible();
   await mkdir('.impeccable/review',{recursive:true});
   for(const [name,width,height] of [['desktop',1440,900],['tablet',768,1024],['mobile',390,844]] as const){await page.setViewportSize({width,height});await page.screenshot({path:`.impeccable/review/${name}.png`,fullPage:true});expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);}
+  const paymentsLink=page.getByRole('link',{name:'Payments',exact:true});await expect(paymentsLink).toBeVisible();await expect(paymentsLink).toHaveAttribute('href','/payments');expect((await paymentsLink.boundingBox())!.height).toBeGreaterThanOrEqual(44);
   await page.getByRole('button',{name:'Connect & verify wallet'}).click();await expect(page.getByRole('region',{name:'Merchant onboarding'}).getByRole('alert')).toContainText('wallet');
 });
 

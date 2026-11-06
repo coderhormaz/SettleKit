@@ -4,7 +4,7 @@ Updated: 6 November 2026 (IST). Read AGENTS.md, MEMORY.md, PROJECT_HANDOFF.md an
 
 ## Current stage
 
-**Phase 1 is implemented for independently available gates; the phase remains open for user-deferred test funding.** Phases 2–6 have not started. There is no deployed payment router, customer payment/refund, signed Arkiv entity write, live CRE DON deployment, public app deployment or merchant-validation claim.
+**Phase 2's independent implementation/checks passed; Phases 3 and 4 are now authorized together.** Finish the current checkpoint then implement their detailed plans. Funded live gates stay open. There is no live deployed payment router, customer payment/refund, signed Arkiv entity write, live CRE DON deployment, public app deployment or merchant-validation claim.
 
 Confirmed choices: Next.js + Neon PostgreSQL/Drizzle/pg; wallet signatures; wallet first, then business setup; local app/worker with public app hosting deferred; full scope beyond the event deadline if needed. The user requested efficient focused subagents and ongoing coherent tested GitHub pushes.
 
@@ -41,14 +41,29 @@ Private test keys stay in ignored data/phase-1-wallets.json. No customer funds, 
 | Phase | Status |
 | --- | --- |
 | 1 — Foundation/feasibility | Independent implementation/checks passed; signed write/transfer funding gates open |
-| 2 — Router/payment/store | Not started; not authorized |
-| 3 — Merchant dashboard | Not started |
-| 4 — Refunds/accountant | Not started |
+| 2 — Router/payment/store | Authorized; local implementation/checks in progress; funded live evidence pending |
+| 3 — Merchant dashboard | Authorized; detailed plan prepared, implementation next |
+| 4 — Refunds/accountant | Authorized; detailed plan prepared, funded live gates deferred |
 | 5 — CRE recovery | Not started; the route proof is not recovery |
 | 6 — Integrated release | Not started |
 
 ## Git and next action
 
-Authorized remote: https://github.com/coderhormaz/SettleKit.git; main, normal pushes only. Preserve original 0aa6e69, documentation checkpoints 1bec3f7/8049058/7c33d7c/3294c83 and existing workspace checkpoint e53c951. Obtain the current checkpoint hash from git log and verify the push with git ls-remote; staged files do not prove publication. Record any exact pending push failure here.
+Authorized remote: https://github.com/coderhormaz/SettleKit.git; main, normal pushes only. Preserve existing history. Phase 1 checkpoint `4ee6743a0bd8e4904619711a48fe7256473a6409` is pushed, remotely verified and its GitHub Actions completed successfully. Phase 2 checkpoint is being prepared, not yet claimed pushed. Obtain the actual tip from git log/ls-remote; staged files do not prove publication.
 
-Finish current evidence/documentation/checkpoint verification, report Phase 1 open for the two deferred funded proofs, and wait for funding to finish them. Resume existing work instead of reinstalling/researching again. Do not start Phase 2 without the user's instruction or call Phase 1 fully complete before its signed live gates pass.
+Finish Phase 2 review/checkpoint, verify remote hash, then implement Phases 3 and 4 from their detailed plans. Preserve funded gates as pending and wait before Phase 5. Resume existing work instead of reinstalling or duplicating research.
+
+## Phase 2 implementation and verification
+
+- [Detailed plan](docs/phases/phase-2.md) reviewed PROCEED before coding; [runbook](docs/phases/phase-2-runbook.md) records local operation and funded gates.
+- Non-upgradeable noncustodial router includes payment and full/partial refund primitives, EIP-712 exact parameter/evidence binding, replay guards, original merchant/payer refunds and caps, exact transfer deltas, reentrancy protection and separate policy-owner/signer roles. Onchain policy epoch/expiry/denial/pause controls fail closed.
+- Hashed server keys/encrypted integration secrets, authoritative authenticated order reads, tenant-idempotent immutable checkout, approved return origin, one-use payer proof and short source/policy-bound authorization. Configured runtime codehash/token and policy are read at a consistent canonical anchor.
+- Versioned PostgreSQL migrations, bounded durable cursor/overlap observer, exact canonical receipt binding and atomic payment/version/delivery/outbox. Reorg corrections and actual onchain refund quantities hold further fulfillment.
+- Raw-body HMAC notifications, DNS-pinned approved endpoints, absolute transport deadlines, retry budgets/dead state and live fenced leases. Current source/policy/version/refund eligibility grants are rechecked and capped at final issuance.
+- Hosted checkout separates wallet signature/approval/payment and handles expiry/pending/reload/retry/error states. Return/hash never means paid. Real basic merchant payments/detail/delivery views; full dashboard is Phase 3.
+- Separate Fieldwork store uses its own limited-role Neon databases, server-owned 25 USDT catalog, durable order reads, transactional receipt/payment dedupe, one fulfillment, cancellation/correction exposure and actual workbook entitlement. [Integration guide](examples/store/README.md).
+- Final verification: 64 unit/database tests passed in one root suite, 26 local EVM contract tests passed, contracts TypeScript and production build passed. Eight database checks use actual Neon with explicit mock RPC for canonical/policy/refund/final-grant races; none are live Whitechain evidence.
+- Store protocol/database checks (7 HMAC/transport + 6 actual Neon) passed and are included in the root suite. Matching development services passed 13 actual local HTTP checks plus a Chromium store→checkout→pending return at all three sizes; no payment executed. Sanitized records are under `examples/store/evidence/`.
+- All 8 browser checks passed after fixing mobile Refresh-button overflow; captures include actual onboarding plus labeled payment UI fixtures. Detector: zero nonadvisory findings; 156 inherited/intentional color/type/radius advisories (do not claim []). Fresh independent finish reviewer returned **ship** for all 14 checkout/payments/actual-store captures, no material fixes. Existing DESIGN.md/sidecar preserved as an ordinary extension.
+- Independent security review's pre-send lease race and grant extending source expiry were fixed with regressions; reviewer returned PROCEED. Complete local EVM/mock-token + actual HTTP/Neon payment harness passed: payer75/merchant25/router0 USDT, observer restarts/duplicate logs, lost-ack delivery retry, one receipt/fulfillment and actual download. Fixtures/processes cleaned; [evidence](docs/evidence/phase-2/local-payment-flow.json) explicitly says not live Whitechain.
+- Deployer and policy-admin test roles also require WBT for live deployment/synchronization. No broadcast/source verification/live payment is claimed. The user-deferred funding gates above remain open.

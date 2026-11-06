@@ -212,6 +212,7 @@ export function Onboarding() {
       <a href="/" className="brand" aria-label="SettleKit business setup"><span className="brand-mark" aria-hidden="true"><ArrowDownLeft size={25} strokeWidth={2.4} /></span>SettleKit<span className="brand-dot">.</span></a>
       <div className="workspace-label">YOUR WORKSPACE</div>
       <a className="nav-item active" href="#main-content" aria-current="page"><Fingerprint size={19} />Business setup<ChevronRight size={16} /></a>
+      <a className="nav-item payments-nav-item" href="/payments"><ArrowDownLeft size={19} />Payments<ChevronRight size={16} /></a>
       <div className="sidebar-bottom">
         <div className="test-notice"><span className="status-dot" />Test environment<span className="network-name">Whitechain Sepolia</span></div>
         <button className="help-button" type="button" onClick={() => setHelpOpen(value => !value)} aria-expanded={helpOpen} aria-controls="setup-help"><CircleHelp size={18} />How setup works<ChevronRight size={15} className={helpOpen ? "rotate" : ""} /></button>

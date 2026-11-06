@@ -3,7 +3,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { AppError, addressSchema } from '@settlekit/core';
 import { publicError, randomToken, requireMutationOrigin, runtimeConfig } from '@settlekit/core/server';
-import { authenticate, database, logout, merchantProfile, refreshMerchantScreening, requestChallenge, SESSION_SECONDS, updateMerchant, verifyChallenge } from '@settlekit/db';
+import { authenticate, authenticateApiKey, authorizeCheckout, checkoutRow, createCheckout, database, listPayments, logout, merchantProfile, paymentState, publicCheckout, refreshMerchantScreening, requestChallenge, requestPayerChallenge, SESSION_SECONDS, updateMerchant, verifyChallenge } from '@settlekit/db';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -24,8 +24,35 @@ function cookie(res:NextResponse,name:string,value:string,maxAge:number) { res.c
 async function handle(req:NextRequest) {
   try {
     const path=req.nextUrl.pathname;
-    if(req.method!=='GET')requireMutationOrigin(req.headers.get('origin'));
     const db=database();
+    // Server adapters use scoped keys rather than browser cookies/Origin.
+    if(path.startsWith('/api/v1/')) {
+      const merchantId=await authenticateApiKey(db,req.headers.get('authorization'));
+      if(path==='/api/v1/checkouts'&&req.method==='POST')return response(await createCheckout(db,merchantId,req.headers.get('idempotency-key'),await body(req)));
+      const eligibility=path.match(/^\/api\/v1\/payments\/([0-9a-f-]{36})\/eligibility$/);
+      if(eligibility&&req.method==='GET')return response(await paymentState(db,merchantId,z.string().uuid().parse(eligibility[1])));
+      throw new AppError('NOT_FOUND',404,'This server action was not found.');
+    }
+    if(req.method!=='GET')requireMutationOrigin(req.headers.get('origin'));
+    const checkout=path.match(/^\/api\/checkout\/([a-f0-9]{64})(?:\/(challenge|authorize|submitted))?$/);
+    if(checkout){
+      const [,reference,action]=checkout;
+      if(!action&&req.method==='GET')return response(await publicCheckout(db,reference));
+      if(action==='challenge'&&req.method==='POST'){
+        const input=inputChallenge.parse(await body(req));const browserToken=randomToken();
+        const result=await requestPayerChallenge(db,reference,input.address,browserToken);const res=response(result);cookie(res,'sk_payer',browserToken,300);return res;
+      }
+      if(action==='authorize'&&req.method==='POST'){
+        const input=inputSignature.parse(await body(req));const result=await authorizeCheckout(db,reference,{...input,signature:input.signature as `0x${string}`,browserToken:req.cookies.get('sk_payer')?.value??''});
+        const res=response(result);cookie(res,'sk_payer','',0);return res;
+      }
+      if(action==='submitted'&&req.method==='POST'){
+        const input=z.object({tx_hash:z.string().regex(/^0x[0-9a-f]{64}$/i)}).strict().parse(await body(req));const row=await checkoutRow(db,reference);
+        // An untrusted UI hint, never payment evidence or an observer cursor.
+        await db.pool.query("update checkout_sessions set submitted_tx_hash=$2 where id=$1 and status='open' and submitted_tx_hash is null",[row.id,input.tx_hash]);return response({submitted:true});
+      }
+      throw new AppError('NOT_FOUND',404,'This checkout action was not found.');
+    }
     const token=req.cookies.get('sk_session')?.value;
     if(path==='/api/auth/challenge' && req.method==='POST') {
       const input=inputChallenge.parse(await body(req));
@@ -41,6 +68,9 @@ async function handle(req:NextRequest) {
     }
     if(path==='/api/auth/logout' && req.method==='POST') {await logout(db,token);const res=response({signedOut:true});cookie(res,'sk_session','',0);cookie(res,'sk_browser','',0);return res;}
     const merchant=await authenticate(db,token);
+    if(path==='/api/merchant/payments'&&req.method==='GET')return response(await listPayments(db,merchant.id));
+    const paymentDetail=path.match(/^\/api\/merchant\/payments\/([0-9a-f-]{36})$/);
+    if(paymentDetail&&req.method==='GET')return response(await listPayments(db,merchant.id,z.string().uuid().parse(paymentDetail[1])));
     if((path==='/api/auth/me'||path==='/api/merchant')&&req.method==='GET')return response({merchant:await merchantProfile(db,merchant.id)});
     if(path==='/api/merchant'&&req.method==='PATCH')return response({merchant:await updateMerchant(db,merchant.id,await body(req))});
     if(path==='/api/merchant/screening'&&req.method==='POST')return response({screening:await refreshMerchantScreening(db,merchant.id)});

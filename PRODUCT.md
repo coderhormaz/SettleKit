@@ -33,7 +33,7 @@ The merchant configures a wallet, profile and a small server adapter; infrastruc
 - Real Chainlink CRE recovery is required; HTTP/RPC route and account access must be proven. Simulation and live deployment are distinct evidence.
 - Screening is mandatory; blocked/stale/unavailable required data never silently passes. Merchant controls cannot bypass hard denials.
 - No Arc, ENS, bridge, crosschain refund, swaps, subscriptions, fiat conversion or project token.
-- Phase 1 ships identity/onboarding, screening/private-state foundations and feasibility proofs; payment/router/dashboard operating flows follow in their authorized phases.
+- Phase 1 identity/onboarding and private screening foundations exist. Phase 2 is authorized: locally tested payment/refund router, checkout/observer, minimal payment operations and separate store. Complete dashboard, refund UI, accounting and recovery follow in later authorized phases.
 
 ## Brand Commitments
 
@@ -41,7 +41,7 @@ Working name SettleKit. The accepted handoff specifies a premium graphite/mint f
 
 ## Evidence on Hand
 
-The repository contains a researched specification, six-phase plan and verified Git checkpoints. Read-only network/token metadata probes are recorded. Application, contract, funded wallets, Arkiv writes and CRE execution have no passing implementation evidence at Phase 1 start. Never fabricate customer logos, payment metrics, deployed addresses or sponsor eligibility.
+The repository contains actual Neon/browser foundation checks, live chain/token/Arkiv reads and a successful CRE CLI route simulation. Phase 2 adds contract EVM tests, private payment/observer/receiver checks and responsive checkout/store UI. Funded Whitechain deployment/payment and signed Arkiv writes remain deferred; no live customer payment, production hosting or sponsor eligibility is claimed. Exact outcomes are in PROGRESS.md and docs/evidence/index.md.
 
 ## Product Principles
 

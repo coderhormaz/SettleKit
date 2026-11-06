@@ -1,0 +1,1 @@
+ALTER TABLE "payments" ADD COLUMN "checked_at" timestamp with time zone DEFAULT now() NOT NULL;

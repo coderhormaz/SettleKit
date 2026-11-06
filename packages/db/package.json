@@ -3,5 +3,5 @@
   "private": true,
   "type": "module",
   "exports": { ".": "./src/index.ts" },
-  "dependencies": { "@settlekit/core": "workspace:*", "@settlekit/screening": "workspace:*", "drizzle-orm": "0.45.4", "pg": "8.23.1", "viem": "2.57.16" }
+  "dependencies": { "@settlekit/core": "workspace:*", "@settlekit/screening": "workspace:*", "@settlekit/integration": "workspace:*", "drizzle-orm": "0.45.4", "pg": "8.23.1", "viem": "2.57.16", "zod": "4.6.7" }
 }

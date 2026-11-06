@@ -4,7 +4,9 @@
   "version": "0.1.0",
   "type": "module",
   "packageManager": "pnpm@11.25.0",
-  "engines": { "node": "^22.13.0 || ^24.0.0 || ^26.0.0" },
+  "engines": {
+    "node": "^22.13.0 || ^24.0.0 || ^26.0.0"
+  },
   "scripts": {
     "dev": "pnpm --filter @settlekit/gateway dev",
     "build": "pnpm --filter @settlekit/gateway build",
@@ -18,7 +20,11 @@
     "db:migrate": "tsx --env-file=.env packages/db/src/migrate.ts",
     "screening:import": "tsx --env-file=.env packages/worker/src/import-screening.ts",
     "worker": "tsx --env-file=.env packages/worker/src/run.ts",
-    "check:imports": "tsx scripts/check-imports.ts"
+    "check:imports": "tsx scripts/check-imports.ts",
+    "test:contracts": "pnpm --filter @settlekit/contracts test",
+    "store": "pnpm --filter @settlekit/example-store start",
+    "demo:setup": "tsx --env-file=.env scripts/setup-demo.ts",
+    "policy:sync": "tsx --env-file=.env packages/worker/src/sync-policy.ts"
   },
   "devDependencies": {
     "@playwright/test": "1.65.0",
@@ -30,6 +36,7 @@
     "dotenv": "17.2.3",
     "tsx": "4.23.15",
     "typescript": "5.9.3",
-    "vitest": "5.1.0"
+    "vitest": "5.1.0",
+    "viem": "2.57.16"
   }
 }

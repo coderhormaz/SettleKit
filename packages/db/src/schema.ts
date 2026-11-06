@@ -87,3 +87,84 @@ export const precisionChecks = pgTable('monetary_precision_checks', {
   amount: numeric('amount').notNull(),
   isFixture: boolean('is_fixture').notNull().default(true),
 }, (t) => [uniqueIndex('precision_id_idx').on(t.id), check('uint256_amount', sql`${t.amount} = trunc(${t.amount}) and ${t.amount} >= 0 and ${t.amount} <= 115792089237316195423570985008687907853269984665640564039457584007913129639935`)]);
+
+export const integrations = pgTable('merchant_integrations', {
+  merchantId: uuid('merchant_id').primaryKey().references(() => merchants.id),
+  keyHash: text('key_hash').notNull().unique(),
+  webhookUrl: text('webhook_url').notNull(),
+  orderApiUrl: text('order_api_url').notNull(),
+  webhookSecret: text('webhook_secret').notNull(),
+  orderReadSecret: text('order_read_secret').notNull(),
+  active: boolean('active').notNull().default(true),
+  createdAt: time('created_at').notNull().defaultNow(),
+});
+export const checkouts = pgTable('checkout_sessions', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  reference: text('reference').notNull().unique(),
+  merchantId: uuid('merchant_id').notNull().references(() => merchants.id),
+  orderId: text('order_id').notNull(),
+  idempotencyKey: text('idempotency_key').notNull(),
+  requestHash: text('request_hash').notNull(),
+  invoiceId: text('invoice_id').notNull().unique(),
+  merchantWallet: text('merchant_wallet').notNull(),
+  amount: numeric('amount').notNull(),
+  returnUrl: text('return_url').notNull(),
+  status: text('status').notNull().default('open'),
+  stateVersion: integer('state_version').notNull().default(1),
+  refundHold: boolean('refund_hold').notNull().default(false),
+  refundAmount: numeric('refund_amount').notNull().default('0'),
+  riskState: text('risk_state').notNull().default('unchecked'),
+  submittedTxHash: text('submitted_tx_hash'),
+  expiresAt: time('expires_at').notNull(),
+  createdAt: time('created_at').notNull().defaultNow(),
+}, t => [uniqueIndex('checkout_idempotency_idx').on(t.merchantId,t.idempotencyKey), uniqueIndex('checkout_order_idx').on(t.merchantId,t.orderId), index('checkout_merchant_idx').on(t.merchantId,t.createdAt), check('checkout_amount_uint',sql`${t.amount}=trunc(${t.amount}) and ${t.amount}>0 and ${t.amount}<=115792089237316195423570985008687907853269984665640564039457584007913129639935`),check('checkout_refund_uint',sql`${t.refundAmount}=trunc(${t.refundAmount}) and ${t.refundAmount}>=0 and ${t.refundAmount}<=${t.amount}`),check('checkout_status',sql`${t.status} in ('open','accepted','orphaned','review','cancelled')`)]);
+export const payerChallenges = pgTable('payer_challenges', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  checkoutId: uuid('checkout_id').notNull().references(()=>checkouts.id),
+  payer: text('payer').notNull(),
+  browserHash: text('browser_hash').notNull(),
+  message: text('message').notNull(),
+  expiresAt: time('expires_at').notNull(),
+  consumedAt: time('consumed_at'),
+},t=>[index('payer_challenge_checkout_idx').on(t.checkoutId)]);
+export const paymentAuthorizations = pgTable('payment_authorizations', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  checkoutId: uuid('checkout_id').notNull().references(()=>checkouts.id),
+  payer: text('payer').notNull(),
+  router: text('router').notNull(),
+  evidence: text('evidence').notNull().unique(),
+  epoch: numeric('epoch').notNull(),
+  deadline: time('deadline').notNull(),
+  payload: jsonb('payload').$type<Record<string,string>>().notNull(),
+  signature: text('signature').notNull(),
+  createdAt: time('created_at').notNull().defaultNow(),
+},t=>[index('authorization_checkout_idx').on(t.checkoutId)]);
+export const payments = pgTable('payments', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  checkoutId: uuid('checkout_id').notNull().unique().references(()=>checkouts.id),
+  authorizationId: uuid('authorization_id').notNull().references(()=>paymentAuthorizations.id),
+  txHash: text('tx_hash').notNull(),
+  logIndex: integer('log_index').notNull(),
+  blockNumber: numeric('block_number').notNull(),
+  blockHash: text('block_hash').notNull(),
+  payer: text('payer').notNull(),
+  canonical: boolean('canonical').notNull().default(true),
+  checkedAt: time('checked_at').notNull().defaultNow(),
+  createdAt: time('created_at').notNull().defaultNow(),
+},t=>[uniqueIndex('payment_event_idx').on(t.txHash,t.logIndex)]);
+export const deliveries = pgTable('webhook_deliveries', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  paymentId: uuid('payment_id').notNull().references(()=>payments.id),
+  merchantId: uuid('merchant_id').notNull().references(()=>merchants.id),
+  stateVersion: integer('state_version').notNull(),
+  eventType: text('event_type').notNull(),
+  status: text('status').notNull().default('pending'),
+  attempts: integer('attempts').notNull().default(0),
+  errorCode: text('error_code'),
+  createdAt: time('created_at').notNull().defaultNow(),
+},t=>[uniqueIndex('delivery_payment_version_idx').on(t.paymentId,t.stateVersion),index('delivery_merchant_idx').on(t.merchantId,t.createdAt)]);
+export const chainCursors = pgTable('chain_cursors', {
+  router: text('router').primaryKey(),
+  nextBlock: numeric('next_block').notNull(),
+  updatedAt: time('updated_at').notNull().defaultNow(),
+});

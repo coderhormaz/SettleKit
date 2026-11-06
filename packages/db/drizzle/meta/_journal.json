@@ -15,6 +15,27 @@
       "when": 1793920676419,
       "tag": "0001_integer_amount_guard",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1793939605207,
+      "tag": "0002_plain_marten_broadcloak",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1793939842732,
+      "tag": "0003_rainy_morbius",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1793940521965,
+      "tag": "0004_tough_nocturne",
+      "breakpoints": true
     }
   ]
 }

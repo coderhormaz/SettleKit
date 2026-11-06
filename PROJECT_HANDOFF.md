@@ -2,7 +2,7 @@
 
 Updated: 6 November 2026, Asia/Kolkata (IST). Working name: **SettleKit**; name availability has not been checked.
 
-This is the detailed project specification. Read it with `AGENTS.md`, `MEMORY.md`, `PROGRESS.md` and `IMPLEMENTATION_PLAN.md`. **Phase 1 was authorized and is being implemented.** The workspace, private Neon foundation, wallet onboarding and screening code now exist; CRE route simulation and Arkiv read evidence are recorded separately. No payment router, customer payment/refund or production deployment exists. Consult current progress/evidence rather than treating the original specification as proof.
+This is the detailed project specification. Read it with `AGENTS.md`, `MEMORY.md`, `PROGRESS.md` and `IMPLEMENTATION_PLAN.md`. **Phases 3 and 4 are authorized; Phase 2 local checks passed and its checkpoint is being closed.** The workspace, private Neon foundation, wallet onboarding and screening code exist; CRE route simulation and Arkiv read evidence are recorded separately. A locally tested router and checkout/store implementation are being verified. No live customer payment/refund or production deployment exists. Consult current progress/evidence rather than treating the original specification as proof.
 
 Quick reading order: [six-phase execution plan](IMPLEMENTATION_PLAN.md), [fixed decisions](#1-fixed-decisions-preserve-these), [sponsor gates](#3-sponsor-tracks-and-eligibility), [verified facts](#6-verified-network-facts-and-current-unknowns), [CRE design](#12-cre-recovery-workflow), [implementation order](#14-repository-configuration-and-implementation-order), and [current status/start prompt](#17-current-status-and-next-chat-startup). Other sections supply the implementation detail and official resource catalog.
 
@@ -194,14 +194,13 @@ The chain ID was read live on 6 November 2026. [Current network source](https://
 
 ### Still unverified
 
-- CRE HTTP JSON-RPC execution against Whitechain, full merchant-API recovery, and the exact sponsor interpretation of this route.
-- Current CLI/account availability, Bun/WASM setup and any live-deployment access.
-- Test USDT funding method and actual payer/merchant/deployer balances.
-- The specified USDT contract's full ABI, proxy structure, issuer controls, permit/EIP-3009 support and transfer return behavior. Explorer inspection did not establish these.
+- Full CRE merchant-API recovery and sponsor interpretation of the HTTP route. Phase 1's actual CLI simulation against Whitechain plus the diagnostic merchant API passed.
+- Live DON deployment access; installed CLI/login/Bun/WASM compatibility is proven separately.
+- Funded token operations/deployment; roles were read with zero balances and the user deferred funding.
+- The specified USDT's complete issuer controls and permit/EIP-3009 support. Proxy metadata/decimals and zero-value transfer/approval simulations are recorded; they do not prove signed transfers.
 - End-to-end Arkiv SDK write/query using the installed current package.
-- Combined compatibility of the candidate dependency versions below.
-- Any production hosting, domain, database, API keys or contracts. The GitHub remote is now verified and connected; consult `PROGRESS.md` for actual commit/push state.
-- Live sanctions-feed ingestion, any commercial risk-provider credentials, source-of-funds coverage for Whitechain, and safe handling rules for the merchant's operating jurisdictions. A published list of addresses is not a comprehensive illicit-funds detector.
+- Production hosting/domain and a live deployed router; actual private Neon databases and development credentials now exist. Installed compatibility is in `docs/versions.md`; consult `PROGRESS.md` for actual Git checkpoints.
+- Commercial risk-provider credentials, indirect source-of-funds coverage and jurisdiction-specific handling. Live official-feed ingestion is proven with explicit narrow coverage; published addresses are not comprehensive tracing.
 
 ## 7. Current technology baseline
 
@@ -652,7 +651,7 @@ Each phase includes its own meaningful tests, working UI and evidence. The non-u
 
 Before coding each requested phase, prepare/review `docs/phases/phase-N.md`: current prerequisites, bounded scope, ordered tasks, affected APIs/data/UI, state/race cases, sponsor requirements, validation and exit gates. Re-read the relevant live ETHGlobal selected-track rules and official sponsor implementation docs; use actual SDK types/CLI help. Maintain `docs/evidence/index.md` mapping requirements to genuine implementation/checks/references. After implementation, inspect code, test persistence/integrations, render and fix affected UI, update memory/evidence, push coherent verified milestones and report exact outcomes. Routine in-phase planning/review needs no extra approval; starting the next phase still needs the user's instruction.
 
-Phase 1 is authorized and in progress. Complete/report it accurately and wait before Phase 2. The user explicitly deferred test-wallet funding; signed Arkiv write and Whitechain token transfer proofs remain open while independent work continues. Public app hosting is deferred; private persistence uses Neon PostgreSQL. Complete all six phases even beyond the deadline without representing late completion as timely submission. Publication/submission and production deployment require applicable user instructions.
+Phase 2 is authorized and in progress. Complete/report its independent implementation and preserve the explicitly deferred signed Arkiv write, Whitechain deployment and token transaction gates. Wait before Phase 3. Public app hosting is deferred; private persistence uses Neon PostgreSQL. Complete all six phases even beyond the deadline without representing late completion as timely submission. Publication/submission and production deployment require applicable user instructions.
 
 ## 15. Verification and completion gates
 
@@ -747,10 +746,8 @@ Throwaway wallet keys and database credentials exist only in ignored local confi
 
 ### First actions for the implementing agent
 
-Phase 1 is already authorized. Read current memory/evidence, inspect Git/user changes and continue its remaining gates without restarting the foundation or duplicating research. Respect the user's funding deferral and efficient delegation preference. Preserve scope, verify actual outcomes, update evidence and push coherent milestones. Report precise remaining gates and wait before Phase 2.
+Phase 2 is authorized. Read current memory/evidence and Git, then continue remaining checks without restarting the foundation. Respect the user's funding deferral and focused delegation preference. Preserve scope, verify outcomes, update evidence and push coherent milestones. Report precise remaining gates and wait before Phase 3.
 
 ### Prompt the user can paste into a new chat
 
-```text
-Start Phase 1 from IMPLEMENTATION_PLAN.md. First read AGENTS.md, MEMORY.md, PROGRESS.md and PROJECT_HANDOFF.md, then prepare/review docs/phases/phase-1.md before coding. Use Next.js with Neon PostgreSQL/Drizzle/pg and wallet-signature merchant login; run app/worker locally and defer public app hosting. Preserve mandatory wallet screening, Whitechain Sepolia sponsor-USDT checkout/refunds to the original payer, premium merchant dashboard, real Arkiv accountant and actual CRE recovery. Use available design/frontend/browser-testing skills, follow the current selected-track ETHGlobal requirements and linked official sponsor docs, and establish design context before UI code. Execute only Phase 1 now, including actual compatibility/Neon transaction checks, screening tests, real Arkiv write/read and CRE HTTP/Whitechain-RPC route proof. Complete the six-phase scope even beyond the deadline without claiming late submission. Arc/ENS are excluded; AI is optional. Verify the phase completely, preserve real evidence, update memory/progress and commit/push coherent tested milestones to https://github.com/coderhormaz/SettleKit.git. Report Phase 1's result and wait before Phase 2. Record exact external-access blockers and continue independent in-phase work.
-```
+Continue the authorized Phase 3 and Phase 4 work from docs/phases/phase-3.md and phase-4.md after reading AGENTS.md, MEMORY.md, PROGRESS.md and the current implementation/evidence. Preserve Phase 2 verified local behavior and deferred funded live gates. Finish dashboard, refunds, Arkiv projection and independent accountant with the selected stack and sponsor rules; verify/push coherent milestones. Phase 5 is not authorized.

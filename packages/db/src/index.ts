@@ -3,3 +3,7 @@ export * from './jobs.ts';
 export * from './identity.ts';
 export * from './merchant.ts';
 export * from './screening.ts';
+export * from './payments.ts';
+export * from './observer.ts';
+export * from './policy.ts';
+export * from './integration.ts';

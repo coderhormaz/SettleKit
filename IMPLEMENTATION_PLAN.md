@@ -1,6 +1,6 @@
 # SettleKit: six-phase implementation plan
 
-Updated: 7 November 2026 (IST). All six phases are authorized and their implementation source is present. Latest steering: main agent only; finish code and defer further test runs. No delegation. Static compilation and historical results do not close live funded/runtime gates. See `PROGRESS.md`, `docs/IMPLEMENTATION_AUDIT.md` and `docs/evidence/` for actual status.
+Updated: 7 November 2026 (IST). All six phases are authorized. Latest instruction resumes verification: audit every phase, complete gaps, run the app/tests and fix failures. Main agent only. Static compilation/historical results do not close live funded/runtime gates. See `PROGRESS.md`, `docs/phases/phase-6-verification.md` and the implementation audit for current evidence.
 
 Read with [AGENTS.md](AGENTS.md), [MEMORY.md](MEMORY.md), [PROGRESS.md](PROGRESS.md) and [PROJECT_HANDOFF.md](PROJECT_HANDOFF.md). The handoff retains the detailed product/security requirements; this document replaces its former Phase 0–4 numbering with exactly **Phases 1–6**. Current user instructions take precedence.
 

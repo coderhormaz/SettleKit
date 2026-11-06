@@ -25,6 +25,12 @@ export function database(): Database {
 
 export async function transaction<T>(db: Database, work: (client: PoolClient) => Promise<T>): Promise<T> {
   const client = await db.pool.connect();
+  let disconnected=false;
+  // pg-pool handles idle errors, but a checked-out client needs its own
+  // listener. A socket failure must reject the operation, not crash the worker
+  // or return a broken connection to the pool. Never retry an ambiguous commit.
+  const connectionError=()=>{disconnected=true;};
+  client.on('error',connectionError);
   try {
     await client.query('begin');
     await client.query("set local statement_timeout = '10s'");
@@ -32,7 +38,7 @@ export async function transaction<T>(db: Database, work: (client: PoolClient) =>
     await client.query('commit');
     return result;
   } catch (error) {
-    try { await client.query('rollback'); } catch { /* The failed connection is discarded below. */ }
+    try { await client.query('rollback'); } catch { disconnected=true; }
     throw error;
-  } finally { client.release(); }
+  } finally { client.off('error',connectionError);client.release(disconnected); }
 }

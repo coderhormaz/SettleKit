@@ -4,7 +4,9 @@ Updated 7 November 2026 (IST). Read AGENTS.md, MEMORY.md, PROJECT_HANDOFF.md and
 
 ## Current instruction and state
 
-All Phases 1–6 are authorized. **Latest user steering: main agent only, stop all subagents, finish remaining code and defer further test runs.** No subagents remain running. Do not delegate or restart them. Do not re-request the funding that the user explicitly deferred. Static compilation is distinct from deferred runtime/security/browser verification.
+All Phases 1–6 are authorized. **Latest user instruction resumes testing: audit all phases, finish missing features, run the app/tests and fix failure points. Main agent only; do not delegate.** Funding/public hosting remain deferred. See `docs/phases/phase-6-verification.md`; older test-deferral notes below describe the preceding checkpoint, not the current instruction.
+
+Active verification: baseline97 root checks and26 contract cases passed. Eleven new real-Neon recovery cases pass after fixes to duplicate evidence validation and checked-out connection error/discard handling. Local four-service startup/readiness worked but the worker later exited during a transient DB outage; final lifecycle recheck is pending. The actual recovery CLI exposed endpoint validation incompatible with its runtime; the replacement bounded validator is under simulation verification. Missing contact payment history/overview follow-up counts and orphaned-invoice review state are being completed, with dedicated SQL/browser regressions. Latest live reads still show all selected Whitechain roles and Arkiv writer unfunded. Current operations retries encountered transport timeouts; do not convert them to test passes or relax assertions.
 
 Selected Next.js/Neon PostgreSQL/Drizzle/pg stack, wallet-signature login, wallet-first setup and local app/worker operation are preserved. All six phases now have implementation source. Public app hosting, production funds, sponsor messages and submission remain separately authorized. No source-verified live router, actual customer payment/refund, signed Arkiv entity, actual CRE recovery, DON execution, merchant validation or narrated video is claimed.
 

@@ -36,9 +36,10 @@ export async function recoveryCurrent(db:Database,paymentId:string){
 export async function requestRecovery(db:Database,input:unknown,actor:'cre',deps={state:paymentState,order:readStoreOrder}){
   const data=recoverInput.parse(input);const row=(await db.pool.query<{merchant_id:string;checkout_id:string;tx_hash:string;block_hash:string;log_index:number;order_id:string;amount:string;status:string;state_version:number;mode:string;delivery_status:string;event_type:string}>('select c.merchant_id,c.id as checkout_id,p.tx_hash,p.block_hash,p.log_index,c.order_id,c.amount,c.status,c.state_version,c.mode,d.status as delivery_status,d.event_type from payments p join checkout_sessions c on c.id=p.checkout_id join webhook_deliveries d on d.payment_id=p.id where p.id=$1 and d.id=$2',[data.paymentId,data.deliveryId])).rows[0];
   if(!row)throw new AppError('RECOVERY_NOT_FOUND',404,'The recovery association was not found.');
+  if(row.tx_hash.toLowerCase()!==data.txHash.toLowerCase()||row.block_hash.toLowerCase()!==data.blockHash.toLowerCase()||row.log_index!==data.logIndex||row.mode!=='store'||row.event_type!=='payment.accepted')throw new AppError('RECOVERY_EVIDENCE_MISMATCH',409,'Recovery evidence is stale or mismatched.');
   const stableKey=keccak256(toHex(JSON.stringify(['recovery-v1',data.paymentId,data.deliveryId,data.stateVersion,data.round])));
   const existing=(await db.pool.query<{status:string}>('select status from recovery_intents where stable_key=$1',[stableKey])).rows[0];if(existing)return {status:existing.status,duplicate:true};
-  if(row.tx_hash.toLowerCase()!==data.txHash.toLowerCase()||row.block_hash.toLowerCase()!==data.blockHash.toLowerCase()||row.log_index!==data.logIndex||row.state_version!==data.stateVersion||row.mode!=='store'||row.event_type!=='payment.accepted')throw new AppError('RECOVERY_EVIDENCE_MISMATCH',409,'Recovery evidence is stale or mismatched.');
+  if(row.state_version!==data.stateVersion)throw new AppError('RECOVERY_EVIDENCE_MISMATCH',409,'Recovery evidence is stale or mismatched.');
   const state=await deps.state(db,row.merchant_id,data.paymentId);
   if(!state.eligible||state.state_version!==data.stateVersion)throw new AppError('RECOVERY_INELIGIBLE',409,'Current payment state does not allow new fulfillment.');
   const order=await deps.order(db,row.merchant_id,row.order_id,row.amount);

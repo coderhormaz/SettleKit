@@ -6,7 +6,7 @@ Read this file, `PROGRESS.md`, `AGENTS.md`, `PROJECT_HANDOFF.md` and `IMPLEMENTA
 
 ## Accepted user intent
 
-Build an easy-to-integrate stablecoin payment gateway with a premium merchant dashboard. The user approved **Whitechain + Arkiv + Chainlink**, mandatory screening, same-chain refunds and frequent GitHub checkpoints. **All Phases 1–6 are authorized. Latest steering: main agent only, all subagents stopped, finish remaining implementation and defer further test runs.** Do not delegate or restart agents. Keep historical evidence distinct from newer untested changes. Public hosting, production funds and sponsor messages remain separately controlled.
+Build an easy-to-integrate stablecoin payment gateway with a premium merchant dashboard. The user approved **Whitechain + Arkiv + Chainlink**, mandatory screening, same-chain refunds and frequent GitHub checkpoints. **All Phases 1–6 are authorized. Latest instruction resumes testing: audit every phase, complete missing features, run the app/tests and fix failures. Main agent only; do not delegate or restart agents.** Preserve historical versus current evidence. Funding/public hosting/production funds/sponsor messages remain separately controlled.
 
 ## Latest planning decisions
 

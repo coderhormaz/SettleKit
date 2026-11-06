@@ -117,4 +117,18 @@ describe('Phase 3 actual isolated Neon operations and exact synthetic event fixt
     await db.pool.query("update checkout_sessions set status='accepted' where id=$1",[c.id]);expect(await readInternalOrder(db,merchantId,c.order_id,c.amount)).toMatchObject({state:'pending'});
     await db.pool.query("update internal_collection_orders set state='fulfilled',version=version+1 where id=$1",[c.collection_order_id]);expect(await readInternalOrder(db,merchantId,c.order_id,c.amount)).toMatchObject({state:'fulfilled'});
   });
+  it('shows tenant-bound contact invoice/payment history and preserves orphan review with actual follow-up counts',async()=>{
+    // Explicit source-event fixtures test the real SQL projection, not chain execution.
+    const contact=(await saveContact(db,merchantId,{name:'History fixture',email:'history@example.test',notes:'Private history'})).item;
+    const invoice=(await createInvoice(db,merchantId,{title:'History invoice',amountBaseUnits:'1',contactId:contact.id})).item;
+    const session=await createCollectionCheckout(db,'invoice',String(invoice.reference));const checkout=(await db.pool.query<CheckoutRow>('select * from checkout_sessions where reference=$1',[session.reference])).rows[0];
+    const authorization=(await db.pool.query("insert into payment_authorizations(checkout_id,payer,router,evidence,epoch,deadline,payload,signature) values($1,$2,$3,$4,1,now()+interval '1 minute','{}','0x00') returning id",[checkout.id,payer,'0x3333333333333333333333333333333333333333',`0x${randomToken()}`])).rows[0].id;
+    const payment=(await db.pool.query('insert into payments(checkout_id,authorization_id,tx_hash,log_index,block_number,block_hash,payer,block_time) values($1,$2,$3,0,300,$4,$5,now()) returning id',[checkout.id,authorization,`0x${randomToken()}`,`0x${randomToken()}`,payer])).rows[0].id;
+    await db.pool.query("update checkout_sessions set status='accepted' where id=$1",[checkout.id]);
+    const history=await contactDetail(db,merchantId,String(contact.id));expect(history.invoices[0].status).toBe('paid');expect(history.payments.map(row=>row.id)).toEqual([payment]);expect(history.historyLimit).toBe(100);await expect(contactDetail(db,foreignId,String(contact.id))).rejects.toMatchObject({status:404});
+    await db.pool.query('update payments set canonical=false where id=$1',[payment]);await db.pool.query("update checkout_sessions set status='orphaned',state_version=2 where id=$1",[checkout.id]);
+    expect((await contactDetail(db,merchantId,String(contact.id))).invoices[0].status).toBe('review');expect(await publicCollection(db,'invoice',String(invoice.reference))).toMatchObject({status:'review',active:false});
+    await db.pool.query("insert into webhook_deliveries(payment_id,merchant_id,state_version,event_type,status) values($1,$2,2,'payment.review','dead')",[payment,merchantId]);
+    const followUp=await overview(db,merchantId,filter());expect(followUp.reviewCount).toBeGreaterThanOrEqual(1);expect(followUp.notificationIssueCount).toBeGreaterThanOrEqual(1);expect(await overview(db,foreignId,filter())).toMatchObject({reviewCount:0,notificationIssueCount:0});
+  });
 });

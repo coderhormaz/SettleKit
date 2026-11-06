@@ -1,0 +1,32 @@
+Initializing...
+Loading settings...
+Checking RPC connectivity...
+  Reading pre-built WASM binary...
+✓ Loaded WASM binary from ../../data/cre-phase-1.wasm
+✓ Simulation limits enabled
+  HTTP: req=120kb resp=250kb timeout=10s | ConfHTTP: req=125kb resp=500kb timeout=1m30s | Consensus obs=25kb | ChainWrite evm_report=50kb evm_gas=10000000 solana_report=265b solana_cu=300000 | WASM binary=100mb compressed=20mb
+  Binary hash: f88bab3e05488b574bac7502772cba25aa2370222cb117a658206ade8e02e0fe
+  Config hash: 7bb1120209a196064d335d86131aa5450d774e4a0a318bb408f07df6f61111ba
+2026-11-06T04:57:10Z [SIMULATION] Simulator Initialized
+
+2026-11-06T04:57:10Z [SIMULATION] Running trigger trigger=cron-trigger@1.0.0
+2026-11-06T04:57:10Z [USER LOG] Starting Phase 1 Whitechain HTTP and merchant API route proof.
+2026-11-06T04:57:10Z [USER LOG] Route proof: Whitechain 1874, sponsor USDT decimals 6, separate diagnostic API ready.
+
+✓ Workflow Simulation Result:
+{
+  "decimals": 6,
+  "merchantApi": "settlekit-phase1-diagnostic",
+  "proof": "CRE HTTP route feasibility only; no payment or recovery claim",
+  "token": "0xcedfB56113143d55b2358b8CFbB0dEB5Ad2f55a7",
+  "whitechainChainId": 1874
+}
+
+2026-11-06T04:57:10Z [SIMULATION] Execution finished signal received
+2026-11-06T04:57:10Z [SIMULATION] Skipping WorkflowEngineV2
+
+╭──────────────────────────────────────────────────────╮
+│ Simulation complete! Ready to deploy your workflow?  │
+│                                                      │
+│ Run cre account access to request deployment access. │
+╰──────────────────────────────────────────────────────╯

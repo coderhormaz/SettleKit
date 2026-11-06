@@ -1,0 +1,29 @@
+{
+  "kind": "actual-cre-cli-simulation",
+  "checkedOn": "2026-11-06",
+  "status": "passed",
+  "cli": "1.39.0",
+  "sdk": "1.23.0",
+  "bun": "1.4.4",
+  "javy": "8.1.0",
+  "typescript": "5.9.3",
+  "compileCommand": "bun node_modules/@chainlink/cre-sdk/bin/cre-compile.ts main.ts ../../data/cre-phase-1.wasm (cwd packages/cre; Bun on process PATH)",
+  "simulationCommand": "cre workflow simulate . --project-root . --target staging-settings --non-interactive --trigger-index 0 --wasm ../../data/cre-phase-1.wasm --env ../../data/cre-simulation.env (cwd packages/cre)",
+  "sourceSha256": "be3a7cdfc1224721de4fcbb7b88203b25031027df891d042c0a8e0fc5a2b79df",
+  "wasmSha256": "f88bab3e05488b574bac7502772cba25aa2370222cb117a658206ade8e02e0fe",
+  "cliBinaryHash": "7ecf82df731ff2f397ee45be564524352a720626096b3c66c614918844586333",
+  "cliConfigHash": "7bb1120209a196064d335d86131aa5450d774e4a0a318bb408f07df6f61111ba",
+  "log": "docs/evidence/phase-1/cre-simulation.log",
+  "result": {
+    "decimals": 6,
+    "token": "0xcedfB56113143d55b2358b8CFbB0dEB5Ad2f55a7",
+    "whitechainChainId": 1874,
+    "merchantApi": "settlekit-phase1-diagnostic"
+  },
+  "productionSimulationLimitsEnabled": true,
+  "nativeEvmCapabilityUsed": false,
+  "broadcast": false,
+  "deployedToDON": false,
+  "bootstrap": "Ethereum Sepolia RPC is used only by CLI initialization. All workflow chain evidence is read from Whitechain through HTTP. Native Whitechain support was not established.",
+  "boundary": "This proves HTTP/RPC and separate diagnostic API access in real local CRE simulation. It does not prove payment verification, order recovery, decentralized execution or sponsor eligibility."
+}

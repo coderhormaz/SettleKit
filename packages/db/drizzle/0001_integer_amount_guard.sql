@@ -1,0 +1,3 @@
+ALTER TABLE "monetary_precision_checks" DROP CONSTRAINT "uint256_amount";--> statement-breakpoint
+ALTER TABLE "monetary_precision_checks" ALTER COLUMN "amount" SET DATA TYPE numeric;--> statement-breakpoint
+ALTER TABLE "monetary_precision_checks" ADD CONSTRAINT "uint256_amount" CHECK ("monetary_precision_checks"."amount" = trunc("monetary_precision_checks"."amount") and "monetary_precision_checks"."amount" >= 0 and "monetary_precision_checks"."amount" <= 115792089237316195423570985008687907853269984665640564039457584007913129639935);

@@ -1,5 +1,6 @@
 import { readFile, writeFile, mkdir } from "node:fs/promises";
 import { createRequire } from "node:module";
+import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { resolve } from "node:path";
 import solc from "solc";
@@ -14,7 +15,7 @@ const input = {
 };
 const result = JSON.parse(solc.compile(JSON.stringify(input), {
   import(path: string) {
-    try { return { contents: require("node:fs").readFileSync(require.resolve(path), "utf8") as string }; }
+    try { return { contents: readFileSync(require.resolve(path), "utf8") }; }
     catch { return { error: "IMPORT_NOT_FOUND" }; }
   },
 })) as { errors?: { severity: string; formattedMessage: string }[]; contracts?: Record<string, Record<string, { evm: { bytecode: { object: string } } }>> };

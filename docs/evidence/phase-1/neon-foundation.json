@@ -1,0 +1,18 @@
+{
+  "kind": "live-neon-postgresql",
+  "observedAt": "2026-11-05T23:37:00.873Z",
+  "serverVersion": "17.11 (9045acd)",
+  "runtimeRole": {
+    "superuser": false,
+    "bypassRls": false
+  },
+  "tlsMode": "verify-full",
+  "runtimeConnection": "pooled, server only",
+  "migrationConnection": "direct, server only",
+  "developmentAndTestTargets": "separate branches; credentials excluded",
+  "migrations": [
+    "0000_glorious_hercules",
+    "0001_integer_amount_guard"
+  ],
+  "limitations": "No payment router, payment processing or production database claim."
+}

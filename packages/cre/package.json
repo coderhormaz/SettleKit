@@ -4,11 +4,15 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "diagnostic-api": "tsx scripts/diagnostic-api.ts"
+    "diagnostic-api": "tsx scripts/diagnostic-api.ts",
+    "prepare-env": "tsx scripts/prepare-env.ts"
   },
   "dependencies": {
     "@chainlink/cre-sdk": "1.23.0",
     "viem": "2.57.16",
     "zod": "4.6.7"
+  },
+  "devDependencies": {
+    "typescript": "5.9.3"
   }
 }

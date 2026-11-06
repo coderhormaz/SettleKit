@@ -1,0 +1,11 @@
+{
+  "kind": "authenticated-cli-capability-check",
+  "checkedOn": "2026-11-06",
+  "command": "cre workflow supported-chains",
+  "cliVersion": "1.39.0",
+  "nativeWhitechainListed": false,
+  "httpRouteStillRequiresProof": false,
+  "bootstrapDependency": "Official tutorial Ethereum Sepolia RPC, solely to satisfy simulator native-client initialization; no EVM capability call or broadcast in the Phase 1 workflow.",
+  "meaning": "Tenant support listing is evidence of observed native availability, not a conclusion about sponsor eligibility. All actual payment/refund scope remains Whitechain.",
+  "httpRouteProvenViaSimulation": true
+}

@@ -1,0 +1,18 @@
+{
+  "kind": "local-contract-toolchain-spike",
+  "observedAt": "2026-11-05T23:10:54.279Z",
+  "compiler": "0.8.38+commit.1835d247.Emscripten.clang",
+  "evmVersion": "prague",
+  "openZeppelinImports": true,
+  "bytecodeBytes": 246,
+  "deployed": false,
+  "routerImplemented": false,
+  "hardhat": {
+    "verifiedOn": "2026-11-06",
+    "command": "node node_modules/hardhat/dist/src/cli.js compile (cwd packages/contracts)",
+    "runtime": "Node 22.14.0",
+    "viemToolbox": "5.0.7",
+    "result": "Compiled 1 Solidity file with solc 0.8.38 (evm target: prague)",
+    "version": "3.21.2"
+  }
+}

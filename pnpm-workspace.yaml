@@ -2,7 +2,7 @@ packages:
   - apps/*
   - packages/*
 allowBuilds:
-  esbuild: set this to true or false
+  esbuild: true
 minimumReleaseAgeExclude:
   - '@playwright/test@1.65.0'
   - '@tanstack/query-core@5.106.1'
@@ -10,7 +10,3 @@ minimumReleaseAgeExclude:
   - lucide-react@1.69.0
   - playwright-core@1.65.0
   - playwright@1.65.0
-onlyBuiltDependencies:
-  - esbuild
-  - sharp
-  - '@tailwindcss/oxide'

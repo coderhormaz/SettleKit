@@ -1,0 +1,17 @@
+{
+  "kind": "test-wallet-setup",
+  "createdOrReadAt": "2026-11-05T23:10:48.027Z",
+  "privateStorage": "Ignored data/phase-1-wallets.json; private keys are never emitted by this command.",
+  "wallets": {
+    "payer": "0x2D3C8DdC302F86C6a88E7673E0094C6730dF9A5A",
+    "merchant": "0x1A6d39216bcfCA2a93221aB2ed0e43f6561cf192",
+    "deployer": "0xBe86c9c270095425bfa669C606FED8D55F407635",
+    "quoteSigner": "0x739fa9C632cAE4feAc850d9cb3affe59D6568f05",
+    "policyAdmin": "0x75856e7c337A3f6af7c2Bc4981eA7E273633aAC3",
+    "arkivWriter": "0xAB5C7220E7d98D57181346d00D6E7957f42Af486"
+  },
+  "fundingRequired": {
+    "whitechain": "Test WBT for payer/merchant/deployer/policyAdmin; exact sponsor USDT for payer and merchant. Official faucet requires the user's GitHub authentication.",
+    "arkiv": "Test GLM for arkivWriter through Arkiv Hub; an access key may be required for dependable RPC access."
+  }
+}

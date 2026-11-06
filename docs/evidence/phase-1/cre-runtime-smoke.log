@@ -1,0 +1,25 @@
+Initializing...
+Loading settings...
+Checking RPC connectivity...
+  Reading pre-built WASM binary...
+✓ Loaded WASM binary from ../../data/cre-hello.wasm
+✓ Simulation limits enabled
+  HTTP: req=120kb resp=250kb timeout=10s | ConfHTTP: req=125kb resp=500kb timeout=1m30s | Consensus obs=25kb | ChainWrite evm_report=50kb evm_gas=10000000 solana_report=265b solana_cu=300000 | WASM binary=100mb compressed=20mb
+  Binary hash: 62dfe1ae41aa892af40a8290ce23185c0a4b87cae6c5b4cdc165a2d92b3cd764
+  Config hash: 7bb1120209a196064d335d86131aa5450d774e4a0a318bb408f07df6f61111ba
+2026-11-06T04:55:52Z [SIMULATION] Simulator Initialized
+
+2026-11-06T04:55:52Z [SIMULATION] Running trigger trigger=cron-trigger@1.0.0
+2026-11-06T04:55:52Z [USER LOG] SettleKit official SDK runtime smoke.
+
+✓ Workflow Simulation Result:
+"SettleKit CRE runtime smoke"
+
+2026-11-06T04:55:52Z [SIMULATION] Execution finished signal received
+2026-11-06T04:55:52Z [SIMULATION] Skipping WorkflowEngineV2
+
+╭──────────────────────────────────────────────────────╮
+│ Simulation complete! Ready to deploy your workflow?  │
+│                                                      │
+│ Run cre account access to request deployment access. │
+╰──────────────────────────────────────────────────────╯

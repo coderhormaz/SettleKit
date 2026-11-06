@@ -9,8 +9,13 @@
     "authenticodeStatus": "Valid",
     "authenticodeSigner": "SmartContract Inc",
     "installation": "Ignored .tools/cre-1.39.0; no global PATH mutation",
-    "commandsRun": ["version", "workflow simulate --help", "whoami"],
-    "whoamiResult": "Authentication required: not logged in and no CRE_API_KEY set"
+    "commandsRun": [
+      "version",
+      "workflow simulate --help",
+      "whoami"
+    ],
+    "whoamiResult": "Authentication required: not logged in and no CRE_API_KEY set",
+    "authenticationAfterUserLogin": "Verified by authenticated supported-chains and successful CLI simulation"
   },
   "bun": {
     "version": "1.4.4",
@@ -20,5 +25,5 @@
     "digestMatchedOfficialReleaseApi": true,
     "installation": "Ignored .tools/bun-1.4.4; no global PATH mutation"
   },
-  "evidenceBoundary": "Tool versions and login blocker only. No CRE simulation or deployed execution has passed yet."
+  "evidenceBoundary": "Tool integrity, authenticated CLI and actual successful simulation are separately recorded; no deployed workflow execution."
 }

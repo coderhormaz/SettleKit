@@ -1,0 +1,6 @@
+*.wasm
+*.wasm.*
+.cre/
+.env
+.env.*
+!.env.example

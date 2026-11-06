@@ -1,0 +1,39 @@
+{
+  "kind": "live-independent-browser-query",
+  "observedAt": "2026-11-05T23:25:56.845Z",
+  "origin": "http://127.0.0.1:3012",
+  "publicRpc": "https://rpc.rabdi.db-chain.testnet.arkiv.network",
+  "writerFilter": "0xAB5C7220E7d98D57181346d00D6E7957f42Af486",
+  "query": {
+    "jsonrpc": "2.0",
+    "id": 2,
+    "method": "arkiv_query",
+    "params": [
+      "arkiv.schema = str('settlekit.phase1-feasibility.v1') AND $owner = addr(0xAB5C7220E7d98D57181346d00D6E7957f42Af486)",
+      {
+        "select": {
+          "key": true,
+          "owner": false,
+          "creator": false,
+          "createdAt": false,
+          "updatedAt": false,
+          "expiresAt": false,
+          "creationFlags": false,
+          "attributeSchema": false,
+          "attributes": {
+            "kind": true,
+            "message": true,
+            "arkiv.schema": true
+          }
+        }
+      }
+    ]
+  },
+  "httpStatus": 200,
+  "returnedRecordCount": 0,
+  "blockNumber": "0x415b2",
+  "gatewayApiUsed": false,
+  "privateBrowserCredentialUsed": false,
+  "ownEntityWritten": false,
+  "limitation": "Public-browser query works, but no owned entity can be demonstrated until writer test-GLM funding."
+}

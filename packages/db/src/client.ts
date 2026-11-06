@@ -5,7 +5,9 @@ import { AppError } from '@settlekit/core';
 import * as schema from './schema.ts';
 
 export function createDatabase(connectionString: string, max = 4) {
-  const url = new URL(connectionString);
+  let url: URL;
+  try { url = new URL(connectionString); }
+  catch { throw new AppError('DATABASE_CONFIGURATION', 503, 'Database configuration needs attention.'); }
   if (!['postgres:', 'postgresql:'].includes(url.protocol) || !url.hostname.endsWith('.neon.tech') || url.searchParams.get('sslmode') !== 'verify-full') {
     throw new AppError('DATABASE_CONFIGURATION', 503, 'Database configuration needs attention.');
   }

@@ -1,2 +1,6 @@
 staging-settings:
-  rpcs: []
+  rpcs:
+    # CLI bootstrap only: v1.39.0 requires a registered native client even for HTTP-only workflows.
+    # The workflow makes no native EVM calls; actual business-chain reads use fixed Whitechain HTTP RPC.
+    - chain-name: "ethereum-testnet-sepolia"
+      url: "https://ethereum-sepolia-rpc.publicnode.com"

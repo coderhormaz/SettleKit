@@ -6,16 +6,16 @@ Read this file, `PROGRESS.md`, `AGENTS.md`, `PROJECT_HANDOFF.md` and `IMPLEMENTA
 
 ## Accepted user intent
 
-Build an easy-to-integrate stablecoin payment gateway with a premium, fully functional merchant dashboard. The user approved **Whitechain + Arkiv + Chainlink** and then explicitly required security screening, same-chain refunds, polished UI/UX and frequent GitHub checkpoints. The latest deliverable is a complete six-phase implementation plan and technology recommendation. **Do not start application implementation until the user says to start a phase.** Complete and report that phase, then wait for the next phase instruction.
+Build an easy-to-integrate stablecoin payment gateway with a premium, fully functional merchant dashboard. The user approved **Whitechain + Arkiv + Chainlink**, mandatory screening, same-chain refunds, premium UI and frequent GitHub checkpoints. **Phase 1 was authorized on 6 November 2026 and is in progress.** Complete and report its actual results/gates, then wait before Phase 2. The user also requested token-efficient focused subagents; avoid duplicate research and broad repeated reviews.
 
 ## Latest planning decisions
 
 - The execution plan is `IMPLEMENTATION_PLAN.md`, Phases **1–6**: foundation/feasibility; screened payment/store fulfillment; complete merchant operations dashboard; refunds/Arkiv/accounting; CRE recovery; final verification/release/evidence. This replaces the old Phase 0–4 numbering.
 - Merchant authentication: wallet-signature login with ownership proof and durable secure sessions.
-- The user's latest stack choice is **Next.js + Neon PostgreSQL**, retaining the other components. Drizzle/Drizzle Kit with `pg` replaces SQLite/libSQL before implementation. Run the gateway/worker locally against Neon; public app hosting stays deferred. Neon access is now a Phase 1 prerequisite, and no project/database has yet been provisioned or tested.
+- The user's stack choice is **Next.js + Neon PostgreSQL** with Drizzle/pg, wallet signatures and the other accepted components. The isolated Neon development/test branches are now provisioned, migrations applied and actual PostgreSQL integration checks run. App/worker run locally; public app hosting remains deferred. See `docs/versions.md` for installed compatible pins.
 - Complete all six phases even beyond the published event deadline; do not imply late work constitutes a timely entry.
 - Exact dependency pins remain untested until Phase 1. The non-upgradeable router must include tested payment and refund primitives before its initial deployment; Phase 4 adds the refund service/UI and live refund evidence.
-- Current stage remains planning only. The next action is to wait for **“Start Phase 1”**, then execute its prerequisite checks and foundation work.
+- Current stage: Phase 1 foundation/verification. Wallet-first onboarding was confirmed; user completed CRE login. Official-source ingestion and real Neon persistence work; CRE route simulation and independent Arkiv queries have live evidence. The user explicitly deferred test funding, leaving Arkiv signed write and Whitechain approval/transfer proof open. Do not re-request funding repeatedly or call the phase complete.
 - Before coding every requested phase, prepare/review its detailed plan, UX/data/security changes, sponsor requirements, meaningful checks and exit criteria. Then implement, verify all in-scope behavior, update evidence, commit/push coherent milestones and report. Use the available design skills for a polished product and actual browser inspection, not build success alone.
 
 ## Non-negotiable product decisions
@@ -58,7 +58,7 @@ Apply Impeccable's relevant context/shaping/critique guidance and the appropriat
 
 ## Engineering and evidence
 
-Use current compatible stable releases, pinned after compatibility checks. Handoff section 7 and the implementation plan record researched candidates; these are not installed/tested versions. Planning rechecked Node `22.14.0` and pnpm `11.25.0`; Bun, CRE, Docker and psql were not found on PATH. No application dependencies, Bun or CRE were installed during planning.
+Installed Phase 1 pins and exact compatibility findings are in `docs/versions.md` and `pnpm-lock.yaml`. TypeScript 7 broke the real CRE compiler API; **5.9.3** is the verified compatible pin. System Node is 22.14.0 and pnpm's runtime reports 24.22.1; pnpm is 11.25.0. Verified CRE 1.39.0/Bun 1.4.4 are under ignored `.tools`; do not reinstall blindly. CRE's CLI needs a documented supported-network bootstrap, but the workflow's actual HTTP chain reads remain Whitechain and never move funds.
 
 Use Next/React/TypeScript, Neon PostgreSQL/Drizzle/pg, viem/wagmi, Hardhat/OpenZeppelin, the official Arkiv SDK and real CRE SDK. Keep pooled runtime and direct migration credentials private, use isolated development/test targets, and test transaction/job/monetary precision and reconnection behavior on actual PostgreSQL. Public Arkiv projection is distinct from the private database; workers remain persistent. Preserve source attribution, meaningful tests and real deployment/entity/workflow evidence.
 

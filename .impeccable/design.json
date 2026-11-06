@@ -1,0 +1,432 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-11-05T23:34:17.009Z",
+  "title": "Design System: SettleKit",
+  "extensions": {
+    "colorMeta": {
+      "primary": {
+        "role": "primary",
+        "displayName": "Settlement Mint",
+        "canonical": "#a3f5c5",
+        "tonalRamp": [
+          "oklch(15% 0.0208 157.82)",
+          "oklch(24% 0.0584 157.82)",
+          "oklch(34% 0.1001 157.82)",
+          "oklch(46% 0.1042 157.82)",
+          "oklch(60% 0.1042 157.82)",
+          "oklch(73% 0.1042 157.82)",
+          "oklch(85% 0.0625 157.82)",
+          "oklch(95% 0.0208 157.82)"
+        ]
+      },
+      "primary-ink": {
+        "role": "primary",
+        "displayName": "Primary Ink",
+        "canonical": "#11291b",
+        "tonalRamp": [
+          "oklch(15% 0.0081 156.43)",
+          "oklch(24% 0.0226 156.43)",
+          "oklch(34% 0.0388 156.43)",
+          "oklch(46% 0.0404 156.43)",
+          "oklch(60% 0.0404 156.43)",
+          "oklch(73% 0.0404 156.43)",
+          "oklch(85% 0.0243 156.43)",
+          "oklch(95% 0.0081 156.43)"
+        ]
+      },
+      "primary-hover": {
+        "role": "primary",
+        "displayName": "Hover Mint",
+        "canonical": "#c1fbd9",
+        "tonalRamp": [
+          "oklch(15% 0.0149 158.86)",
+          "oklch(24% 0.0418 158.86)",
+          "oklch(34% 0.0716 158.86)",
+          "oklch(46% 0.0746 158.86)",
+          "oklch(60% 0.0746 158.86)",
+          "oklch(73% 0.0746 158.86)",
+          "oklch(85% 0.0447 158.86)",
+          "oklch(95% 0.0149 158.86)"
+        ]
+      },
+      "background": {
+        "role": "neutral",
+        "displayName": "Graphite Background",
+        "canonical": "#0b0d11",
+        "tonalRamp": [
+          "oklch(15% 0.0018 264.27)",
+          "oklch(24% 0.0051 264.27)",
+          "oklch(34% 0.0088 264.27)",
+          "oklch(46% 0.0091 264.27)",
+          "oklch(60% 0.0091 264.27)",
+          "oklch(73% 0.0091 264.27)",
+          "oklch(85% 0.0055 264.27)",
+          "oklch(95% 0.0018 264.27)"
+        ]
+      },
+      "surface": {
+        "role": "neutral",
+        "displayName": "Work Surface",
+        "canonical": "#12151c",
+        "tonalRamp": [
+          "oklch(15% 0.0030 266.81)",
+          "oklch(24% 0.0084 266.81)",
+          "oklch(34% 0.0143 266.81)",
+          "oklch(46% 0.0149 266.81)",
+          "oklch(60% 0.0149 266.81)",
+          "oklch(73% 0.0149 266.81)",
+          "oklch(85% 0.0090 266.81)",
+          "oklch(95% 0.0030 266.81)"
+        ]
+      },
+      "border": {
+        "role": "neutral",
+        "displayName": "Quiet Border",
+        "canonical": "#282e39",
+        "tonalRamp": [
+          "oklch(15% 0.0043 262.52)",
+          "oklch(24% 0.0122 262.52)",
+          "oklch(34% 0.0208 262.52)",
+          "oklch(46% 0.0217 262.52)",
+          "oklch(60% 0.0217 262.52)",
+          "oklch(73% 0.0217 262.52)",
+          "oklch(85% 0.0130 262.52)",
+          "oklch(95% 0.0043 262.52)"
+        ]
+      },
+      "foreground": {
+        "role": "neutral",
+        "displayName": "Near-white Foreground",
+        "canonical": "#f5f7fa",
+        "tonalRamp": [
+          "oklch(15% 0.0009 258.32)",
+          "oklch(24% 0.0025 258.32)",
+          "oklch(34% 0.0044 258.32)",
+          "oklch(46% 0.0045 258.32)",
+          "oklch(60% 0.0045 258.32)",
+          "oklch(73% 0.0045 258.32)",
+          "oklch(85% 0.0027 258.32)",
+          "oklch(95% 0.0009 258.32)"
+        ]
+      },
+      "secondary-text": {
+        "role": "neutral",
+        "displayName": "Secondary Text",
+        "canonical": "#a5adbd",
+        "tonalRamp": [
+          "oklch(15% 0.0049 264.41)",
+          "oklch(24% 0.0138 264.41)",
+          "oklch(34% 0.0237 264.41)",
+          "oklch(46% 0.0247 264.41)",
+          "oklch(60% 0.0247 264.41)",
+          "oklch(73% 0.0247 264.41)",
+          "oklch(85% 0.0148 264.41)",
+          "oklch(95% 0.0049 264.41)"
+        ]
+      },
+      "quiet-text": {
+        "role": "neutral",
+        "displayName": "Quiet Text",
+        "canonical": "#8e98ab",
+        "tonalRamp": [
+          "oklch(15% 0.0061 263.36)",
+          "oklch(24% 0.0170 263.36)",
+          "oklch(34% 0.0291 263.36)",
+          "oklch(46% 0.0303 263.36)",
+          "oklch(60% 0.0303 263.36)",
+          "oklch(73% 0.0303 263.36)",
+          "oklch(85% 0.0182 263.36)",
+          "oklch(95% 0.0061 263.36)"
+        ]
+      },
+      "caution": {
+        "role": "tertiary",
+        "displayName": "Caution Amber",
+        "canonical": "#f5cf8e",
+        "tonalRamp": [
+          "oklch(15% 0.0186 80.46)",
+          "oklch(24% 0.0520 80.46)",
+          "oklch(34% 0.0891 80.46)",
+          "oklch(46% 0.0928 80.46)",
+          "oklch(60% 0.0928 80.46)",
+          "oklch(73% 0.0928 80.46)",
+          "oklch(85% 0.0557 80.46)",
+          "oklch(95% 0.0186 80.46)"
+        ]
+      },
+      "error": {
+        "role": "tertiary",
+        "displayName": "Error Rose",
+        "canonical": "#ffb2ad",
+        "tonalRamp": [
+          "oklch(15% 0.0182 23.33)",
+          "oklch(24% 0.0509 23.33)",
+          "oklch(34% 0.0872 23.33)",
+          "oklch(46% 0.0909 23.33)",
+          "oklch(60% 0.0909 23.33)",
+          "oklch(73% 0.0909 23.33)",
+          "oklch(85% 0.0545 23.33)",
+          "oklch(95% 0.0182 23.33)"
+        ]
+      },
+      "input-background": {
+        "role": "neutral",
+        "displayName": "Input Ground",
+        "canonical": "#0e1219",
+        "tonalRamp": [
+          "oklch(15% 0.0032 261.54)",
+          "oklch(24% 0.0088 261.54)",
+          "oklch(34% 0.0152 261.54)",
+          "oklch(46% 0.0158 261.54)",
+          "oklch(60% 0.0158 261.54)",
+          "oklch(73% 0.0158 261.54)",
+          "oklch(85% 0.0095 261.54)",
+          "oklch(95% 0.0032 261.54)"
+        ]
+      },
+      "input-border": {
+        "role": "neutral",
+        "displayName": "Input Border",
+        "canonical": "#3a4554",
+        "tonalRamp": [
+          "oklch(15% 0.0059 256.22)",
+          "oklch(24% 0.0165 256.22)",
+          "oklch(34% 0.0282 256.22)",
+          "oklch(46% 0.0294 256.22)",
+          "oklch(60% 0.0294 256.22)",
+          "oklch(73% 0.0294 256.22)",
+          "oklch(85% 0.0176 256.22)",
+          "oklch(95% 0.0059 256.22)"
+        ]
+      },
+      "selected-background": {
+        "role": "primary",
+        "displayName": "Selected Ground",
+        "canonical": "#1b2825",
+        "tonalRamp": [
+          "oklch(15% 0.0037 178.95)",
+          "oklch(24% 0.0105 178.95)",
+          "oklch(34% 0.0180 178.95)",
+          "oklch(46% 0.0187 178.95)",
+          "oklch(60% 0.0187 178.95)",
+          "oklch(73% 0.0187 178.95)",
+          "oklch(85% 0.0112 178.95)",
+          "oklch(95% 0.0037 178.95)"
+        ]
+      },
+      "selected-text": {
+        "role": "primary",
+        "displayName": "Selected Text",
+        "canonical": "#c4f7d9",
+        "tonalRamp": [
+          "oklch(15% 0.0132 159.01)",
+          "oklch(24% 0.0370 159.01)",
+          "oklch(34% 0.0634 159.01)",
+          "oklch(46% 0.0660 159.01)",
+          "oklch(60% 0.0660 159.01)",
+          "oklch(73% 0.0660 159.01)",
+          "oklch(85% 0.0396 159.01)",
+          "oklch(95% 0.0132 159.01)"
+        ]
+      },
+      "secondary-button": {
+        "role": "neutral",
+        "displayName": "Secondary Action Ground",
+        "canonical": "#19212a",
+        "tonalRamp": [
+          "oklch(15% 0.0042 251.66)",
+          "oklch(24% 0.0117 251.66)",
+          "oklch(34% 0.0200 251.66)",
+          "oklch(46% 0.0208 251.66)",
+          "oklch(60% 0.0208 251.66)",
+          "oklch(73% 0.0208 251.66)",
+          "oklch(85% 0.0125 251.66)",
+          "oklch(95% 0.0042 251.66)"
+        ]
+      },
+      "secondary-button-text": {
+        "role": "neutral",
+        "displayName": "Secondary Action Text",
+        "canonical": "#c7d5e5",
+        "tonalRamp": [
+          "oklch(15% 0.0054 251.69)",
+          "oklch(24% 0.0151 251.69)",
+          "oklch(34% 0.0258 251.69)",
+          "oklch(46% 0.0269 251.69)",
+          "oklch(60% 0.0269 251.69)",
+          "oklch(73% 0.0269 251.69)",
+          "oklch(85% 0.0161 251.69)",
+          "oklch(95% 0.0054 251.69)"
+        ]
+      }
+    },
+    "typographyMeta": {
+      "display": {
+        "displayName": "Page Display",
+        "purpose": "Primary workspace title."
+      },
+      "headline": {
+        "displayName": "Wallet Headline",
+        "purpose": "Identity-entry task headline."
+      },
+      "title": {
+        "displayName": "Section Title",
+        "purpose": "Functional form and settlement headings."
+      },
+      "body": {
+        "displayName": "Body",
+        "purpose": "Readable operational copy."
+      },
+      "label": {
+        "displayName": "Label",
+        "purpose": "Persistent field and control labels."
+      },
+      "identifier": {
+        "displayName": "Identifier",
+        "purpose": "Wallet addresses and code with tabular numerals."
+      }
+    },
+    "shadows": [],
+    "motion": [
+      {
+        "name": "state-transition",
+        "value": "150ms ease-out",
+        "purpose": "Background, border, opacity and disclosure feedback."
+      },
+      {
+        "name": "button-active",
+        "value": "translateY(1px)",
+        "purpose": "Small pressed response on enabled actions."
+      },
+      {
+        "name": "loading-spinner",
+        "value": "1s linear infinite",
+        "purpose": "Visible in-flight work; reduced motion collapses animation to one minimal update."
+      }
+    ],
+    "breakpoints": [
+      {
+        "name": "wide",
+        "value": "1500px"
+      },
+      {
+        "name": "compact-desktop",
+        "value": "1100px"
+      },
+      {
+        "name": "single-column",
+        "value": "900px"
+      },
+      {
+        "name": "mobile",
+        "value": "600px"
+      }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "Mint task action with explicit hover, focus and disabled feedback.",
+      "html": "<button class=\"ds-button-primary\">Save business details</button>",
+      "css": ".ds-button-primary{display:inline-flex;align-items:center;justify-content:center;gap:9px;min-height:42px;padding:11px 16px;border:1px solid transparent;border-radius:7px;background:var(--mint,#a3f5c5);color:var(--mint-ink,#11291b);font-family:var(--font-sans,Manrope,sans-serif);font-size:13px;font-weight:750;cursor:pointer;transition:background 150ms ease-out,opacity 150ms ease-out}.ds-button-primary:hover:not(:disabled){background:#c1fbd9}.ds-button-primary:focus-visible{outline:2px solid var(--mint,#a3f5c5);outline-offset:5px}.ds-button-primary:active:not(:disabled){transform:translateY(1px)}.ds-button-primary:disabled{opacity:.5;cursor:not-allowed}"
+    },
+    {
+      "name": "Secondary Button",
+      "kind": "button",
+      "refersTo": "button-secondary",
+      "description": "A quieter outlined action for settlement ownership proof.",
+      "html": "<button class=\"ds-button-secondary\">Prove connected wallet</button>",
+      "css": ".ds-button-secondary{display:inline-flex;align-items:center;justify-content:center;min-height:38px;padding:9px 12px;border:1px solid #475465;border-radius:7px;background:#19212a;color:#c7d5e5;font-family:var(--font-sans,Manrope,sans-serif);font-size:12px;font-weight:600;cursor:pointer;transition:background 150ms ease-out,border-color 150ms ease-out}.ds-button-secondary:hover:not(:disabled){background:#25303c;border-color:#64758b}.ds-button-secondary:focus-visible{outline:2px solid var(--mint,#a3f5c5);outline-offset:5px}.ds-button-secondary:active:not(:disabled){transform:translateY(1px)}.ds-button-secondary:disabled{opacity:.5;cursor:not-allowed}"
+    },
+    {
+      "name": "Ghost Action",
+      "kind": "button",
+      "refersTo": "button-ghost",
+      "description": "A 44px square icon action; this sample shows the sign-out affordance.",
+      "html": "<button class=\"ds-ghost\" aria-label=\"Sign out\"><svg width=\"18\" height=\"18\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9\"/></svg></button>",
+      "css": ".ds-ghost{width:44px;height:44px;display:grid;place-items:center;border:0;border-radius:6px;color:var(--muted,#a5adbd);background:transparent;cursor:pointer;transition:background 150ms ease-out}.ds-ghost:hover:not(:disabled){background:#242c35;color:var(--text,#f5f7fa)}.ds-ghost:focus-visible{outline:2px solid var(--mint,#a3f5c5);outline-offset:5px}.ds-ghost:active:not(:disabled){transform:translateY(1px)}.ds-ghost:disabled{opacity:.5;cursor:not-allowed}"
+    },
+    {
+      "name": "Labeled Input",
+      "kind": "input",
+      "refersTo": "input",
+      "description": "Persistent label, dark editable ground and visible focus/error treatment.",
+      "html": "<label class=\"ds-field\">Business name<input class=\"ds-input\" placeholder=\"Your business name\" autocomplete=\"organization\" /></label>",
+      "css": ".ds-field{display:flex;flex-direction:column;gap:8px;color:#d9e0ea;font-family:var(--font-sans,Manrope,sans-serif);font-size:13px;font-weight:550}.ds-input{width:100%;min-height:44px;padding:11px 12px;border:1px solid #3a4554;border-radius:7px;background:#0e1219;color:var(--text,#f5f7fa);font-family:inherit;font-size:14px;line-height:1.6;caret-color:var(--mint,#a3f5c5)}.ds-input::placeholder{color:#8996aa}.ds-input:focus-visible{outline:2px solid var(--mint,#a3f5c5);outline-offset:2px}.ds-input[aria-invalid=\"true\"]{border-color:#b76864}.ds-input:disabled{opacity:.5;cursor:not-allowed}@media(max-width:600px){.ds-input{font-size:16px}}"
+    },
+    {
+      "name": "Active Navigation",
+      "kind": "nav",
+      "refersTo": "navigation-active",
+      "description": "Only implemented destinations appear; current navigation has a mint-tinted field.",
+      "html": "<nav aria-label=\"Workspace\"><a class=\"ds-nav-active\" href=\"#business-setup\" aria-current=\"page\"><svg width=\"19\" height=\"19\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.7\" aria-hidden=\"true\"><path d=\"M12 22v-6M8 20v-7a4 4 0 0 1 8 0v5M4 15v-2a8 8 0 0 1 16 0v2M12 2a11 11 0 0 0-10 7\"/></svg>Business setup</a></nav>",
+      "css": ".ds-nav-active{display:flex;align-items:center;gap:10px;padding:11px 12px;border-radius:8px;background:#1b2825;color:#c4f7d9;font-family:var(--font-sans,Manrope,sans-serif);font-size:14px;font-weight:600;text-decoration:none}.ds-nav-active:focus-visible{outline:2px solid var(--mint,#a3f5c5);outline-offset:5px}"
+    },
+    {
+      "name": "Environment Chip",
+      "kind": "chip",
+      "refersTo": "environment-chip",
+      "description": "Compact test-environment labeling without a pretend balance or metric.",
+      "html": "<span class=\"ds-chip\">Test setup</span>",
+      "css": ".ds-chip{display:inline-flex;padding:5px 9px;border:1px solid #3d4350;border-radius:5px;color:#b6c0d0;background:transparent;font-family:var(--font-sans,Manrope,sans-serif);font-size:12px;white-space:nowrap}"
+    },
+    {
+      "name": "Work Panel",
+      "kind": "card",
+      "refersTo": "work-panel",
+      "description": "A flat bordered functional surface with responsive internal padding.",
+      "html": "<section class=\"ds-panel\"><h2 class=\"ds-panel-title\">Make it official.</h2><p class=\"ds-panel-copy\">A few details for your business workspace.</p></section>",
+      "css": ".ds-panel{padding:33px;border:1px solid var(--border,#282e39);border-radius:var(--radius,15px);background:var(--surface,#12151c);color:var(--text,#f5f7fa);font-family:var(--font-sans,Manrope,sans-serif)}.ds-panel-title{margin:0;font-size:23px;line-height:1.55;letter-spacing:-.7px;font-weight:580}.ds-panel-copy{margin:7px 0 0;color:var(--muted,#a5adbd);font-size:13px;line-height:1.55}@media(max-width:600px){.ds-panel{padding:26px 24px}}"
+    },
+    {
+      "name": "Error Notice",
+      "kind": "custom",
+      "refersTo": "status-notice",
+      "description": "Inline failure with truthful copy; caller supplies the actual problem and recovery.",
+      "html": "<div class=\"ds-notice\" role=\"alert\"><strong class=\"ds-notice-title\">Let’s try that again</strong><p class=\"ds-notice-copy\">We couldn’t reach SettleKit. Check your connection and try again.</p></div>",
+      "css": ".ds-notice{padding:14px;border:1px solid #5c393b;border-radius:9px;background:#2b1c1d;color:#f5c3bb;font-family:var(--font-sans,Manrope,sans-serif);font-size:13px;line-height:1.8}.ds-notice-title{display:block;font-size:14px}.ds-notice-copy{margin:1px 0 0}"
+    }
+  ],
+  "narrative": {
+    "northStar": "A clear operating workspace",
+    "overview": "The implemented system follows the user's graphite-and-mint fintech brief. Its expression comes from an aligned working shell, readable forms, controlled density and precise feedback. The work surface leads; supporting explanations describe ownership, screening limits and the test environment without competing with the task.\n\nThis is a scan of the Phase 1 onboarding implementation, not a speculative dashboard library. Future screens inherit its palette, type and control grammar while choosing layouts appropriate to their own jobs. Route-specific onboarding composition remains in `docs/design/onboarding.md`.",
+    "keyCharacteristics": [
+      "Graphite layers and restrained mint actions.",
+      "Real operational state with explicit unavailable and review outcomes.",
+      "Familiar controls, clear alignment and readable identifiers.",
+      "Border-defined surfaces, without decorative glow or shadows."
+    ],
+    "rules": [
+      {
+        "name": "The State Is Evidence Rule",
+        "body": "Positive color is conditional on current successful application state; stale or failed reads cannot retain a fresh allowed appearance.",
+        "section": "colors"
+      },
+      {
+        "name": "The Operational Type Rule",
+        "body": "Use monospace for code and identifiers, not as a general fintech costume. Keep a clear hierarchy through weight, scale and spacing.",
+        "section": "typography"
+      },
+      {
+        "name": "The Flat Surface Rule",
+        "body": "A new surface uses tonal separation and a border before considering any additional elevation treatment.",
+        "section": "elevation"
+      }
+    ],
+    "dos": [
+      "Do preserve the graphite/mint palette and flat working surfaces.",
+      "Do show real application state with readable text and recovery actions.",
+      "Do keep full wallet values accessible and allow long identifiers to wrap.",
+      "Do inspect the actual mobile and desktop layouts after material changes.",
+      "Do honor keyboard focus and reduced-motion preferences."
+    ],
+    "donts": [
+      "Don't show fake balances, market decoration or inactive future navigation.",
+      "Don't describe a stale or unavailable screening result as passed.",
+      "Don't use gradients, halos or heavy shadows to replace useful content.",
+      "Don't treat a successful build or a visual snapshot as proof of every user state."
+    ]
+  }
+}

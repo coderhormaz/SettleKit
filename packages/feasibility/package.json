@@ -6,6 +6,7 @@
   "scripts": {
     "probe:whitechain": "tsx src/whitechain.ts",
     "probe:arkiv": "tsx src/arkiv.ts",
+    "probe:arkiv-browser": "tsx src/arkiv-browser.ts",
     "wallets": "tsx src/wallets.ts"
   },
   "dependencies": {

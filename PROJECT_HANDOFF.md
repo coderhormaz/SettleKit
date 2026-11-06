@@ -2,7 +2,7 @@
 
 Updated: 6 November 2026, Asia/Kolkata (IST). Working name: **SettleKit**; name availability has not been checked.
 
-This is the detailed project specification. Read this file with `AGENTS.md`, `MEMORY.md`, `PROGRESS.md` and `IMPLEMENTATION_PLAN.md` before coding. The user approved the direction below and requested persistent memory, GitHub checkpoints and a complete six-phase plan before implementation. **No application, contract, CRE workflow, deployment, or testnet payment has been built yet.** Start only a phase the user instructs; do not automatically begin coding from this handoff.
+This is the detailed project specification. Read it with `AGENTS.md`, `MEMORY.md`, `PROGRESS.md` and `IMPLEMENTATION_PLAN.md`. **Phase 1 was authorized and is being implemented.** The workspace, private Neon foundation, wallet onboarding and screening code now exist; CRE route simulation and Arkiv read evidence are recorded separately. No payment router, customer payment/refund or production deployment exists. Consult current progress/evidence rather than treating the original specification as proof.
 
 Quick reading order: [six-phase execution plan](IMPLEMENTATION_PLAN.md), [fixed decisions](#1-fixed-decisions-preserve-these), [sponsor gates](#3-sponsor-tracks-and-eligibility), [verified facts](#6-verified-network-facts-and-current-unknowns), [CRE design](#12-cre-recovery-workflow), [implementation order](#14-repository-configuration-and-implementation-order), and [current status/start prompt](#17-current-status-and-next-chat-startup). Other sections supply the implementation detail and official resource catalog.
 
@@ -213,7 +213,7 @@ Use current stable, mutually compatible technology, not remembered version numbe
 | pnpm | `12.16.1` | Workspace/package management; respect starter pins until compatibility is validated |
 | Next.js | `16.4.5` | App Router dashboard, hosted checkout and REST backend |
 | React / React DOM | `19.3.1` / `19.3.1` | Match both versions |
-| TypeScript | `7.0.2` | Strict application typing; verify every tool's support for this major |
+| TypeScript | `5.9.3` installed | Candidate 7.0.2 failed the actual CRE SDK compiler API; the compatible pin is recorded in docs/versions.md |
 | Tailwind CSS | `4.3.4` | Small, responsive UI system |
 | viem | `2.57.16` | EVM reads, ABI encoding and transaction handling |
 | wagmi | `3.7.11` | Browser wallet hooks |
@@ -229,7 +229,7 @@ Use current stable, mutually compatible technology, not remembered version numbe
 | Drizzle ORM | `0.45.4` | Small private operational-store schema/migrations |
 | node-postgres (`pg`) | `8.23.1` | Neon PostgreSQL driver for Node gateway/worker; rechecked after the user's database change |
 | Vitest | `5.1.0` | Business logic and integration checks where appropriate |
-| Playwright test | `1.64.1` | Browser workflows and screenshots |
+| Playwright test | `1.65.0` installed | Browser workflows and screenshots; Chromium 1254 installed |
 
 Version provenance: `https://registry.npmjs.org/<package>/latest` (URL-encode scoped names). Examples: [Next](https://registry.npmjs.org/next/latest), [wagmi](https://registry.npmjs.org/wagmi/latest), [Arkiv](https://registry.npmjs.org/@arkiv-network%2fsdk/latest), [CRE SDK](https://registry.npmjs.org/@chainlink%2fcre-sdk/latest), [Hardhat](https://registry.npmjs.org/hardhat/latest). Product docs: [Next](https://nextjs.org/docs), [React](https://react.dev/), [TypeScript](https://www.typescriptlang.org/docs/), [Tailwind](https://tailwindcss.com/docs), [viem](https://viem.sh/docs/getting-started), [wagmi](https://wagmi.sh/react/getting-started), [Hardhat](https://hardhat.org/docs), [OpenZeppelin](https://docs.openzeppelin.com/contracts/), [Drizzle](https://orm.drizzle.team/docs/overview), [Playwright](https://playwright.dev/docs/intro).
 
@@ -652,7 +652,7 @@ Each phase includes its own meaningful tests, working UI and evidence. The non-u
 
 Before coding each requested phase, prepare/review `docs/phases/phase-N.md`: current prerequisites, bounded scope, ordered tasks, affected APIs/data/UI, state/race cases, sponsor requirements, validation and exit gates. Re-read the relevant live ETHGlobal selected-track rules and official sponsor implementation docs; use actual SDK types/CLI help. Maintain `docs/evidence/index.md` mapping requirements to genuine implementation/checks/references. After implementation, inspect code, test persistence/integrations, render and fix affected UI, update memory/evidence, push coherent verified milestones and report exact outcomes. Routine in-phase planning/review needs no extra approval; starting the next phase still needs the user's instruction.
 
-Current instruction is **planning only**. Wait for “Start Phase 1,” complete/report that phase and wait for the next instruction. Continue independent in-phase work when external access is pending, but leave affected gates explicitly incomplete. Public app hosting is deferred; the private database is Neon PostgreSQL. Complete all six phases even beyond the published deadline. Late completion must not be represented as a timely submission. Publication/submission and production deployment require their applicable user instructions.
+Phase 1 is authorized and in progress. Complete/report it accurately and wait before Phase 2. The user explicitly deferred test-wallet funding; signed Arkiv write and Whitechain token transfer proofs remain open while independent work continues. Public app hosting is deferred; private persistence uses Neon PostgreSQL. Complete all six phases even beyond the deadline without representing late completion as timely submission. Publication/submission and production deployment require applicable user instructions.
 
 ## 15. Verification and completion gates
 
@@ -728,11 +728,14 @@ Create an evidence index linking each sponsor requirement to implementation file
 - [x] Subsequent planning chat produced `IMPLEMENTATION_PLAN.md`, exactly six phases with recommended stack, dependencies, tests, exit gates and checkpoints. Confirmed wallet login, local-first hosting deferral and full-scope completion beyond the deadline; all implementation phases are still pending.
 - [x] Latest user update selects Next.js + Neon PostgreSQL and reinforces skill-guided premium UI, plan/review before implementation, complete verification/reporting, sponsor-documentation compliance and ongoing GitHub pushes. Persistent plan/memory updated; no implementation or Neon provisioning is claimed.
 
-### Implementation not started
+### Current implementation evidence
 
-- [ ] Application scaffolding; repository/remote setup is complete.
-- [ ] Dependency installation, compatibility proof and lockfile.
-- [ ] Neon project/development branch access, protected pooled/direct connections and real PostgreSQL migration/transaction/concurrency proof.
+Phase 1 now has pinned source/lockfile, live Neon development/test migrations and integration tests, private wallet/session/profile services, deterministic screening and a local onboarding interface. Official OFAC source import persisted 19,555 records / 124 ETH identifiers with provenance. Actual CRE HTTP/Whitechain-plus-diagnostic-API simulation and independent public Arkiv queries have evidence in `docs/evidence/phase-1/`; they do not establish payment recovery or an Arkiv write. Token roles/writer remain unfunded by the user's explicit deferral. `PROGRESS.md` records exact checks and remaining UI/review gates.
+
+### Remaining implementation
+
+- [x] Application workspace, compatible dependency installation/lockfile and production build.
+- [x] Neon development/test access, protected pooled/direct connections and actual PostgreSQL migrations/transaction tests.
 - [ ] Funded test wallets, private credentials and account access.
 - [ ] Router source, tests, deployment and verification.
 - [ ] Mandatory screening/policy enforcement, full merchant dashboard, API, checkout, worker, separate store and same-chain refunds.
@@ -740,11 +743,11 @@ Create an evidence index linking each sponsor requirement to implementation file
 - [ ] Actual CRE workflow execution and eligibility-route verification.
 - [ ] End-to-end tests, deployment, video and hackathon submission.
 
-No real keys, balances, payment transaction hashes, deployed addresses, entity keys, workflow run IDs, public demo URL or merchant validation have been supplied. The GitHub repository exists, but that is not a running gateway. Keep unverified items unverified until evidence exists.
+Throwaway wallet keys and database credentials exist only in ignored local configuration. Public wallet addresses, zero balances, read-only probes and the actual CRE simulation are evidenced. No payment/refund transaction, deployed router, Arkiv entity write, public demo or merchant validation is claimed. Keep unresolved gates unresolved until their actual proof exists.
 
 ### First actions for the implementing agent
 
-Wait for the user's phase-start instruction. When instructed, read this file, `AGENTS.md`, `MEMORY.md`, `PROGRESS.md` and `IMPLEMENTATION_PLAN.md`, inspect the current tree/Git state and relevant current official docs, then execute the requested phase and verify its prerequisite gates. Preserve the accepted product, record evidence/blockers and commit/push coherent milestones. Report completion or precise remaining gates and wait before the next phase. Do not treat this handoff as permission to start application implementation automatically.
+Phase 1 is already authorized. Read current memory/evidence, inspect Git/user changes and continue its remaining gates without restarting the foundation or duplicating research. Respect the user's funding deferral and efficient delegation preference. Preserve scope, verify actual outcomes, update evidence and push coherent milestones. Report precise remaining gates and wait before Phase 2.
 
 ### Prompt the user can paste into a new chat
 

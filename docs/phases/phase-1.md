@@ -1,6 +1,6 @@
 # Phase 1: foundation and feasibility
 
-Started: 6 November 2026 (IST). User authorized Phase 1 only. Status: planned; implementation and evidence gates below are pending.
+Started: 6 November 2026 (IST). User authorized Phase 1 only. Status: independent implementation/checks passed; two user-deferred funded testnet gates remain open. See `PROGRESS.md` and the evidence index.
 
 ## Scope and architecture review
 
@@ -44,11 +44,11 @@ Security gates: browser-bound single-use nonce; atomic consumption/session creat
 ## Task order and live checklist
 
 - [x] 1. Complete architecture/UX/security review and resolve current SDK/toolchain metadata; establish product context (this plan, PRODUCT.md).
-- [ ] 2. Bootstrap pinned workspace/shared types; install and perform real import/type/build checks; record any compatibility substitutions.
-- [ ] 3. Establish selected Neon development/test targets, private configuration, versioned schema/migrations, exact-money round trips, transaction rollback/outbox and fenced worker-lease integration checks.
-- [ ] 4. Implement/test official-source screening ingestion and fail-closed freshness/coverage policy, persistent decisions and worker source health.
-- [ ] 5. Implement/test browser-bound SIWE login, session/logout, tenant-isolated profile and settlement proof/screening.
-- [ ] 6. Implement and inspect the polished wallet-first onboarding shell and complete UI states at mobile/tablet/desktop sizes.
+- [x] 2. Bootstrap pinned workspace/shared types; install and perform real import/type/build checks; record any compatibility substitutions.
+- [x] 3. Establish selected Neon development/test targets, private configuration, versioned schema/migrations, exact-money round trips, transaction rollback/outbox and fenced worker-lease integration checks.
+- [x] 4. Implement/test official-source screening ingestion and fail-closed freshness/coverage policy, persistent decisions and worker source health.
+- [x] 5. Implement/test browser-bound SIWE login, session/logout, tenant-isolated profile and settlement proof/screening.
+- [x] 6. Implement and inspect the polished wallet-first onboarding shell and complete UI states at mobile/tablet/desktop sizes.
 - [ ] 7. Prove exact Whitechain token/network behavior and test funding paths; real Arkiv create/read/browser access; real CRE HTTP/RPC plus diagnostic store API simulation. Preserve exact blocked gates while continuing independent tasks.
 - [ ] 8. Run relevant integrated checks, fresh code/design review, fix findings, update evidence/memory and verify GitHub milestone pushes. Report Phase 1 accurately; do not start Phase 2.
 
@@ -58,13 +58,13 @@ Critical path: schema/types precede domain/worker/UI; browser security precedes 
 
 | Gate | Required proof | Current status |
 | --- | --- | --- |
-| Toolchain | Reproducible lockfile install, official SDK imports, typecheck, app build, supported contract tooling spike | Pending |
-| Private persistence | Actual Neon migration, exact monetary boundary round trips, atomic rollback/outbox, concurrent/fenced leases and restart/reconnect checks | Pending |
-| Identity/isolation | Real EIP-4361 signatures, browser/nonce/domain/expiry/replay checks, logout, two-merchant profile/settlement/decision isolation | Pending |
-| Screening | Actual current official source import with source URL/hash/coverage/time; hard-match fixtures, stale/malformed/unavailable decisions and safe refresh publication | Pending |
-| UI | Working login/profile/proof states, persisted reload, responsive screenshot inspection and keyboard/error checks; skill review/detector findings resolved | Pending |
-| Whitechain | ID/token metadata and actual approval/transfer/funding behavior for separate test roles, without substituting another token | Pending |
-| Arkiv | Actual funded writer, entity key, reproducible query and independent browser read | Pending |
-| CRE | Actual CLI/Bun build and simulation calling Whitechain RPC and separate diagnostic merchant API; labeled as simulation | Pending |
+| Toolchain | Reproducible lockfile install, official SDK imports, typecheck, app build, supported contract tooling spike | Passed; compatible TS5.9.3 pin documented |
+| Private persistence | Actual Neon migration, exact monetary boundary round trips, atomic rollback/outbox, concurrent/fenced leases and restart/reconnect checks | Passed: actual isolated PostgreSQL tests |
+| Identity/isolation | Real EIP-4361 signatures, browser/nonce/domain/expiry/replay checks, logout, two-merchant profile/settlement/decision isolation | Passed: backend signatures/isolation + browser flow |
+| Screening | Actual current official source import with source URL/hash/coverage/time; hard-match fixtures, stale/malformed/unavailable decisions and safe refresh publication | Passed: live import + synthetic edge tests; source-health race fixed |
+| UI | Working login/profile/proof states, persisted reload, responsive screenshot inspection and keyboard/error checks; skill review/detector findings resolved | Build/3 browser tests/5 captures pass; visual ship, detector []; limits recorded |
+| Whitechain | ID/token metadata and actual approval/transfer/funding behavior for separate test roles, without substituting another token | Metadata/read-only simulations pass; funded signed proof deferred |
+| Arkiv | Actual funded writer, entity key, reproducible query and independent browser read | SDK/public browser queries pass; funded entity write/read deferred |
+| CRE | Actual CLI/Bun build and simulation calling Whitechain RPC and separate diagnostic merchant API; labeled as simulation | Passed actual CLI simulation; no native-support/recovery/deployment claim |
 
 Each milestone records commands actually run, results, sanitized references, commit/remote verification and precise access blockers. Local fixtures/mocks never satisfy the live sponsor gates. External blockers do not authorize weakening the product or claiming the whole phase complete.

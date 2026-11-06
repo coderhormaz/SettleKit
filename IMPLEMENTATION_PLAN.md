@@ -1,6 +1,6 @@
 # SettleKit: six-phase implementation plan
 
-Updated: 6 November 2026 (IST). Status: planning complete; all implementation phases are pending.
+Updated: 6 November 2026 (IST). Status: Phase 1 authorized and in progress; Phases 2–6 remain pending. Actual results are in `PROGRESS.md`, `docs/phases/phase-1.md` and `docs/evidence/`.
 
 Read with [AGENTS.md](AGENTS.md), [MEMORY.md](MEMORY.md), [PROGRESS.md](PROGRESS.md) and [PROJECT_HANDOFF.md](PROJECT_HANDOFF.md). The handoff retains the detailed product/security requirements; this document replaces its former Phase 0–4 numbering with exactly **Phases 1–6**. Current user instructions take precedence.
 
@@ -127,7 +127,7 @@ Maintain `docs/evidence/index.md` mapping each requirement to its phase, impleme
 
 | Phase | Deliverable | Depends on | Current status |
 | --- | --- | --- | --- |
-| 1 | Proven tools/sponsor access, private foundation, wallet onboarding and design system | User says start; test access as needed | Not started |
+| 1 | Proven tools/sponsor access, private foundation, wallet onboarding and design system | Authorized; test funding deferred | In progress; live write/transfer gates open |
 | 2 | Screened live payment, hosted checkout and one idempotent store fulfillment | Phase 1 payment/security gates | Not started |
 | 3 | Complete merchant operating dashboard and integration controls | Phase 2 verified lifecycle | Not started |
 | 4 | Working refunds, Arkiv receipts and independent accounting | Phase 2 router; Phase 3 merchant controls | Not started |
@@ -270,4 +270,4 @@ If a credential blocks one gate, continue independent work in the authorized pha
 
 Say **“Start Phase 1”**, then **“Start Phase 2”**, and so on. Before changes, inspect current files, memory and Git state; revalidate the requested phase's prerequisites and relevant current docs. Implement only the requested phase and its necessary in-scope fixes, verify it, update memory/evidence, commit/push coherent milestones and report the result. If an earlier required gate is missing, explain it and progress independent tasks without pretending the dependency passed.
 
-The next authorized action after this planning checkpoint is to wait for the user's phase-start instruction.
+Phase 1 is now authorized. Continue its outstanding verification/evidence work and report accurately; do not begin Phase 2 without the user's instruction.

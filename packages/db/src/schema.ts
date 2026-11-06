@@ -84,6 +84,6 @@ export const rateLimits = pgTable('request_budgets', {
 // Used by persistence boundary checks; future payment tables reuse this exact type.
 export const precisionChecks = pgTable('monetary_precision_checks', {
   id: uuid('id').primaryKey().defaultRandom(),
-  amount: numeric('amount', { precision: 78, scale: 0 }).notNull(),
+  amount: numeric('amount').notNull(),
   isFixture: boolean('is_fixture').notNull().default(true),
-}, (t) => [uniqueIndex('precision_id_idx').on(t.id), check('uint256_amount', sql`${t.amount} >= 0 and ${t.amount} <= 115792089237316195423570985008687907853269984665640564039457584007913129639935`)]);
+}, (t) => [uniqueIndex('precision_id_idx').on(t.id), check('uint256_amount', sql`${t.amount} = trunc(${t.amount}) and ${t.amount} >= 0 and ${t.amount} <= 115792089237316195423570985008687907853269984665640564039457584007913129639935`)]);

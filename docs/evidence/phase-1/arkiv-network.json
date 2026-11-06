@@ -1,0 +1,39 @@
+{
+  "kind": "live-arkiv-sdk-probe",
+  "observedAt": "2026-11-05T23:18:43.863Z",
+  "sdk": "@arkiv-network/sdk@1.0.1",
+  "chainId": 7794095,
+  "writer": "0xAB5C7220E7d98D57181346d00D6E7957f42Af486",
+  "writerBalanceBaseUnits": "0",
+  "schema": "settlekit.phase1-feasibility.v1",
+  "priorOwnedProbeCount": 0,
+  "query": "publicClient.select({ $key: true, kind: true, message: true }).from(Probe).ownedBy(writer).fetch()",
+  "queryRpcRequest": {
+    "jsonrpc": "2.0",
+    "id": 2,
+    "method": "arkiv_query",
+    "params": [
+      "arkiv.schema = str('settlekit.phase1-feasibility.v1') AND $owner = addr(0xAB5C7220E7d98D57181346d00D6E7957f42Af486)",
+      {
+        "select": {
+          "key": true,
+          "owner": false,
+          "creator": false,
+          "createdAt": false,
+          "updatedAt": false,
+          "expiresAt": false,
+          "creationFlags": false,
+          "attributeSchema": false,
+          "attributes": {
+            "kind": true,
+            "message": true,
+            "arkiv.schema": true
+          }
+        }
+      }
+    ]
+  },
+  "write": "blocked",
+  "blocker": "Writer has zero test GLM. User must fund this address through the official Arkiv Hub faucet. No entity was written.",
+  "entityKey": null
+}

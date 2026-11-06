@@ -3,17 +3,30 @@ import { rabdi } from "@arkiv-network/sdk/chains";
 import { defineSchema, str } from "@arkiv-network/sdk/schema";
 import { http, type Hex } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
-import { readWallets, printEvidence, writeEvidence } from "./support.js";
+import { readWallets, printEvidence, writeEvidence, reportProbeFailure } from "./support.js";
 
+async function main() {
 const Probe = defineSchema("settlekit.phase1-feasibility.v1", {
   kind: str().indexed(),
   message: str(),
 });
-const wallet = (await readWallets()).arkivWriter;
-const privateKey = process.env.ARKIV_WRITER_PRIVATE_KEY as Hex | undefined ?? wallet.privateKey;
+const configuredKey = process.env.ARKIV_WRITER_PRIVATE_KEY;
+if (configuredKey && !/^0x[0-9a-fA-F]{64}$/.test(configuredKey)) throw new Error("INVALID_ARKIV_WRITER_KEY_FORMAT");
+const privateKey = configuredKey as Hex | undefined ?? (await readWallets()).arkivWriter.privateKey;
 const account = privateKeyToAccount(privateKey);
 const chain = rabdi({ accessKey: process.env.ARKIV_ACCESS_KEY ?? "" });
-const transport = http(process.env.ARKIV_RPC_URL, { timeout: 15_000, retryCount: 1 });
+let queryRpcRequest: unknown;
+const transport = http(process.env.ARKIV_RPC_URL, {
+  timeout: 15_000,
+  retryCount: 1,
+  fetchFn: async (input, init) => {
+    if (typeof init?.body === "string") {
+      const request = JSON.parse(init.body) as { method?: string };
+      if (request.method === "arkiv_query") queryRpcRequest = request;
+    }
+    return fetch(input, init);
+  },
+});
 const publicClient = createPublicClient({ chain, transport });
 const observedAt = new Date().toISOString();
 const chainId = await publicClient.getChainId();
@@ -25,6 +38,7 @@ const baseEvidence = {
   writer: account.address, writerBalanceBaseUnits: balance.toString(), schema: "settlekit.phase1-feasibility.v1",
   priorOwnedProbeCount: reads.entities.length,
   query: "publicClient.select({ $key: true, kind: true, message: true }).from(Probe).ownedBy(writer).fetch()",
+  queryRpcRequest,
 };
 if (balance === 0n) {
   const evidence = { ...baseEvidence, write: "blocked", blocker: "Writer has zero test GLM. User must fund this address through the official Arkiv Hub faucet. No entity was written.", entityKey: null };
@@ -41,3 +55,6 @@ if (balance === 0n) {
   await writeEvidence("arkiv-network.json", evidence);
   printEvidence(evidence);
 }
+}
+
+await main().catch((error: unknown) => reportProbeFailure("arkiv", error));

@@ -2,7 +2,7 @@
 
 Screened USDT checkout on Whitechain, same-chain refunds, a premium merchant dashboard, independently verifiable accounting records, and recovery of missed payment notifications.
 
-**Status:** specification and six-phase build plan prepared; all implementation phases are pending. Implementation starts only when the user instructs a phase. No live gateway, deployed contract or payment-processing claim is made by this README.
+**Status:** Phase 1 local foundation is implemented and tested. Wallet onboarding, private Neon persistence, official-source screening and the CRE HTTP/RPC feasibility simulation work. Signed Arkiv writes and funded Whitechain approval/transfer checks await user-deferred test funding. No deployed payment router, customer checkout/refund or production-readiness claim is made.
 
 ## Start here
 
@@ -11,6 +11,7 @@ Screened USDT checkout on Whitechain, same-chain refunds, a premium merchant das
 - [Persistent project memory](MEMORY.md): accepted decisions and user preferences for new chats.
 - [Current progress](PROGRESS.md): completed work, unverified gates and next actions.
 - [Agent instructions](AGENTS.md): scope and build/checkpoint rules.
+- [Phase 1 execution/evidence](docs/phases/phase-1.md), [evidence index](docs/evidence/index.md), [installed versions](docs/versions.md) and [design system](DESIGN.md).
 
 ## Agreed sponsor integrations
 
@@ -33,10 +34,45 @@ The proposed CRE HTTP/Whitechain-RPC route must be proven; native support and pr
 
 Screening enforces configured checks; it cannot guarantee all funds are lawful or prevent direct unsolicited transfers to public wallets. Production use needs verified data-provider coverage and the applicable legal/compliance process. The hackathon build uses test tokens.
 
+## Run the local foundation
+
+Use a supported Node LTS and pnpm 11.25.0. The lockfile is committed. Keep an existing local `.env`; for a fresh checkout, copy `.env.example` and fill it privately. Runtime `DATABASE_URL` is a limited Neon role on a dedicated development branch; `DATABASE_URL_UNPOOLED` is its direct migration credential. TLS uses `verify-full`. Never use a customer/shared default database for integration tests.
+
+```powershell
+pnpm install --frozen-lockfile
+pnpm db:migrate
+pnpm screening:import
+pnpm dev
+```
+
+Open **http://127.0.0.1:3000** (the origin must match `APP_ORIGIN`). Connect an injected EVM wallet and sign the exact login message; no approval/token transfer occurs. Save the business name/website, inspect the proven settlement address and current configured checks. A separate settlement wallet requires its own ownership signature. Unknown/stale/unavailable source data cannot show passed checks.
+
+In a second terminal run `pnpm worker` for source refresh and persisted screening jobs. Stop it with Ctrl+C. The app and worker use Neon, so local startup is not an offline database mode. No merchant-facing infrastructure configuration is exposed.
+
+```powershell
+pnpm typecheck
+pnpm test:unit
+pnpm build
+pnpm check:imports
+# Actual isolated database/browser checks need TEST_DATABASE_* and TEST_DATABASE_ISOLATED=true.
+pnpm exec tsx --env-file=.env packages/db/src/migrate.ts --test
+pnpm test:db
+pnpm exec playwright install chromium
+pnpm test:browser
+```
+
+Current results: 37 unit/database tests, 3 browser tests, typecheck and production build passed. Browser tests use a Node-held throwaway signer with real server verification/persistence; the session-expiry UI test deliberately injects a 401 response. Desktop/tablet/mobile screenshots were inspected; visual review returned ship for that scope. CI runs secret-free typing/unit/build checks; live database/browser/sponsor proofs remain separate.
+
+## Sponsor feasibility and pending funding
+
+Real commands/evidence are in `packages/cre/README.md` and `docs/evidence/index.md`. Whitechain uses the exact sponsor USDT; zero-amount `eth_call` success is not a signed payment. Arkiv owner queries work from the SDK and a separately served public browser, but the writer has zero tGLM and no entity yet. The actual CRE simulation reads Whitechain HTTP/RPC plus a separate diagnostic merchant API; supported Sepolia configuration only bootstraps the CLI. It does not prove native Whitechain support, live DON execution, payment recovery or prize eligibility.
+
+The user deferred test-wallet funding. Once funded, resume the existing scripts and record actual transaction/entity proof before completing Phase 1. Test keys stay only in ignored `data/phase-1-wallets.json`; database and access credentials stay out of Git/browser/logs. See `PROGRESS.md` for exact outstanding gates. No Phase 2 implementation is authorized yet.
+
 ## Development checkpoints
 
 Preserve existing history and push each coherent, appropriately tested milestone to this repository throughout the build. Do not accumulate the entire project into a single final commit. Keep project memory, validation results and real evidence current. Never commit secrets or fabricate progress.
 
 For every requested phase: prepare/review the detailed plan and relevant sponsor docs, use the available design skills, implement complete features, test real persistence/integrations, inspect responsive UI, fix findings, then report verified results. The database choice is Neon PostgreSQL; the app and worker initially run locally. No database or application implementation is claimed yet.
 
-Read the plan, then say **“Start Phase 1”** to begin. Each later phase starts on its own instruction. The full handoff includes a prompt for an implementation chat.
+Phase 1 is already authorized. Finish its remaining funded proofs before reporting full completion; each later phase starts only on the user's instruction.

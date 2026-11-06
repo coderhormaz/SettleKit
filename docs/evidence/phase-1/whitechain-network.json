@@ -1,0 +1,86 @@
+{
+  "kind": "live-read-only-testnet-probe",
+  "observedAt": "2026-11-05T23:18:41.698Z",
+  "chainId": 1874,
+  "token": "0xcedfB56113143d55b2358b8CFbB0dEB5Ad2f55a7",
+  "decimals": 6,
+  "name": "Tether USD",
+  "symbol": "USDT",
+  "totalSupplyBaseUnits": "1945273000000",
+  "bytecodeBytes": 2227,
+  "blockNumber": "12324355",
+  "blockHash": "0x48c6a1cf232de38f0aa701adccfcd3a60e986fc96d7a0b40b399c6dddd02832b",
+  "balances": [
+    {
+      "role": "payer",
+      "address": "0x2D3C8DdC302F86C6a88E7673E0094C6730dF9A5A",
+      "wbtBaseUnits": "0",
+      "usdtBaseUnits": "0"
+    },
+    {
+      "role": "merchant",
+      "address": "0x1A6d39216bcfCA2a93221aB2ed0e43f6561cf192",
+      "wbtBaseUnits": "0",
+      "usdtBaseUnits": "0"
+    },
+    {
+      "role": "deployer",
+      "address": "0xBe86c9c270095425bfa669C606FED8D55F407635",
+      "wbtBaseUnits": "0",
+      "usdtBaseUnits": "0"
+    },
+    {
+      "role": "policyAdmin",
+      "address": "0x75856e7c337A3f6af7c2Bc4981eA7E273633aAC3",
+      "wbtBaseUnits": "0",
+      "usdtBaseUnits": "0"
+    }
+  ],
+  "featureReads": [
+    {
+      "functionName": "owner",
+      "read": "succeeded",
+      "result": "0x8790832Ba493Cc16a4dBC5c961B0C4950632799c"
+    },
+    {
+      "functionName": "paused",
+      "read": "reverted-or-unsupported"
+    },
+    {
+      "functionName": "DOMAIN_SEPARATOR",
+      "read": "succeeded",
+      "result": "0xcdcfacb6b15c8238b4e5fbb47bdb83b7f83f50a531d264bf9763d2bd1d3d2a25"
+    }
+  ],
+  "proxySlots": [
+    {
+      "kind": "implementation",
+      "slot": "0x360894a13ba1a3210667c828492db98dca3e2076cc3735a920a3ca505d382bbc",
+      "address": "0x26425662d126412128967ecf0a02ec48573026f7"
+    },
+    {
+      "kind": "admin",
+      "slot": "0xb53127684a568b3173ae13b9f8a6016e243e63b6e8ee1178d6a717850b5d6103",
+      "address": "0xb8d40f05309bfa5c751fa0925761e3e4bc5f4042"
+    }
+  ],
+  "simulatedCalls": [
+    {
+      "operation": "approve-zero",
+      "execution": "read-only eth_call",
+      "returnData": "0x0000000000000000000000000000000000000000000000000000000000000001"
+    },
+    {
+      "operation": "transfer-zero",
+      "execution": "read-only eth_call",
+      "returnData": "0x0000000000000000000000000000000000000000000000000000000000000001"
+    }
+  ],
+  "conclusions": {
+    "baseline": "Exact token and chain are reachable. Approval followed by transferFrom remains the supported integration baseline.",
+    "transferEvidence": "Zero-amount eth_call is simulation only; it proves neither a signed approval nor a successful funded transfer.",
+    "permit": "No permit support is assumed. DOMAIN_SEPARATOR read alone does not establish a complete permit implementation.",
+    "issuerControls": "Review the explorer's proxy and implementation ABI/source. Readable owner/paused values are observations, not a security audit.",
+    "funding": "Funded approval/transfer remains blocked on test WBT and exact sponsor USDT."
+  }
+}

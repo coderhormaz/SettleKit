@@ -47,3 +47,5 @@ packages/contracts/cache/
 # OS/editor noise
 .DS_Store
 Thumbs.db
+
+.vercel

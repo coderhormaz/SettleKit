@@ -757,3 +757,5 @@ Read current memory/audit/Git and preserve existing work. All six phases and the
 ### Prompt the user can paste into a new chat
 
 Continue SettleKit from AGENTS.md, MEMORY.md, PROGRESS.md, IMPLEMENTATION_PLAN.md and docs/IMPLEMENTATION_AUDIT.md. All six phases and final testing are authorized. Main agent only. Preserve implementation/local runtime proof and funded live gates. Finish concrete source/test failures, record exact evidence and push normally; never infer live proof or hosting authorization.
+
+Wallet connection repair (7 November 2026): shared provider discovery now covers merchant login, checkout and refunds without assuming the first connector has an installed provider. SIWE/Whitechain/screening requirements remain enforced. EIP-6963-only signed-login regression and three existing onboarding browser cases pass; this does not establish actual MetaMask-extension or funded chain evidence.

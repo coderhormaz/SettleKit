@@ -9,6 +9,7 @@ import { ArrowLeft, ArrowRight, Check, CheckCheck, CircleAlert, ExternalLink, Fi
 import { formatUsdt, USDT_ADDRESS, WHITECHAIN_CHAIN_ID } from '@settlekit/core';
 import { routerAbi, transferWithAuthorizationTypes, usdtEip3009Domain } from '@settlekit/core/router';
 import styles from './checkout.module.css';
+import { availableWallet } from '../../wallet-connection';
 
 type CheckoutData = {
   reference: string; amount_base_units: string; merchant_name: string; merchant_wallet: string;
@@ -37,6 +38,7 @@ function short(address: string) { return `${address.slice(0, 6)}…${address.sli
 function walletError(error: unknown) {
   if (error instanceof ApiError) return error.message;
   const text = error instanceof Error ? error.message : String(error ?? '');
+  if (/already pending|request.*pending|-32002/i.test(text)) return 'MetaMask already has a request waiting. Open the extension and approve or reject it, then try again.';
   if (/reject|denied|cancel|user refused/i.test(text)) return 'The wallet request was cancelled. Check the current payment status before trying again.';
   if (/chain|network|switch|unknown chain|unrecognized chain/i.test(text)) return 'Switch your wallet to Whitechain Sepolia, then try again.';
   if (/insufficient|funds|balance/i.test(text)) return 'Your wallet needs enough test USDT for this payment, or test WBT if you pay network gas yourself.';
@@ -95,23 +97,10 @@ export function Checkout({ reference }: { reference: string }) {
   async function walletAddress(): Promise<Address> {
     let account = getAccount(config).address;
     if (!account || !getAccount(config).isConnected) {
-      const available = connectors.length ? connectors : [];
-      let lastError: unknown;
-      for (const connector of available) {
-        try {
-          const result = await connectAsync({ connector, chainId: WHITECHAIN_CHAIN_ID });
-          account = result.accounts[0];
-          if (account) break;
-        } catch (cause) {
-          lastError = cause;
-          const text = cause instanceof Error ? cause.message : '';
-          if (/reject|denied|cancel|user refused/i.test(text)) throw cause;
-        }
-      }
-      if (!account) {
-        if (lastError) throw lastError;
-        throw new Error('Browser wallet provider not found');
-      }
+      const connector = await availableWallet(connectors);
+      const result = await connectAsync({ connector, chainId: WHITECHAIN_CHAIN_ID });
+      account = result.accounts[0];
+      if (!account) throw new Error('Wallet account unavailable');
     }
     if (getAccount(config).chainId !== WHITECHAIN_CHAIN_ID) {
       try { await switchChainAsync({ chainId: WHITECHAIN_CHAIN_ID }); }

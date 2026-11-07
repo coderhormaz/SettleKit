@@ -5,6 +5,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useAccount, useConnect, useDisconnect, useSignMessage, useSwitchChain } from "wagmi";
 import { ArrowDownLeft, ArrowRight, Check, CheckCheck, ChevronRight, CircleHelp, ExternalLink, Fingerprint, Globe2, LoaderCircle, LockKeyhole, LogOut, RefreshCw, ShieldCheck, ShieldX, Wallet, X } from "lucide-react";
 import { profileSchema } from "@settlekit/core";
+import { availableWallet } from "./wallet-connection";
 
 type Screening = {
   state: "allowed" | "blocked" | "unavailable" | "review_required";
@@ -52,8 +53,9 @@ function timestamp(value: string | null) {
 }
 function walletError(error: unknown) {
   if (error instanceof ApiError) return error.message;
+  if (error instanceof Error && /already pending|request.*pending|-32002/i.test(error.message)) return "MetaMask already has a request waiting. Open the extension and approve or reject that request, then try again.";
   if (error instanceof Error && /reject|denied|cancel/i.test(error.message)) return "The wallet request was cancelled. Nothing was sent. You can try again.";
-  if (error instanceof Error && /provider|connector|wallet.*found|unavailable/i.test(error.message)) return "No compatible browser wallet was found. Open this page in a browser with an EVM wallet, then try again.";
+  if (error instanceof Error && /provider|connector|wallet.*found|unavailable/i.test(error.message)) return "No compatible browser wallet was found. Open this same URL in the browser where your EVM wallet extension is installed and unlock it, then try again. In-app previews cannot use extensions from another browser.";
   if (error instanceof Error && /chain|network|switch/i.test(error.message)) return "Switch your wallet to Whitechain Sepolia, then try again. The network uses test WBT for gas.";
   return error instanceof Error && error.message.startsWith("We couldn’t") ? error.message : "The wallet request could not finish. Check your wallet and try again.";
 }
@@ -129,8 +131,8 @@ export function Onboarding() {
 
   async function connectedAddress() {
     setWalletMissing(false);
-    const connector = connectors[0];
-    if (!connector || !(await connector.getProvider())) {
+    const connector = await availableWallet(connectors, account.isConnected ? account.connector : undefined).catch(() => null);
+    if (!connector) {
       setWalletMissing(true);
       throw new Error("Browser wallet provider not found");
     }
@@ -140,7 +142,7 @@ export function Onboarding() {
       address = connection.accounts[0];
     }
     if (!address) throw new Error("Wallet account unavailable");
-    await switchChainAsync({ chainId: 1874 });
+    await switchChainAsync({ chainId: 1874, connector });
     return address;
   }
 

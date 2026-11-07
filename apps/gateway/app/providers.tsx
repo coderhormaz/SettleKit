@@ -17,7 +17,7 @@ export const whitechain = defineChain({
 
 const config = createConfig({
   chains: [whitechain],
-  connectors: [injected()],
+  connectors: [injected({ unstable_shimAsyncInject: 2_000 })],
   transports: { [whitechain.id]: http() },
   ssr: true,
 });

@@ -80,6 +80,7 @@ test('wallet proof and payment submission remain separate from observed acceptan
     if (['wallet_switchEthereumChain', 'wallet_addEthereumChain'].includes(request.method)) return null;
     if (['wallet_requestPermissions', 'wallet_getPermissions'].includes(request.method)) return [{ parentCapability: 'eth_accounts' }];
     if (request.method === 'personal_sign') { signedMessages++; return account.signMessage({ message: { raw: request.params![0] as Hex } }); }
+    if (request.method === 'eth_signTypedData_v4') return account.signTypedData(JSON.parse(request.params![1] as string));
     if (request.method === 'eth_sendTransaction') { sentTransactions++; return transactionHash; }
     throw new Error(`Unsupported fixture wallet method ${request.method}`);
   });

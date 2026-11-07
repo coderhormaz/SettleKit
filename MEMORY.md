@@ -71,3 +71,5 @@ Separate social asset, 7 November 2026: `brag-output/brag.mp4` is a verified 20-
 Push to **https://github.com/coderhormaz/SettleKit.git**. Preserve upstream history. Commit and push after each coherent, appropriately tested milestone throughout the build; do not leave the entire project for one large final commit. Keep the milestone's progress/evidence current, review staged files for secrets, fetch before pushing and never force-push. Do not manufacture historical progress.
 
 If authentication or protection blocks a push, keep the local commit, record the exact blocker/pending hash, report it and continue independent work. A push is complete only after remote verification. Follow `PROGRESS.md` for the actual latest checkpoint and next action.
+
+Wallet connection repair (7 November 2026): use provider-backed connector discovery for EIP-6963-only/delayed wallets, preserve rejection/network errors and give pending MetaMask guidance. New signed-login browser regression passes with actual isolated Neon; browser providers remain fixtures. See PROGRESS.md for final build/runtime and Git evidence.

@@ -13,3 +13,7 @@ Authorized by the user's 7 November instruction to check every phase, complete m
 7. Refresh implementation audit, per-phase gates, evidence and memory with actual results; secret review, normal Git fetch/push and remote verification after coherent fixes.
 
 Money stays integer base units. Required screening, onchain policy, original-payer refunds, tenant isolation, atomic private transitions/outbox, fenced jobs, source-verified public receipts and receiver-side logical fulfillment remain mandatory. Current state wins over stale recovery events. Human narration/live funded evidence cannot be invented or replaced with local tests.
+
+## Wallet connection repair — 7 November 2026
+
+Scope: fix provider discovery for EIP-6963-only wallets without window.ethereum and delayed injection. Reuse an active connector; probe providers before connecting. Preserve rejection, Whitechain switching, SIWE/session checks and all money/screening controls. No schema, funds or hosting changes. Verify an EIP-6963 signing-provider regression, existing injected login/persistence/logout, absence states, typing/build and responsive captures. Refresh the running local build after verification. Browser providers in tests are explicit fixtures, not actual extension or funded sponsor evidence.

@@ -3,7 +3,7 @@ import { generatePrivateKey,privateKeyToAccount } from 'viem/accounts';
 import type { Hex } from 'viem';
 import { mkdir } from 'node:fs/promises';
 
-async function installWallet(page:Page){
+async function installWallet(page:Page, discoveryOnly=false){
   const account=privateKeyToAccount(generatePrivateKey());
   await page.exposeFunction('testWalletRequest',async(request:{method:string;params?:unknown[]})=>{
     if(['eth_accounts','eth_requestAccounts'].includes(request.method))return [account.address];
@@ -13,12 +13,24 @@ async function installWallet(page:Page){
     if(request.method==='personal_sign')return account.signMessage({message:{raw:request.params![0] as Hex}});
     throw new Error(`Unsupported test-wallet method ${request.method}`);
   });
-  await page.addInitScript(()=>{
+  await page.addInitScript((discoveryOnly)=>{
     const bridge=window as unknown as {testWalletRequest:(request:unknown)=>Promise<unknown>;ethereum:unknown};
-    bridge.ethereum={isMetaMask:true,request:(request:unknown)=>bridge.testWalletRequest(request),on:()=>{},removeListener:()=>{}};
-  });
+    const provider={isMetaMask:true,request:(request:unknown)=>bridge.testWalletRequest(request),on:()=>{},removeListener:()=>{}};
+    if(discoveryOnly){
+      const announce=()=>window.dispatchEvent(new CustomEvent('eip6963:announceProvider',{detail:{info:{uuid:'350670db-19fa-4704-a166-e52e178b59d2',name:'Discovery Test Wallet',icon:'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg"/>',rdns:'test.settlekit.wallet'},provider}}));
+      window.addEventListener('eip6963:requestProvider',announce);announce();
+    }else bridge.ethereum=provider;
+  },discoveryOnly);
   return account.address;
 }
+
+test('EIP-6963-only wallet connects past the empty generic connector and signs in',async({page})=>{
+  await installWallet(page,true);await page.goto('/');
+  await page.getByRole('button',{name:'Connect & verify wallet'}).click();
+  await expect(page.getByLabel('Business name')).toBeVisible();
+  await page.getByRole('button',{name:'Sign out',exact:true}).click();
+  await expect(page.getByRole('button',{name:'Connect & verify wallet'})).toBeVisible();
+});
 
 test('wallet absence, safe error and mobile/desktop first-use layouts',async({page})=>{
   await page.goto('/');await expect(page.getByRole('button',{name:'Connect & verify wallet'})).toBeVisible();

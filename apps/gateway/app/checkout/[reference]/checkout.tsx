@@ -36,12 +36,13 @@ async function api<T>(path: string, body?: unknown): Promise<T> {
 function short(address: string) { return `${address.slice(0, 6)}…${address.slice(-4)}`; }
 function walletError(error: unknown) {
   if (error instanceof ApiError) return error.message;
-  const text = error instanceof Error ? error.message : '';
-  if (/reject|denied|cancel/i.test(text)) return 'The wallet request was cancelled. Check the current payment status before trying again.';
-  if (/provider|connector|wallet.*found/i.test(text)) return 'No compatible browser wallet was found. Open checkout in a browser with an EVM wallet.';
-  if (/chain|network|switch/i.test(text)) return 'Switch your wallet to Whitechain Sepolia, then try again.';
+  const text = error instanceof Error ? error.message : String(error ?? '');
+  if (/reject|denied|cancel|user refused/i.test(text)) return 'The wallet request was cancelled. Check the current payment status before trying again.';
+  if (/chain|network|switch|unknown chain|unrecognized chain/i.test(text)) return 'Switch your wallet to Whitechain Sepolia, then try again.';
   if (/insufficient|funds|balance/i.test(text)) return 'Your wallet needs enough test USDT for this payment, or test WBT if you pay network gas yourself.';
-  return text.startsWith('We couldn’t') || text.startsWith('Your ') || text.startsWith('This ') ? text : 'The wallet request could not finish. Check your wallet and payment status, then retry.';
+  if (/provider|connector.*not|no.*wallet|wallet.*not found|not installed/i.test(text)) return 'No compatible browser wallet was found. Open checkout in a browser with an EVM wallet extension (e.g. MetaMask/Rabby) and unlock it, then try again.';
+  if (text.includes('Browser wallet provider not found') || text.includes('Wallet account unavailable')) return 'Your browser wallet could not be reached. Unlock your wallet extension, refresh the page, and try again. If you have multiple wallets, disable extras or open this page in the wallet’s browser.';
+  return text && text.length < 180 ? text : 'The wallet request could not finish. Unlock your wallet, check the network, and try again.';
 }
 function randomNonce(): Hex {
   const bytes = new Uint8Array(32);
@@ -92,14 +93,37 @@ export function Checkout({ reference }: { reference: string }) {
   }, [reference]);
 
   async function walletAddress(): Promise<Address> {
-    const connector = connectors[0];
-    if (!connector || !(await connector.getProvider())) throw new Error('Browser wallet provider not found');
-    let address = getAccount(config).address;
-    if (!address || !getAccount(config).isConnected) address = (await connectAsync({ connector })).accounts[0];
-    if (!address) throw new Error('Wallet account unavailable');
-    await switchChainAsync({ chainId: WHITECHAIN_CHAIN_ID });
-    if (getAccount(config).address?.toLowerCase() !== address.toLowerCase()) throw new Error('Your connected wallet changed. Start again with the wallet you want to pay from.');
-    return address;
+    let account = getAccount(config).address;
+    if (!account || !getAccount(config).isConnected) {
+      const available = connectors.length ? connectors : [];
+      let lastError: unknown;
+      for (const connector of available) {
+        try {
+          const result = await connectAsync({ connector, chainId: WHITECHAIN_CHAIN_ID });
+          account = result.accounts[0];
+          if (account) break;
+        } catch (cause) {
+          lastError = cause;
+          const text = cause instanceof Error ? cause.message : '';
+          if (/reject|denied|cancel|user refused/i.test(text)) throw cause;
+        }
+      }
+      if (!account) {
+        if (lastError) throw lastError;
+        throw new Error('Browser wallet provider not found');
+      }
+    }
+    if (getAccount(config).chainId !== WHITECHAIN_CHAIN_ID) {
+      try { await switchChainAsync({ chainId: WHITECHAIN_CHAIN_ID }); }
+      catch (cause) {
+        const text = cause instanceof Error ? cause.message : '';
+        if (/reject|denied|cancel/i.test(text)) throw new Error('Switch your wallet to Whitechain Sepolia to continue.');
+        throw cause;
+      }
+    }
+    const current = getAccount(config).address;
+    if (!current) throw new Error('Wallet account unavailable');
+    return current;
   }
   function assertWallet(payer: string) {
     const current = getAccount(config);

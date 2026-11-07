@@ -1,6 +1,6 @@
 # SettleKit handoff
 
-Updated: 7 November 2026 (IST). This is the practical connection and closeout handoff for the current repository state. Read [AGENTS.md](AGENTS.md), [MEMORY.md](MEMORY.md), [PROGRESS.md](PROGRESS.md), [PROJECT_HANDOFF.md](PROJECT_HANDOFF.md), [IMPLEMENTATION_PLAN.md](IMPLEMENTATION_PLAN.md), [docs/IMPLEMENTATION_AUDIT.md](docs/IMPLEMENTATION_AUDIT.md), [docs/release-checklist.md](docs/release-checklist.md), and [docs/operations.md](docs/operations.md) before making live or submission changes.
+Updated: 7 November 2026 (IST). This is the practical connection and closeout handoff for the current repository state. Read [AGENTS.md](AGENTS.md), [MEMORY.md](MEMORY.md), [PROGRESS.md](PROGRESS.md), [PROJECT_HANDOFF.md](PROJECT_HANDOFF.md), [IMPLEMENTATION_PLAN.md](IMPLEMENTATION_PLAN.md), [docs/IMPLEMENTATION_AUDIT.md](docs/IMPLEMENTATION_AUDIT.md), [docs/release-checklist.md](docs/release-checklist.md), and [docs/operations.md](docs/operations.md) before making live or submission changes. For the remaining live/submission steps and the 2–4 minute human-narrated video checklist, use **[docs/SUBMISSION_GUIDE.md](docs/SUBMISSION_GUIDE.md)**.
 
 ## What is done
 

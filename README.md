@@ -17,7 +17,9 @@ Next.js 16 / React 19 / TypeScript 5.9; Neon PostgreSQL 17 / Drizzle / pg; viem 
 
 Payments/refunds use **Whitechain Sepolia 1874**, USDT **`0xcedfB56113143d55b2358b8CFbB0dEB5Ad2f55a7`**, six decimals. Screening enforces configured address lists/freshness; it does not guarantee lawful funds or provide source-of-funds tracing. Unsolicited transfers never satisfy an invoice. Arc, ENS and bridges are excluded.
 
-Whitechain settlement makes an order-bound stablecoin payment and its original-payer partial refund publicly verifiable by the merchant, customer and independent accountant. The router transfers directly to the merchant and emits evidence that another system can verify and reconcile without trusting SettleKit's private ledger. A regular payment rail does not expose these same programmable token transfers and public contract events on Whitechain. Actual sponsor-USDT explorer links will be added after the deferred funded deployment/payment; local mock-token transactions do not satisfy that requirement.
+Whitechain settlement makes an order-bound stablecoin payment and its original-payer partial refund publicly verifiable by the merchant, customer and independent accountant. The router transfers directly to the merchant and emits evidence that another system can verify and reconcile without trusting SettleKit's private ledger. A regular payment rail does not expose these same programmable token transfers and public contract events on Whitechain.
+
+**Whitechain payment transaction (required for submission):** _Pending funded deployment/payment — add the actual sponsor-USDT explorer tx link here before submission. Local mock-token transactions do not satisfy this requirement._
 
 ## Local startup
 
@@ -57,6 +59,7 @@ The configured public Arkiv writer is **`0xAB5C7220E7d98D57181346d00D6E7957f42Af
 
 ## Review
 
+- [Submission/video guide](docs/SUBMISSION_GUIDE.md) — remaining live gates and human-narrated video checklist.
 - [Six-phase plan](IMPLEMENTATION_PLAN.md), [detailed plans](docs/phases/), [handoff](PROJECT_HANDOFF.md), [memory](MEMORY.md), [progress](PROGRESS.md).
 - [Operations](docs/operations.md), [CRE recovery](docs/phases/phase-5-runbook.md), [release checklist](docs/release-checklist.md), [demo script](docs/demo-script.md).
 - [Product](PRODUCT.md), [design](DESIGN.md), [API contract](docs/phases/phase-3-api.md), [public schema](arkiv/schema.md).

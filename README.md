@@ -6,6 +6,8 @@ Screened USDT checkout on Whitechain, direct merchant settlement, original-payer
 
 ## Product and stack
 
+The [20-second social launch cut](brag-output/brag.mp4), [poster](brag-output/brag.jpg) and [share copy](brag-output/share-copy.txt) show the real UI with labelled local fixtures and original music. The [editable recipe and media checks](brag-output/README.md) preserve its source. This social asset does not replace the pending human-narrated demonstration or funded sponsor evidence.
+
 - Wallet-first merchant login and verified settlement ownership.
 - Hosted checkout, scoped keys, signed notifications and a separate durable store with idempotent fulfillment.
 - Responsive dashboard: overview, payments/refund details, payment links, invoices, contacts, developers, webhooks, reports, risk reviews, settings and audit.

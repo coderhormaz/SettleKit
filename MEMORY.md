@@ -66,6 +66,8 @@ Read the authoritative sponsor rules and links in `PROJECT_HANDOFF.md`. Required
 
 ## GitHub checkpoint instruction from the user
 
+Separate social asset, 7 November 2026: `brag-output/brag.mp4` is a verified 20-second 1080p/30 fps launch cut with original instrumental music, a settled poster and share copy. It reuses actual product DOM/CSS with explicitly labelled fictional UI fixtures, without application/API/database mutations or wallet transactions. All 600 frames, H.264/AAC stereo, zero-sample audio offset and frame-zero poster were checked. Its editable recipe and media QA are retained. This is not the still-pending human-narrated 2–4 minute demo, funded Whitechain proof, signed Arkiv evidence or public hosting/submission.
+
 Push to **https://github.com/coderhormaz/SettleKit.git**. Preserve upstream history. Commit and push after each coherent, appropriately tested milestone throughout the build; do not leave the entire project for one large final commit. Keep the milestone's progress/evidence current, review staged files for secrets, fetch before pushing and never force-push. Do not manufacture historical progress.
 
 If authentication or protection blocks a push, keep the local commit, record the exact blocker/pending hash, report it and continue independent work. A push is complete only after remote verification. Follow `PROGRESS.md` for the actual latest checkpoint and next action.

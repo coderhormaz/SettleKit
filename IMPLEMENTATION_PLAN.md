@@ -239,6 +239,8 @@ Apply the premium graphite/mint design throughout, with readable tabular USDT am
 
 ## Cross-phase defaults and completion rules
 
+Social asset checkpoint, 7 November 2026: the separate 20-second `brag-output/brag.mp4` launch cut, poster, share copy and editable media recipe pass 1080p/30 fps/600-frame, H.264/AAC, audio-alignment, poster and visual checks. These labelled UI fixtures are promotional illustration; they do not close Phase 6's human-narrated 2–4 minute demonstration gate or any funded sponsor/publication gate. Application implementation and financial evidence were not changed by this task.
+
 - Every phase includes the UI and meaningful tests for what it adds. Security, design and evidence are ongoing work; Phase 6 checks the integrated result.
 - Suggested screening defaults to validate in Phase 1: hourly source refresh, explicitly configured maximum successful-fetch age, party cache at most two minutes, and roughly 60-second executable authorizations bounded by evidence expiry. Publish actual settings and denial-synchronization latency; these are engineering policies, not legal guarantees.
 - A required provider being unknown/stale/unavailable prevents authorization. Optional commercial analytics stays visibly unsupported until actual coverage/access is established. Do not claim lawful/clean funds or comprehensive source-of-funds tracing.

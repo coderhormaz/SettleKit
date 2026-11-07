@@ -698,6 +698,8 @@ Use meaningful tests for money handling, authentication, idempotency and integra
 
 Aim for a 3–3.5 minute narrated recording, within the official 2–4 minute limit. Suggested sequence:
 
+A separate [20-second social launch cut](brag-output/brag.mp4) now exists with original music, a poster, share copy and a reproducible recipe. It uses actual UI markup with labelled fictional local fixtures and passes media/visual checks. It does not satisfy this human-narrated demonstration requirement or supply funded sponsor execution evidence; those gates remain pending.
+
 | Approximate segment | Show |
 | --- | --- |
 | 0:00–0:25 | Premium merchant dashboard, small external-store integration and a labelled blocked-wallet attempt with no payment |

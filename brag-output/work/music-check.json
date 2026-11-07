@@ -1,0 +1,11 @@
+{
+  "originalComposition": true,
+  "durationSeconds": 20,
+  "bpm": 120,
+  "key": "C# minor",
+  "sampleRate": 48000,
+  "channels": 2,
+  "samplePeakDbfs": -1.72,
+  "rmsDbfs": -19.17,
+  "seed": 64187
+}

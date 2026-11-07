@@ -1,0 +1,50 @@
+{
+  "times": [
+    1.5,
+    2.93,
+    3.12,
+    4.8,
+    6.94,
+    7.12,
+    8.5,
+    10.4,
+    11.93,
+    12.12,
+    14.6,
+    15.93,
+    16.12,
+    18
+  ],
+  "errors": [],
+  "width": 1920,
+  "height": 1080,
+  "fonts": "loaded",
+  "iframes": [
+    {
+      "source": "hook.html",
+      "fonts": "loaded",
+      "scriptCount": 0
+    },
+    {
+      "source": "checkout-card.html",
+      "fonts": "loaded",
+      "scriptCount": 0
+    },
+    {
+      "source": "delivery-failed.html",
+      "fonts": "loaded",
+      "scriptCount": 0
+    },
+    {
+      "source": "delivery-recovered.html",
+      "fonts": "loaded",
+      "scriptCount": 0
+    },
+    {
+      "source": "report-card.html",
+      "fonts": "loaded",
+      "scriptCount": 0
+    }
+  ],
+  "fixtureDisclosure": "Local demo · UI fixtures"
+}

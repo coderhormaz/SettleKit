@@ -1,0 +1,92 @@
+{
+  "format": "1920x1080 / 30 fps / 20 seconds / AVC H.264 + AAC stereo",
+  "checks": {
+    "mediaChecksPass": true,
+    "exactly600SourceFrames": true,
+    "posterReplacesFrameZero": true,
+    "encodedPosterMatches": true,
+    "audioAlignedWithinOneMillisecond": true,
+    "mainTextContrastPasses": true,
+    "sanitizedProductSnapshots": true,
+    "captureHasNoErrorsOrWrites": true,
+    "renderHasNoBrowserErrors": true
+  },
+  "encodedPosterMeanAbsoluteRgbError": 0.7635,
+  "audioAlignmentSamples": 0,
+  "audioAlignmentMilliseconds": 0.0,
+  "mainTextContrastRatios": {
+    "#f5f7fa": 18.12,
+    "#a3f5c5": 15.21,
+    "#a5adbd": 8.62,
+    "#8e98ab": 6.69
+  },
+  "productSnapshots": {
+    "checkout": {
+      "scriptCount": 0,
+      "navigationUrlCount": 0,
+      "walletValueCount": 0
+    },
+    "accepted": {
+      "scriptCount": 0,
+      "navigationUrlCount": 0,
+      "walletValueCount": 0
+    },
+    "overview": {
+      "scriptCount": 0,
+      "navigationUrlCount": 0,
+      "walletValueCount": 0
+    },
+    "reports": {
+      "scriptCount": 0,
+      "navigationUrlCount": 0,
+      "walletValueCount": 0
+    },
+    "webhooks": {
+      "scriptCount": 0,
+      "navigationUrlCount": 0,
+      "walletValueCount": 0
+    },
+    "recovered": {
+      "scriptCount": 0,
+      "navigationUrlCount": 0,
+      "walletValueCount": 0
+    }
+  },
+  "visualReview": {
+    "settledFramesSeconds": [
+      1.5,
+      4.8,
+      8.5,
+      10.4,
+      14.6,
+      18
+    ],
+    "transitionFramesSeconds": [
+      2.93,
+      3.12,
+      6.94,
+      7.12,
+      11.93,
+      12.12,
+      15.93,
+      16.12
+    ],
+    "findings": "Reviewed all five scenes and mid-transition samples. No clipped headline, colliding elements or overlapping busy layouts. Checkout frame height tightened to its actual content. Product text/amounts, source fixture disclosure and funded-proof boundary remain visible.",
+    "detectorReview": "Chrome padding warnings visually reviewed against centered 15px text in a 45px bar; fixed-resolution film typography intentionally differs from operating UI. No application design system edits."
+  },
+  "files": {
+    "brag.mp4": {
+      "bytes": 3341570,
+      "sha256": "1e80905b53ded50ec5af0d9be3cdb9713ede586f12b564bc28efbcf5f043fe0c"
+    },
+    "brag.jpg": {
+      "bytes": 171638,
+      "sha256": "79024a2f048abd4f950b2311f3e946f22319e075796d2b1a6efdd31f262d36ae"
+    },
+    "share-copy.txt": {
+      "bytes": 278,
+      "sha256": "30f2e394366b4e379c8336f339ce9667e0c2d12f1bc373a84ed39defac8ed49d"
+    }
+  },
+  "evidenceBoundary": "Illustrative UI fixtures. Not funded sponsor execution, a new CRE run, DON deployment, signed Arkiv receipt, public hosting, submission or the human-narrated final demonstration."
+}

@@ -1,0 +1,21 @@
+# Keep generated intermediates locally; retain the editable recipe and QA.
+work/*
+!work/capture.mjs
+!work/build.mjs
+!work/render.mjs
+!work/music.py
+!work/quality.py
+!work/mp4.mjs
+!work/native-encode.mjs
+!work/validate.mjs
+!work/captures.json
+!work/manrope-variable.ttf
+!work/OFL-Manrope.txt
+!work/capture-check.json
+!work/still-check.json
+!work/render-check.json
+!work/music-check.json
+!work/native-encode-check.json
+!work/media-check.json
+!work/audio-alignment.json
+!work/final-qa.json

@@ -1,0 +1,58 @@
+{
+  "file": "brag.mp4",
+  "bytes": 3341570,
+  "metadata": {
+    "duration": 20,
+    "width": 1920,
+    "height": 1080,
+    "readyState": 4
+  },
+  "tracks": [
+    {
+      "kind": "vide",
+      "codec": "avc1",
+      "durationSeconds": 20,
+      "sampleCount": 600,
+      "width": 1920,
+      "height": 1080,
+      "fps": 30
+    },
+    {
+      "kind": "soun",
+      "codec": "mp4a",
+      "durationSeconds": 20.010666666666665,
+      "sampleCount": 938
+    }
+  ],
+  "audio": {
+    "channels": 2,
+    "duration": 20,
+    "sampleRate": 48000,
+    "peakDbfs": -1.7223170918334327,
+    "rmsDbfs": -19.169972474131328
+  },
+  "checks": {
+    "dimensions": true,
+    "duration": true,
+    "frameCount": true,
+    "frameRate": true,
+    "h264": true,
+    "aac": true,
+    "audible": true,
+    "unclipped": true,
+    "fastStart": true,
+    "noPageErrors": true,
+    "noLocalIdentity": true
+  },
+  "decodedSampleTimes": [
+    0,
+    1.5,
+    4.8,
+    8.5,
+    10.4,
+    14.6,
+    18,
+    19.6
+  ],
+  "pageErrors": []
+}

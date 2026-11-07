@@ -1,0 +1,3 @@
+A payment isn't finished until the order is. SettleKit connects USDT checkout to merchant operations, original-payer refunds and recovery of missed store notifications. Local demo with UI fixtures; funded testnet proof remains pending.
+
+https://github.com/coderhormaz/SettleKit

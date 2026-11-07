@@ -1,0 +1,72 @@
+{
+  "fixtureOnly": true,
+  "realApiWrites": 0,
+  "externalRequestsBlocked": true,
+  "captures": [
+    "checkout",
+    "accepted",
+    "overview",
+    "reports",
+    "webhooks",
+    "recovered"
+  ],
+  "errors": [],
+  "requests": [
+    {
+      "path": "/api/checkout/demo-checkout",
+      "method": "GET"
+    },
+    {
+      "path": "/api/checkout/demo-checkout",
+      "method": "GET"
+    },
+    {
+      "path": "/api/auth/me",
+      "method": "GET"
+    },
+    {
+      "path": "/api/operations/overview",
+      "method": "GET"
+    },
+    {
+      "path": "/api/operations/payments",
+      "method": "GET"
+    },
+    {
+      "path": "/api/auth/me",
+      "method": "GET"
+    },
+    {
+      "path": "/api/operations/settings",
+      "method": "GET"
+    },
+    {
+      "path": "/api/operations/overview",
+      "method": "GET"
+    },
+    {
+      "path": "/api/auth/me",
+      "method": "GET"
+    },
+    {
+      "path": "/api/operations/webhooks",
+      "method": "GET"
+    },
+    {
+      "path": "/api/operations/deliveries",
+      "method": "GET"
+    },
+    {
+      "path": "/api/auth/me",
+      "method": "GET"
+    },
+    {
+      "path": "/api/operations/webhooks",
+      "method": "GET"
+    },
+    {
+      "path": "/api/operations/deliveries",
+      "method": "GET"
+    }
+  ]
+}

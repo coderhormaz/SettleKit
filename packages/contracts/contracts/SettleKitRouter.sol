@@ -10,6 +10,10 @@ import {EIP712} from "@openzeppelin/contracts/utils/cryptography/EIP712.sol";
 import {ECDSA} from "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 import {ReentrancyGuard} from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 
+interface IEIP3009 {
+    function transferWithAuthorization(address from, address to, uint256 value, uint256 validAfter, uint256 validBefore, bytes32 nonce, uint8 v, bytes32 r, bytes32 s) external;
+}
+
 /// @notice Noncustodial, invoice-bound settlement. Screening is a time-bounded
 /// operator policy; this router cannot prevent unsolicited wallet transfers.
 contract SettleKitRouter is Ownable2Step, EIP712, ReentrancyGuard {
@@ -41,6 +45,14 @@ contract SettleKitRouter is Ownable2Step, EIP712, ReentrancyGuard {
         bytes32 evidence;
         uint256 epoch;
         uint256 deadline;
+    }
+    struct TransferAuthorization {
+        uint256 validAfter;
+        uint256 validBefore;
+        bytes32 nonce;
+        uint8 v;
+        bytes32 r;
+        bytes32 s;
     }
     struct Settlement {
         address payer;
@@ -128,6 +140,20 @@ contract SettleKitRouter is Ownable2Step, EIP712, ReentrancyGuard {
 
     function pay(Payment calldata authorization, bytes calldata signature) external nonReentrant {
         if (msg.sender != authorization.payer) revert WrongCaller();
+        _settle(authorization, signature, false, TransferAuthorization(0, 0, bytes32(0), 0, bytes32(0), bytes32(0)));
+    }
+
+    /// @notice Relayer-submitted payment. Buyer must have approved the router; relayer pays network gas.
+    function payRelayed(Payment calldata authorization, bytes calldata signature) external nonReentrant {
+        _settle(authorization, signature, false, TransferAuthorization(0, 0, bytes32(0), 0, bytes32(0), bytes32(0)));
+    }
+
+    /// @notice Relayer-submitted payment using EIP-3009 token authorization. Buyer signs offchain; no prior USDT approval tx or WBT gas required from buyer.
+    function payWithTransferAuthorization(Payment calldata authorization, bytes calldata signature, TransferAuthorization calldata tokenAuthorization) external nonReentrant {
+        _settle(authorization, signature, true, tokenAuthorization);
+    }
+
+    function _settle(Payment calldata authorization, bytes calldata signature, bool useTokenAuthorization, TransferAuthorization memory tokenAuthorization) private {
         _validate(authorization.payer, authorization.merchant, authorization.token, authorization.amount, authorization.evidence, authorization.epoch, authorization.deadline);
         if (authorization.invoiceId == bytes32(0)) revert InvalidAuthorization();
         if (payments[authorization.invoiceId].payer != address(0)) revert InvoiceAlreadyPaid();
@@ -135,7 +161,11 @@ contract SettleKitRouter is Ownable2Step, EIP712, ReentrancyGuard {
         if (ECDSA.recover(digest, signature) != authorizationSigner) revert InvalidAuthorization();
         payments[authorization.invoiceId] = Settlement(authorization.payer, authorization.merchant, authorization.amount, 0);
         uint256 beforeBalance = token.balanceOf(authorization.merchant);
-        token.safeTransferFrom(authorization.payer, authorization.merchant, authorization.amount);
+        if (useTokenAuthorization) {
+            IEIP3009(address(token)).transferWithAuthorization(authorization.payer, authorization.merchant, authorization.amount, tokenAuthorization.validAfter, tokenAuthorization.validBefore, tokenAuthorization.nonce, tokenAuthorization.v, tokenAuthorization.r, tokenAuthorization.s);
+        } else {
+            token.safeTransferFrom(authorization.payer, authorization.merchant, authorization.amount);
+        }
         uint256 afterBalance = token.balanceOf(authorization.merchant);
         if (afterBalance < beforeBalance || afterBalance - beforeBalance != authorization.amount) revert InexactTransfer();
         emit PaymentAccepted(authorization.invoiceId, authorization.payer, authorization.merchant, authorization.token, authorization.amount, authorization.evidence, authorization.epoch, authorization.deadline);

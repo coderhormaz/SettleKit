@@ -3,7 +3,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { AppError, addressSchema } from '@settlekit/core';
 import { publicError, randomToken, requireMutationOrigin, runtimeConfig } from '@settlekit/core/server';
-import { authenticate, authenticateApiKey, authorizeCheckout, checkoutRow, createCheckout, database, listPayments, logout, merchantProfile, paymentState, publicCheckout, refreshMerchantScreening, requestChallenge, requestPayerChallenge, SESSION_SECONDS, updateMerchant, verifyChallenge } from '@settlekit/db';
+import { authenticate, authenticateApiKey, authorizeCheckout, checkoutRow, createCheckout, database, listPayments, logout, merchantProfile, paymentState, publicCheckout, refreshMerchantScreening, relaySponsoredCheckout, requestChallenge, requestPayerChallenge, SESSION_SECONDS, updateMerchant, verifyChallenge } from '@settlekit/db';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -34,7 +34,7 @@ async function handle(req:NextRequest) {
       throw new AppError('NOT_FOUND',404,'This server action was not found.');
     }
     if(req.method!=='GET')requireMutationOrigin(req.headers.get('origin'));
-    const checkout=path.match(/^\/api\/checkout\/([a-f0-9]{64})(?:\/(challenge|authorize|submitted))?$/);
+    const checkout=path.match(/^\/api\/checkout\/([a-f0-9]{64})(?:\/(challenge|authorize|submitted|relay))?$/);
     if(checkout){
       const [,reference,action]=checkout;
       if(!action&&req.method==='GET')return response(await publicCheckout(db,reference));
@@ -50,6 +50,9 @@ async function handle(req:NextRequest) {
         const input=z.object({tx_hash:z.string().regex(/^0x[0-9a-f]{64}$/i)}).strict().parse(await body(req));const row=await checkoutRow(db,reference);
         // An untrusted UI hint, never payment evidence or an observer cursor.
         await db.pool.query("update checkout_sessions set submitted_tx_hash=$2 where id=$1 and status='open' and submitted_tx_hash is null",[row.id,input.tx_hash]);return response({submitted:true});
+      }
+      if(action==='relay'&&req.method==='POST'){
+        return response(await relaySponsoredCheckout(db,reference,await body(req)));
       }
       throw new AppError('NOT_FOUND',404,'This checkout action was not found.');
     }

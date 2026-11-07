@@ -20,6 +20,25 @@ export function routerDomain(chainId: number, verifyingContract: Address) {
   return { name: 'SettleKitRouter', version: '1', chainId, verifyingContract } as const;
 }
 
+export interface TransferAuthorization {
+  validAfter: bigint; validBefore: bigint; nonce: Hex; v: number; r: Hex; s: Hex;
+}
+
+export const transferWithAuthorizationTypes = {
+  TransferWithAuthorization: [
+    { name: 'from', type: 'address' },
+    { name: 'to', type: 'address' },
+    { name: 'value', type: 'uint256' },
+    { name: 'validAfter', type: 'uint256' },
+    { name: 'validBefore', type: 'uint256' },
+    { name: 'nonce', type: 'bytes32' },
+  ],
+} as const;
+
+export function usdtEip3009Domain(chainId: number, verifyingContract: Address, name = 'Tether USD', version = '1') {
+  return { name, version, chainId, verifyingContract } as const;
+}
+
 export const routerAbi = parseAbi([
   'function token() view returns (address)',
   'function owner() view returns (address)',
@@ -35,6 +54,8 @@ export const routerAbi = parseAbi([
   'function setPaused(bool value)',
   'function setAuthorizationSigner(address signer)',
   'function pay((bytes32 invoiceId,address payer,address merchant,address token,uint256 amount,bytes32 evidence,uint256 epoch,uint256 deadline) authorization, bytes signature)',
+  'function payRelayed((bytes32 invoiceId,address payer,address merchant,address token,uint256 amount,bytes32 evidence,uint256 epoch,uint256 deadline) authorization, bytes signature)',
+  'function payWithTransferAuthorization((bytes32 invoiceId,address payer,address merchant,address token,uint256 amount,bytes32 evidence,uint256 epoch,uint256 deadline) authorization, bytes signature, (uint256 validAfter,uint256 validBefore,bytes32 nonce,uint8 v,bytes32 r,bytes32 s) tokenAuthorization)',
   'function refund((bytes32 refundId,bytes32 invoiceId,address payer,address merchant,address token,uint256 amount,bytes32 evidence,uint256 epoch,uint256 deadline) authorization, bytes signature)',
   'event PaymentAccepted(bytes32 indexed invoiceId, address indexed payer, address indexed merchant, address token, uint256 amount, bytes32 evidence, uint256 epoch, uint256 deadline)',
   'event RefundExecuted(bytes32 indexed refundId, bytes32 indexed invoiceId, address payer, address merchant, address token, uint256 amount, bytes32 evidence, uint256 epoch, uint256 deadline)',

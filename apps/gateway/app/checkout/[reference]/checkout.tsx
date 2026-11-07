@@ -2,23 +2,25 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { useAccount, useConfig, useConnect, usePublicClient, useSignMessage, useSwitchChain, useWriteContract } from 'wagmi';
+import { useAccount, useConfig, useConnect, usePublicClient, useSignMessage, useSignTypedData, useSwitchChain, useWriteContract } from 'wagmi';
 import { getAccount } from 'wagmi/actions';
-import { erc20Abi, isAddress, type Address, type Hex } from 'viem';
-import { ArrowLeft, ArrowRight, Check, CheckCheck, CircleAlert, ExternalLink, Fingerprint, LoaderCircle, LockKeyhole, RefreshCw, ShieldCheck, Wallet } from 'lucide-react';
+import { hexToSignature, isAddress, type Address, type Hex } from 'viem';
+import { ArrowLeft, ArrowRight, Check, CheckCheck, CircleAlert, ExternalLink, Fingerprint, Fuel, LoaderCircle, LockKeyhole, RefreshCw, ShieldCheck, Wallet } from 'lucide-react';
 import { formatUsdt, USDT_ADDRESS, WHITECHAIN_CHAIN_ID } from '@settlekit/core';
-import { routerAbi } from '@settlekit/core/router';
+import { routerAbi, transferWithAuthorizationTypes, usdtEip3009Domain } from '@settlekit/core/router';
 import styles from './checkout.module.css';
 
 type CheckoutData = {
   reference: string; amount_base_units: string; merchant_name: string; merchant_wallet: string;
   status: 'open' | 'accepted' | 'review' | 'orphaned' | 'expired' | 'pending'; payment_id: string | null;
   confirmation_stage: 'included_2_blocks'; router: string | null; token: string; chain_id: number;
-  expires_at: string; return_url: string; delivery_status: string | null; mode?: 'store'|'collection'; tx_hash?: Hex | null;
+  expires_at: string; return_url: string; delivery_status?: string | null; mode?: 'store' | 'collection';
+  tx_hash?: Hex | null; sponsor_buyer_gas?: boolean;
 };
 type Authorization = { invoiceId: Hex; payer: Address; merchant: Address; token: Address; amount: string; evidence: Hex; epoch: string; deadline: string };
 type AuthorizationResponse = { authorization: Authorization; signature: Hex; router: Address };
-type Stage = 'idle' | 'connecting' | 'checking' | 'approving' | 'paying' | 'submitted';
+type TokenAuthorization = { validAfter: string; validBefore: string; nonce: Hex; v: number; r: Hex; s: Hex };
+type Stage = 'idle' | 'connecting' | 'checking' | 'signing' | 'paying' | 'submitted';
 class ApiError extends Error { constructor(readonly status: number, readonly code: string, message: string) { super(message); } }
 
 async function api<T>(path: string, body?: unknown): Promise<T> {
@@ -38,18 +40,24 @@ function walletError(error: unknown) {
   if (/reject|denied|cancel/i.test(text)) return 'The wallet request was cancelled. Check the current payment status before trying again.';
   if (/provider|connector|wallet.*found/i.test(text)) return 'No compatible browser wallet was found. Open checkout in a browser with an EVM wallet.';
   if (/chain|network|switch/i.test(text)) return 'Switch your wallet to Whitechain Sepolia, then try again.';
-  if (/insufficient|funds|balance/i.test(text)) return 'Your wallet needs enough test USDT for this payment and test WBT for network fees.';
+  if (/insufficient|funds|balance/i.test(text)) return 'Your wallet needs enough test USDT for this payment, or test WBT if you pay network gas yourself.';
   return text.startsWith('We couldn’t') || text.startsWith('Your ') || text.startsWith('This ') ? text : 'The wallet request could not finish. Check your wallet and payment status, then retry.';
+}
+function randomNonce(): Hex {
+  const bytes = new Uint8Array(32);
+  crypto.getRandomValues(bytes);
+  return (`0x${Array.from(bytes, (b) => b.toString(16).padStart(2, '0')).join('')}`) as Hex;
 }
 
 export function Checkout({ reference }: { reference: string }) {
   const config = useConfig(); const account = useAccount(); const client = usePublicClient({ chainId: WHITECHAIN_CHAIN_ID });
   const { connectAsync, connectors } = useConnect(); const { switchChainAsync } = useSwitchChain();
-  const { signMessageAsync } = useSignMessage(); const { writeContractAsync } = useWriteContract();
+  const { signMessageAsync } = useSignMessage(); const { signTypedDataAsync } = useSignTypedData();
+  const { writeContractAsync } = useWriteContract();
   const [stage, setStage] = useState<Stage>('idle'); const [error, setError] = useState<string | null>(null);
   const [authorization, setAuthorization] = useState<AuthorizationResponse | null>(null);
   const [now, setNow] = useState(() => Date.now());
-  const [allowanceReady, setAllowanceReady] = useState(false); const [txHash, setTxHash] = useState<Hex | null>(null);
+  const [txHash, setTxHash] = useState<Hex | null>(null);
   const [dismissedTxHash, setDismissedTxHash] = useState<Hex | null>(null);
   const [retryConfirmation, setRetryConfirmation] = useState(false); const [retryChecking, setRetryChecking] = useState(false);
   const [hint, setHint] = useState<string | null>(null); const inFlight = useRef(false);
@@ -64,8 +72,9 @@ export function Checkout({ reference }: { reference: string }) {
   const configured = !!checkout?.router && isAddress(checkout.router) && checkout.chain_id === WHITECHAIN_CHAIN_ID && checkout.token.toLowerCase() === USDT_ADDRESS.toLowerCase();
   const expired = !!checkout && Date.parse(checkout.expires_at) <= Date.now();
   const authorizationCurrent = !!authorization && !query.isError && authorization.authorization.payer.toLowerCase() === account.address?.toLowerCase() && BigInt(authorization.authorization.deadline) > BigInt(Math.floor(now / 1000) + 5);
+  const sponsored = !!checkout?.sponsor_buyer_gas;
 
-  useEffect(() => { setAuthorization(null); setAllowanceReady(false); }, [account.address, account.chainId]);
+  useEffect(() => { setAuthorization(null); }, [account.address, account.chainId]);
   useEffect(() => { if (checkout?.status === 'accepted') setStage('idle'); }, [checkout?.status]);
   useEffect(() => {
     if (!authorization) return;
@@ -108,6 +117,27 @@ export function Checkout({ reference }: { reference: string }) {
     const result = await api<AuthorizationResponse>(`${basePath}/authorize`, { id: challenge.id, signature });
     validateAuthorization(result, payer); setAuthorization(result); return result;
   }
+  async function signTokenAuthorization(auth: AuthorizationResponse): Promise<TokenAuthorization> {
+    const validAfter = '0';
+    const validBefore = String(Math.floor(Date.now() / 1000) + 600);
+    const nonce = randomNonce();
+    const sig = await signTypedDataAsync({
+      domain: usdtEip3009Domain(WHITECHAIN_CHAIN_ID, USDT_ADDRESS),
+      types: transferWithAuthorizationTypes,
+      primaryType: 'TransferWithAuthorization',
+      message: { from: auth.authorization.payer, to: auth.authorization.merchant, value: BigInt(auth.authorization.amount), validAfter: BigInt(validAfter), validBefore: BigInt(validBefore), nonce },
+      account: auth.authorization.payer,
+    });
+    const { v, r, s } = hexToSignature(sig);
+    return { validAfter, validBefore, nonce, v: Number(v), r, s };
+  }
+  async function noteSubmitted(hash: Hex) {
+    setTxHash(hash); setDismissedTxHash(null); setStage('submitted');
+    try { sessionStorage.setItem(`settlekit:submitted:${reference}`, hash); sessionStorage.removeItem(`settlekit:dismissed:${reference}`); } catch { /* Server observations still determine payment state. */ }
+    try { await api(`${basePath}/submitted`, { tx_hash: hash }); }
+    catch { setError('Your transaction was submitted, but status reporting could not connect. Do not pay again; keep the transaction link and refresh the status.'); }
+    await query.refetch();
+  }
   async function retryPayment() {
     if (inFlight.current || retryChecking || !checkout || checkout.status !== 'open') return;
     inFlight.current = true; setRetryChecking(true); setError(null);
@@ -115,95 +145,94 @@ export function Checkout({ reference }: { reference: string }) {
       const latest = await query.refetch();
       if (latest.error || !latest.data || latest.data.status !== 'open' || Date.parse(latest.data.expires_at) <= Date.now()) throw new Error('This checkout cannot start another attempt. Review its latest payment status.');
       const previousHash = latest.data.tx_hash ?? submittedHash;
-      setDismissedTxHash(previousHash); setTxHash(null); setAuthorization(null); setAllowanceReady(false); setStage('idle');
+      setDismissedTxHash(previousHash); setTxHash(null); setAuthorization(null); setStage('idle');
       setRetryConfirmation(false); setHint(null);
-      try {
-        sessionStorage.removeItem(`settlekit:submitted:${reference}`);
-        if (previousHash) sessionStorage.setItem(`settlekit:dismissed:${reference}`, previousHash);
-      } catch { /* The dismissal still applies for this page session. */ }
+      try { sessionStorage.removeItem(`settlekit:submitted:${reference}`); if (previousHash) sessionStorage.setItem(`settlekit:dismissed:${reference}`, previousHash); } catch { /* dismissal still applies for this page session */ }
     } catch (cause) { setError(walletError(cause)); }
     finally { inFlight.current = false; setRetryChecking(false); }
   }
-  async function run(action: 'verify' | 'approve' | 'pay') {
+  async function run(action: 'verify' | 'pay' | 'walletPay') {
     if (inFlight.current || !checkout || !client || !configured || terminal || pending) return;
     inFlight.current = true; setError(null); setHint(null);
     try {
       setStage('connecting'); const payer = await walletAddress();
       const latest = await query.refetch();
       if (latest.error || !latest.data || latest.data.status !== 'open' || Date.parse(latest.data.expires_at) <= Date.now()) throw new Error('This checkout is no longer available for a new payment. Review its current status.');
-      const amountUnits = BigInt(checkout.amount_base_units); const router = checkout.router as Address;
-      const [balance, gas, allowance] = await Promise.all([
-        client.readContract({ address: USDT_ADDRESS, abi: erc20Abi, functionName: 'balanceOf', args: [payer] }),
-        client.getBalance({ address: payer }),
-        client.readContract({ address: USDT_ADDRESS, abi: erc20Abi, functionName: 'allowance', args: [payer, router] }),
-      ]);
-      if (balance < amountUnits || gas === 0n) throw new Error('Your wallet needs enough test USDT for this payment and test WBT for network fees.');
-      setAllowanceReady(allowance >= amountUnits);
       if (action === 'verify') {
+        const balance = await client.readContract({ address: USDT_ADDRESS, abi: [{ type: 'function', name: 'balanceOf', stateMutability: 'view', inputs: [{ name: 'account', type: 'address' }], outputs: [{ type: 'uint256' }] }] as const, functionName: 'balanceOf', args: [payer] });
+        if (balance < BigInt(checkout.amount_base_units)) throw new Error('Your wallet needs enough test USDT for this payment.');
         setStage('checking'); await authorize(payer);
-        setHint(allowance >= amountUnits ? 'Your wallet passed the configured checks. Review and send the payment.' : 'Your wallet passed the configured checks. Next, approve the exact USDT amount.');
-      } else if (action === 'approve') {
-        if (!authorization) throw new Error('Your wallet check expired. Verify your wallet again.');
-        setStage('approving'); assertWallet(payer);
-        if (allowance < amountUnits) {
-          if (allowance > 0n) {
-            const resetHash = await writeContractAsync({ account: payer, chainId: WHITECHAIN_CHAIN_ID, address: USDT_ADDRESS, abi: erc20Abi, functionName: 'approve', args: [router, 0n] });
-            const receipt = await client.waitForTransactionReceipt({ hash: resetHash, timeout: 120_000 });
-            if (receipt.status !== 'success') throw new Error('This allowance reset was not successful. Check your wallet before retrying.');
-          }
-          assertWallet(payer);
-          const hash = await writeContractAsync({ account: payer, chainId: WHITECHAIN_CHAIN_ID, address: USDT_ADDRESS, abi: erc20Abi, functionName: 'approve', args: [router, amountUnits] });
-          const receipt = await client.waitForTransactionReceipt({ hash, timeout: 120_000 });
-          if (receipt.status !== 'success') throw new Error('This USDT approval was not successful. Check your wallet before retrying.');
-        }
-        setAllowanceReady(true); setHint('USDT allowance is ready. The payment is a separate wallet transaction.');
+        setHint(sponsored ? 'Your wallet passed the configured checks. You can pay with sponsored gas, or pay network gas yourself if needed.' : 'Your wallet passed the configured checks. Sign the payment authorization to complete the payment.');
       } else {
-        if (allowance < amountUnits) { setAllowanceReady(false); throw new Error('Your USDT allowance needs approval before payment.'); }
         let result = authorization;
         if (!result || BigInt(result.authorization.deadline) <= BigInt(Math.floor(Date.now() / 1000) + 15)) { setStage('checking'); result = await authorize(payer); }
-        validateAuthorization(result, payer); assertWallet(payer); setStage('paying');
-        const auth = result.authorization;
-        const hash = await writeContractAsync({ account: payer, chainId: WHITECHAIN_CHAIN_ID, address: result.router, abi: routerAbi, functionName: 'pay', args: [{ ...auth, amount: BigInt(auth.amount), epoch: BigInt(auth.epoch), deadline: BigInt(auth.deadline) }, result.signature] });
-        setTxHash(hash); setDismissedTxHash(null); setStage('submitted');
-        try { sessionStorage.setItem(`settlekit:submitted:${reference}`, hash); sessionStorage.removeItem(`settlekit:dismissed:${reference}`); } catch { /* The submitted hash is also recorded on the server below. */ }
-        try { await api(`${basePath}/submitted`, { tx_hash: hash }); }
-        catch { setError('Your transaction was submitted, but status reporting could not connect. Do not pay again; keep the transaction link and refresh the status.'); }
-        await query.refetch();
+        validateAuthorization(result, payer); assertWallet(payer);
+        setStage('signing');
+        const tokenAuthorization = await signTokenAuthorization(result);
+        assertWallet(payer);
+        if (action === 'pay' && sponsored) {
+          setStage('paying');
+          try {
+            const relayed = await api<{ tx_hash: Hex }>(`${basePath}/relay`, { authorization: result.authorization, signature: result.signature, tokenAuthorization });
+            await noteSubmitted(relayed.tx_hash);
+            return;
+          } catch (cause) {
+            if (cause instanceof ApiError && cause.code === 'SPONSOR_UNAVAILABLE') throw new Error('Sponsored gas is temporarily unavailable. Use “Pay with my wallet gas” if your wallet has test WBT.');
+            throw cause;
+          }
+        } else {
+          const gas = await client.getBalance({ address: payer });
+          if (gas === 0n) throw new Error('Your wallet needs test WBT for network gas to submit this payment.');
+          setStage('paying');
+          const auth = result.authorization;
+          const hash = await writeContractAsync({
+            account: payer, chainId: WHITECHAIN_CHAIN_ID, address: result.router, abi: routerAbi,
+            functionName: 'payWithTransferAuthorization',
+            args: [
+              { ...auth, amount: BigInt(auth.amount), epoch: BigInt(auth.epoch), deadline: BigInt(auth.deadline) },
+              result.signature,
+              { validAfter: BigInt(tokenAuthorization.validAfter), validBefore: BigInt(tokenAuthorization.validBefore), nonce: tokenAuthorization.nonce, v: tokenAuthorization.v, r: tokenAuthorization.r as Hex, s: tokenAuthorization.s as Hex },
+            ],
+          });
+          await noteSubmitted(hash);
+        }
       }
     } catch (cause) { setError(walletError(cause)); }
     finally { inFlight.current = false; setStage((value) => value === 'submitted' ? value : 'idle'); }
   }
 
-  const action = !authorizationCurrent ? 'verify' : !allowanceReady ? 'approve' : 'pay';
-  const actionLabel = action === 'verify' ? (account.isConnected ? 'Verify wallet & check eligibility' : 'Connect wallet to continue') : action === 'approve' ? `Approve ${amount} USDT` : `Pay ${amount} USDT`;
-  const loadingLabel = stage === 'connecting' ? 'Connecting to Whitechain…' : stage === 'checking' ? 'Verify the message in your wallet…' : stage === 'approving' ? 'Confirm USDT approval in your wallet…' : 'Confirm payment in your wallet…';
   const accepted = checkout?.status === 'accepted' && !query.isError;
   const held = checkout?.status === 'review' || checkout?.status === 'orphaned';
+  const canPay = authorizationCurrent && !busy && configured && !query.isError && !terminal && !pending && !expired;
+  const loadingLabel = stage === 'connecting' ? 'Connecting to Whitechain…' : stage === 'checking' ? 'Verify the message in your wallet…' : stage === 'signing' ? 'Sign the payment authorization in your wallet…' : 'Submitting your payment…';
+
   return <div className={styles.page}>
     <a className="skip-link" href="#checkout-main">Skip to checkout</a>
     <header className={styles.header}><a href="/" className={styles.brand} aria-label="SettleKit home"><span className={styles.brandMark}><ArrowRight size={19} /></span>SettleKit</a><span className={styles.network}><span />Whitechain Sepolia <span className={styles.testTag}>Testnet</span></span></header>
     <main id="checkout-main" className={styles.main}>
       <div className={styles.intro}><h1>Secure checkout</h1><span><LockKeyhole size={14} /> Direct to the business wallet</span></div>
       {query.isPending ? <section className={styles.loading} aria-live="polite"><LoaderCircle className="spin" size={25} /><h2>Loading your checkout</h2><p>Checking the amount and payment status.</p></section> : !checkout ? <section className={styles.unavailable}><CircleAlert size={26} /><h2>{query.error instanceof ApiError && query.error.status === 404 ? 'Checkout not found' : 'Checkout is unavailable'}</h2><p>{query.error instanceof Error ? query.error.message : 'Return to the business and open a new checkout.'}</p><button className="secondary-button" onClick={() => void query.refetch()}><RefreshCw size={15} />Try again</button></section> : <div className={styles.grid}>
-        <section className={styles.receipt} aria-labelledby="receipt-title"><div className={styles.merchantSymbol}>{checkout.merchant_name.slice(0, 1).toUpperCase() || 'S'}</div><p className={styles.payTo}>Payment to</p><h2 id="receipt-title">{checkout.merchant_name || 'Business'}</h2><div className={styles.amount}>{amount}<span>USDT</span></div><p className={styles.currencyNote}>Test Tether USD · Whitechain Sepolia</p><dl className={styles.details}><div><dt>Network</dt><dd>Whitechain Sepolia</dd></div><div><dt>Payment token</dt><dd>USDT · 6 decimals</dd></div><div><dt>Amount due</dt><dd>{amount} USDT</dd></div></dl><div className={styles.destination}><span>Settlement wallet</span><a href={`https://explorer.testnet.whitechain.io/address/${checkout.merchant_wallet}`} target="_blank" rel="noreferrer"><code>{checkout.merchant_wallet}</code><ExternalLink size={14} /></a></div><div className={styles.receiptFoot}><ShieldCheck size={17} /><p>Payment goes directly to this business. SettleKit does not hold your USDT.</p></div></section>
+        <section className={styles.receipt} aria-labelledby="receipt-title"><div className={styles.merchantSymbol}>{checkout.merchant_name.slice(0, 1).toUpperCase() || 'S'}</div><p className={styles.payTo}>Payment to</p><h2 id="receipt-title">{checkout.merchant_name || 'Business'}</h2><div className={styles.amount}>{amount}<span>USDT</span></div><p className={styles.currencyNote}>Test Tether USD · Whitechain Sepolia</p><dl className={styles.details}><div><dt>Network</dt><dd>Whitechain Sepolia</dd></div><div><dt>Payment token</dt><dd>USDT · 6 decimals</dd></div><div><dt>Amount due</dt><dd>{amount} USDT</dd></div></dl><div className={styles.destination}><span>Settlement wallet</span><a href={`https://explorer.testnet.whitechain.io/address/${checkout.merchant_wallet}`} target="_blank" rel="noreferrer"><code>{checkout.merchant_wallet}</code><ExternalLink size={14} /></a></div><div className={styles.receiptFoot}><ShieldCheck size={17} /><p>Payment goes directly to this business. SettleKit does not hold your USDT.{sponsored ? ' Network gas can be sponsored for this checkout.' : ''}</p></div></section>
         <section className={styles.actionPanel} aria-labelledby="payment-title">
           <div className={styles.panelHeading}><h2 id="payment-title">{query.isError ? 'Current status unavailable' : accepted ? 'Payment received' : held ? 'Payment needs review' : pending ? 'Confirming your payment' : expired || checkout.status === 'expired' ? 'Checkout expired' : 'Pay with your wallet'}</h2><span className={styles.iconCircle}>{accepted ? <CheckCheck size={20} /> : <Wallet size={20} />}</span></div>
-          <p className={styles.panelDescription}>{accepted ? 'The payment was verified on Whitechain. Store delivery is tracked separately below.' : held ? 'This payment is on hold. The business must review the current chain or eligibility state before delivery.' : pending ? 'Your wallet sent a transaction. We are checking its onchain evidence; please do not pay again.' : expired || checkout.status === 'expired' ? 'This checkout can no longer authorize a new payment. Return to the store for a new checkout.' : 'Connect a wallet with test USDT and WBT. You review every signature and transaction in your wallet.'}</p>
+          <p className={styles.panelDescription}>{accepted ? 'The payment was verified on Whitechain. Store delivery is tracked separately below.' : held ? 'This payment is on hold. The business must review the current chain or eligibility state before delivery.' : pending ? 'Your wallet sent a transaction. We are checking its onchain evidence; please do not pay again.' : expired || checkout.status === 'expired' ? 'This checkout can no longer authorize a new payment. Return to the store for a new checkout.' : sponsored ? 'Connect a wallet with test USDT. Network gas can be sponsored; no separate USDT approval transaction is needed.' : 'Connect a wallet with test USDT. No separate USDT approval transaction is needed; your wallet signs the payment and pays network gas.'}</p>
           {query.isError && <div className={styles.warning} role="alert"><CircleAlert size={17} /><p>Current status could not refresh. Check your connection and refresh before taking another action.</p></div>}
           {error && <div className={styles.warning} role="alert"><CircleAlert size={17} /><p>{error}</p></div>}
           {hint && authorizationCurrent && !error && !pending && !terminal && <div className={styles.feedback} role="status"><ShieldCheck size={17} /><p>{hint}</p></div>}
           {authorization && !authorizationCurrent && !query.isError && !error && !pending && !terminal && !busy && <div className={styles.warning} role="status"><RefreshCw size={17} /><p>Your wallet check expired. Verify it again for a current payment authorization.</p></div>}
           {accepted ? <div className={styles.accepted} role="status"><span><Check size={26} /></span><strong>{amount} USDT received</strong><p>Included with two block confirmations.<br />This is soft confirmation, not finality.</p></div> : held ? <div className={styles.warning}><CircleAlert size={18} /><p>Do not send a second payment. Keep your transaction reference and contact the business.</p></div> : pending ? <div className={styles.pending} role="status"><LoaderCircle className="spin" size={23} /><strong>Waiting for verified confirmation</strong><p>Closing this page does not cancel a transaction.</p></div> : !terminal && !expired ? <>
-            <ol className={styles.steps}><li className={authorizationCurrent ? styles.done : styles.current}><span>{authorizationCurrent ? <Check size={13} /> : '1'}</span><div><strong>Verify your wallet</strong><p>Sign a message for required checks.</p></div><Fingerprint size={17} /></li><li className={allowanceReady ? styles.done : authorizationCurrent ? styles.current : ''}><span>{allowanceReady ? <Check size={13} /> : '2'}</span><div><strong>Approve USDT if needed</strong><p>Allow only the exact payment amount.</p></div></li><li className={authorizationCurrent && allowanceReady ? styles.current : ''}><span>3</span><div><strong>Confirm the payment</strong><p>Send USDT directly to the business.</p></div></li></ol>
+            <ol className={styles.steps}><li className={authorizationCurrent ? styles.doneStep : styles.activeStep}><span className={styles.iconCircle}>{authorizationCurrent ? <Check size={13} /> : <Fingerprint size={15} />}</span><div><strong>Verify your wallet</strong><p>Sign a message for required checks.</p></div></li><li className={authorizationCurrent ? styles.activeStep : ''}><span className={styles.iconCircle}>{sponsored ? <Fuel size={15} /> : <Wallet size={15} />}</span><div><strong>{sponsored ? 'Sign and pay' : 'Sign and send payment'}</strong><p>{sponsored ? 'Sign the payment authorization. Sponsored gas can submit it; fallback uses your wallet gas.' : 'Sign the payment authorization and submit the payment. No USDT approval transaction is needed.'}</p></div></li></ol>
             {!configured && <div className={styles.warning} role="status"><CircleAlert size={17} /><p>Live payments are not available for this checkout yet. Nothing can be sent until payment setup is verified.</p></div>}
-            <button className={`primary-button ${styles.payButton}`} disabled={busy || !configured || query.isError} onClick={() => void run(action)}>{busy ? <LoaderCircle className="spin" size={17} /> : <Wallet size={17} />}{busy ? loadingLabel : actionLabel}{!busy && <ArrowRight size={16} />}</button>
+            {!authorizationCurrent ? <button className={`primary-button ${styles.payButton}`} disabled={busy || !configured || query.isError} onClick={() => void run('verify')}>{busy ? <LoaderCircle className="spin" size={17} /> : <Wallet size={17} />}{busy ? loadingLabel : (account.isConnected ? 'Verify wallet & check eligibility' : 'Connect wallet to continue')}{!busy && <ArrowRight size={16} />}</button>
+              : sponsored ? <><button className={`primary-button ${styles.payButton}`} disabled={!canPay} onClick={() => void run('pay')}>{busy && stage !== 'idle' ? <LoaderCircle className="spin" size={17} /> : <Fuel size={17} />}{busy ? loadingLabel : `Pay ${amount} USDT with sponsored gas`}{!busy && <ArrowRight size={16} />}</button><button className="secondary-button" style={{ marginTop: 8, width: '100%' }} disabled={!canPay} onClick={() => void run('walletPay')}><Wallet size={16} />Pay with my wallet gas</button></>
+              : <button className={`primary-button ${styles.payButton}`} disabled={!canPay} onClick={() => void run('walletPay')}>{busy ? <LoaderCircle className="spin" size={17} /> : <Wallet size={17} />}{busy ? loadingLabel : `Pay ${amount} USDT`}{!busy && <ArrowRight size={16} />}</button>}
             {account.address && <p className={styles.connected}>Connected wallet <code title={account.address}>{short(account.address)}</code></p>}
           </> : null}
           {checkout.payment_id && <dl className={styles.statusList}><div><dt>Payment</dt><dd>{checkout.status === 'accepted' ? 'Received' : checkout.status}</dd></div><div><dt>{checkout.mode === 'collection' ? 'Collection record' : 'Store notification'}</dt><dd>{checkout.mode === 'collection' && checkout.delivery_status === 'delivered' ? 'Recorded' : checkout.delivery_status ?? 'Not delivered yet'}</dd></div></dl>}
           {(txHash || checkout.tx_hash) && <a className={styles.transaction} href={`https://explorer.testnet.whitechain.io/tx/${txHash ?? checkout.tx_hash}`} target="_blank" rel="noreferrer">View submitted transaction<ExternalLink size={14} /></a>}
           {(pending || terminal || query.isError) && <button className={`secondary-button ${styles.refresh}`} disabled={query.isFetching} onClick={() => void query.refetch()}><RefreshCw size={15} className={query.isFetching ? 'spin' : ''} />Refresh payment status</button>}
           {pending && checkout.status === 'open' && !expired && !query.isError && <div className={styles.retryArea}>{retryConfirmation ? <div className={styles.retryConfirmation}><strong>Start another payment attempt?</strong><p>A submitted transaction may still confirm. Retrying does not cancel it. The SettleKit router accepts this invoice only once, so another attempt cannot charge it twice. Check the transaction first; network fees may still apply.</p><div><button className="secondary-button" disabled={retryChecking || query.isFetching} onClick={() => void retryPayment()}>{retryChecking && <LoaderCircle className="spin" size={14} />}Start a new payment attempt</button><button className="text-button" disabled={retryChecking} onClick={() => setRetryConfirmation(false)}>Keep waiting</button></div></div> : <button className="text-button" onClick={() => setRetryConfirmation(true)}>Try payment again</button>}</div>}
-          <div className={styles.gasNote}><CircleAlert size={15} /><p>Test tokens have no monetary value. Your wallet needs test WBT for network fees. Approval and payment are separate transactions.</p></div>
+          <div className={styles.gasNote}><CircleAlert size={15} /><p>{sponsored ? 'Sponsored gas may be available for this checkout. If sponsor gas is unavailable, you can pay with your wallet gas (test WBT). No separate USDT approval is needed.' : 'Your wallet signs the payment authorization and submits it. Test WBT is needed for network gas. No separate USDT approval is needed.'}</p></div>
         </section>
       </div>}
       {checkout?.return_url && <a className={styles.back} href={checkout.return_url}><ArrowLeft size={15} />{accepted ? 'Return to the store' : 'Back to the store'}</a>}

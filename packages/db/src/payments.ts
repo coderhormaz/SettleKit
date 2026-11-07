@@ -1,10 +1,11 @@
 import { randomUUID } from 'node:crypto';
 import { z } from 'zod';
 import { createSiweMessage } from 'viem/siwe';
-import { keccak256, toHex, type Hex } from 'viem';
+import { createWalletClient, http, keccak256, toHex, type Address, type Hex } from 'viem';
 import { privateKeyToAccount } from 'viem/accounts';
+import { whitechainSepolia } from 'viem/chains';
 import { AppError, addressSchema, baseUnitsSchema, USDT_ADDRESS, WHITECHAIN_CHAIN_ID } from '@settlekit/core';
-import { paymentTypes, routerDomain } from '@settlekit/core/router';
+import { paymentTypes, routerAbi, routerDomain } from '@settlekit/core/router';
 import { hashToken, randomToken, runtimeConfig } from '@settlekit/core/server';
 import { transaction, type Database } from './client.ts';
 import { chainClient, checkPaymentPolicy, sourceState, type CheckedPolicy } from './policy.ts';
@@ -44,7 +45,8 @@ export async function checkoutRow(db:Database,reference:string):Promise<Checkout
 export async function publicCheckout(db:Database,reference:string) {
   const row=await checkoutRow(db,reference);
   const detail=(await db.pool.query<{display_name:string;payment_id:string|null;delivery_status:string|null}>(`select m.display_name,p.id as payment_id,(select status from webhook_deliveries where payment_id=p.id order by state_version desc limit 1) as delivery_status from merchants m left join payments p on p.checkout_id=$2 where m.id=$1`,[row.merchant_id,row.id])).rows[0];
-  return {reference,mode:row.mode,amount_base_units:row.amount,merchant_name:detail.display_name,merchant_wallet:row.merchant_wallet,status:row.status==='open'&&row.expires_at.getTime()<=Date.now()?'expired':row.status,payment_id:detail.payment_id,confirmation_stage:'included_2_blocks',router:process.env.WHITECHAIN_ROUTER_ADDRESS??null,token:USDT_ADDRESS,chain_id:1874,expires_at:row.expires_at.toISOString(),return_url:row.return_url,delivery_status:detail.delivery_status,tx_hash:row.submitted_tx_hash};
+  const sponsorBuyerGas = process.env.SPONSOR_BUYER_GAS==='true' && /^0x[0-9a-fA-F]{64}$/.test(process.env.SPONSOR_RELAYER_PRIVATE_KEY ?? '');
+  return {reference,mode:row.mode,amount_base_units:row.amount,merchant_name:detail.display_name,merchant_wallet:row.merchant_wallet,status:row.status==='open'&&row.expires_at.getTime()<=Date.now()?'expired':row.status,payment_id:detail.payment_id,confirmation_stage:'included_2_blocks',router:process.env.WHITECHAIN_ROUTER_ADDRESS??null,token:USDT_ADDRESS,chain_id:1874,expires_at:row.expires_at.toISOString(),return_url:row.return_url,delivery_status:detail.delivery_status,tx_hash:row.submitted_tx_hash,sponsor_buyer_gas:sponsorBuyerGas};
 }
 function payable(row:CheckoutRow) {if(row.status!=='open'||row.refund_hold||row.expires_at.getTime()<=Date.now())throw new AppError('CHECKOUT_CLOSED',409,'This checkout is no longer available for a new payment.');}
 export async function requestPayerChallenge(db:Database,reference:string,addressInput:string,browserToken:string) {
@@ -87,4 +89,46 @@ export async function listPayments(db:Database,merchantId:string,id?:string) {
   const result=await db.pool.query(`select p.id,c.reference,c.order_id,c.amount::text as amount_base_units,c.status,'included_2_blocks' as confirmation_stage,c.risk_state,c.state_version,c.created_at,p.payer,p.tx_hash,(select status from webhook_deliveries where payment_id=p.id order by state_version desc limit 1) as delivery_status from payments p join checkout_sessions c on c.id=p.checkout_id where c.merchant_id=$1 ${id?'and p.id=$2':''} order by c.created_at desc limit 100`,id?[merchantId,id]:[merchantId]);
   if(id&&!result.rows[0])throw new AppError('PAYMENT_NOT_FOUND',404,'This payment was not found.');
   return id?{...result.rows[0],timeline:(await db.pool.query('select event_type,status,attempts,error_code,created_at,state_version from webhook_deliveries where payment_id=$1 order by state_version',[id])).rows}:{payments:result.rows};
+}
+
+const tokenAuthSchema = z.object({
+  validAfter: z.string().regex(/^\d+$/), validBefore: z.string().regex(/^\d+$/),
+  nonce: z.string().regex(/^0x[0-9a-fA-F]{64}$/),
+  v: z.number().int().min(0).max(255), r: z.string().regex(/^0x[0-9a-fA-F]{64}$/), s: z.string().regex(/^0x[0-9a-fA-F]{64}$/),
+}).strict();
+const relayInputSchema = z.object({
+  authorization: z.object({ invoiceId: z.string().regex(/^0x[0-9a-fA-F]{64}$/), payer: addressSchema, merchant: addressSchema, token: addressSchema, amount: baseUnitsSchema, evidence: z.string().regex(/^0x[0-9a-fA-F]{64}$/), epoch: z.string().regex(/^\d+$/), deadline: z.string().regex(/^\d+$/) }).strict(),
+  signature: z.string().regex(/^0x[0-9a-fA-F]+$/).max(4096),
+  tokenAuthorization: tokenAuthSchema,
+}).strict();
+
+export async function relaySponsoredCheckout(db:Database, reference:string, input:unknown) {
+  if(process.env.SPONSOR_BUYER_GAS!=='true') throw new AppError('SPONSOR_UNAVAILABLE',503,'Sponsored gas is not available. You can pay network gas with your wallet.');
+  const relayerKey = process.env.SPONSOR_RELAYER_PRIVATE_KEY as Hex | undefined;
+  if(!relayerKey || !/^0x[0-9a-fA-F]{64}$/.test(relayerKey)) throw new AppError('SPONSOR_UNAVAILABLE',503,'Sponsored gas is not configured. You can pay network gas with your wallet.');
+  const row=await checkoutRow(db,reference); payable(row);
+  const data = relayInputSchema.parse(input);
+  const auth = data.authorization;
+  if(auth.invoiceId.toLowerCase()!==row.invoice_id.toLowerCase() || auth.merchant.toLowerCase()!==row.merchant_wallet.toLowerCase() || auth.token.toLowerCase()!==USDT_ADDRESS.toLowerCase() || auth.amount!==row.amount) throw new AppError('AUTHORIZATION_MISMATCH',400,'This payment authorization does not match the checkout.');
+  const stored=(await db.pool.query<{payload:Record<string,string>;signature:string;router:string;payer:string}>('select payload,signature,router,payer from payment_authorizations where checkout_id=$1 and lower(payer)=$2 order by created_at desc limit 1',[row.id,auth.payer.toLowerCase()])).rows[0];
+  if(!stored || stored.signature.toLowerCase()!==data.signature.toLowerCase() || String(stored.payload.invoiceId).toLowerCase()!==auth.invoiceId.toLowerCase() || String(stored.payload.evidence).toLowerCase()!==auth.evidence.toLowerCase() || String(stored.payload.epoch)!==auth.epoch || String(stored.payload.deadline)!==auth.deadline) throw new AppError('AUTHORIZATION_INVALID',400,'This payment authorization is not valid for relay. Verify your wallet again.');
+  if(BigInt(auth.deadline)*1000n <= BigInt(Date.now()+3000)) throw new AppError('AUTHORIZATION_EXPIRED',409,'This payment authorization expired. Verify your wallet again.');
+  const ta = data.tokenAuthorization;
+  const now = Math.floor(Date.now()/1000);
+  if(BigInt(ta.validBefore) <= BigInt(now) || BigInt(ta.validAfter) > BigInt(now+30)) throw new AppError('TOKEN_AUTHORIZATION_INVALID',400,'The token authorization is expired or not yet valid. Sign again.');
+  const router = (process.env.WHITECHAIN_ROUTER_ADDRESS || stored.router) as Address;
+  if(!/^0x[0-9a-fA-F]{40}$/.test(router)) throw new AppError('CHECKOUT_UNAVAILABLE',503,'Payment routing is not configured.');
+  // Budget sponsor relay attempts.
+  await transaction(db, async sql => {
+    const budget=await sql.query<{count:number}>(`insert into request_budgets(key,count,reset_at) values($1,1,now()+interval '1 minute') on conflict(key) do update set count=case when request_budgets.reset_at<=now() then 1 else request_budgets.count+1 end,reset_at=case when request_budgets.reset_at<=now() then now()+interval '1 minute' else request_budgets.reset_at end returning count`,[`relay:${row.id}`]);
+    if(budget.rows[0].count>8) throw new AppError('RATE_LIMITED',429,'Too many sponsored attempts. Wait a minute or pay network gas with your wallet.');
+    const current=(await sql.query<CheckoutRow>('select * from checkout_sessions where id=$1 for update',[row.id])).rows[0]; payable(current);
+  });
+  const account = privateKeyToAccount(relayerKey);
+  const wallet = createWalletClient({ account, chain: whitechainSepolia, transport: http(runtimeConfig().rpc) });
+  const authorization = { invoiceId: auth.invoiceId as Hex, payer: auth.payer as Address, merchant: auth.merchant as Address, token: auth.token as Address, amount: BigInt(auth.amount), evidence: auth.evidence as Hex, epoch: BigInt(auth.epoch), deadline: BigInt(auth.deadline) };
+  const tokenAuthorization = { validAfter: BigInt(ta.validAfter), validBefore: BigInt(ta.validBefore), nonce: ta.nonce as Hex, v: ta.v, r: ta.r as Hex, s: ta.s as Hex };
+  const hash = await wallet.writeContract({ address: router, abi: routerAbi, functionName: 'payWithTransferAuthorization', args: [authorization, data.signature as Hex, tokenAuthorization], chain: whitechainSepolia });
+  await db.pool.query("update checkout_sessions set submitted_tx_hash=$2 where id=$1 and status='open' and submitted_tx_hash is null",[row.id,hash]);
+  return { submitted: true, sponsored: true, tx_hash: hash };
 }

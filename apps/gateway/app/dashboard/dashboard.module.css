@@ -7,3 +7,17 @@
 .chartAxis{display:flex;justify-content:space-between;gap:15px;color:#a5adbd;font-size:13px;line-height:1.8;margin:7px 0 0}
 
 .money,.stat>strong,.amount{font-variant-numeric:tabular-nums}.tableWrap{overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-gutter:stable}.tableWrap:focus-visible{outline:2px solid #a3f5c5;outline-offset:2px;border-radius:8px}.panel{min-width:0}.table td:first-child,.table th:first-child{white-space:nowrap}
+
+.panelTitleIcon{display:inline-flex;vertical-align:middle;margin-right:8px;color:#c4f7d9}
+.guideSteps{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:14px}
+.guideSteps li{display:flex;gap:14px;align-items:flex-start;padding:16px 17px;border:1px solid #282e39;border-radius:10px;background:#0e1219}
+.guideSteps li strong{display:block;font-size:14px;font-weight:600;color:#f5f7fa;line-height:1.5}
+.guideSteps li p{margin:6px 0 0;color:#a5adbd;font-size:13px;line-height:1.8;max-width:72ch}
+.guideStepMark{color:#8e98ab;flex-shrink:0;margin-top:1px}
+.guideStepDone{border-color:#31423a;background:#121a17}
+.guideStepDone .guideStepMark{color:#a3f5c5}
+.promptCallout{display:flex;gap:10px;align-items:flex-start;padding:14px 15px;border:1px solid #31423a;border-radius:9px;background:#121a17;color:#c4f7d9;font-size:13px;line-height:1.8;margin-bottom:16px}
+.promptCallout>svg{flex-shrink:0;margin-top:2px;color:#a3f5c5}
+.promptCallout p{margin:0;color:#c7d5e5}
+.promptBlock{max-height:520px;font-size:12.5px;line-height:1.75}
+@media(max-width:600px){.guideSteps li{padding:14px 15px}.promptBlock{max-height:420px;font-size:12px}}
